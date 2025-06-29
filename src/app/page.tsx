@@ -1,103 +1,151 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { Car } from 'lucide-react';
+import { useState } from 'react';
+import { MotorDate } from '@/components/MotorDate';
+import { ChatComponent } from '@/components/ChatComponent';
+
+// Main Page Component
+const Page: React.FC = () => {
+  const [beginndatum, setBeginnDatum] = useState('2024-01-01');
+  const [ablaufdatum, setAblaufDatum] = useState('2025-12-31');
+  const [erstzulassungsdatum, setErstzulassungsDatum] = useState('2020-06-15');
+  const [anmeldedatum, setAnmeldeDatum] = useState('2024-03-10');
+
+  const handleReset = () => {
+    setBeginnDatum('');
+    setAblaufDatum('');
+    setErstzulassungsDatum('');
+    setAnmeldeDatum('');
+  };
+
+  const handleSetToday = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setBeginnDatum(today);
+    setAblaufDatum(today);
+    setErstzulassungsDatum(today);
+    setAnmeldeDatum(today);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Left Column - Fahrzeug Datenverwaltung */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <div className="text-center mb-8">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Car className="w-8 h-8 text-blue-600" />
+                  <h1 className="text-3xl font-bold text-gray-800">
+                    Fahrzeug Datenverwaltung
+                  </h1>
+                </div>
+                <p className="text-gray-600">
+                  Verwalten Sie wichtige Fahrzeugdaten und Termine
+                </p>
+              </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <MotorDate
+                  value={beginndatum}
+                  onChange={setBeginnDatum}
+                  label="Beginndatum"
+                />
+
+                <MotorDate
+                  value={ablaufdatum}
+                  onChange={setAblaufDatum}
+                  label="Ablaufdatum"
+                />
+
+                <MotorDate
+                  value={erstzulassungsdatum}
+                  onChange={setErstzulassungsDatum}
+                  label="Erstzulassungsdatum"
+                  // disabled={true} // Beispiel für deaktiviertes Feld
+                />
+
+                <MotorDate
+                  value={anmeldedatum}
+                  onChange={setAnmeldeDatum}
+                  label="Anmeldedatum"
+                />
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Aktuelle Werte:
+                </h3>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Beginndatum:</span>
+                    <span className="text-gray-600">{beginndatum || 'Nicht gesetzt'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Ablaufdatum:</span>
+                    <span className="text-gray-600">{ablaufdatum || 'Nicht gesetzt'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Erstzulassungsdatum:</span>
+                    <span className="text-gray-600">{erstzulassungsdatum || 'Nicht gesetzt'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Anmeldedatum:</span>
+                    <span className="text-gray-600">{anmeldedatum || 'Nicht gesetzt'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 mt-6">
+                <button
+                  onClick={handleReset}
+                  className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200"
+                >
+                  Zurücksetzen
+                </button>
+                <button
+                  onClick={handleSetToday}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                >
+                  Heute setzen
+                </button>
+              </div>
+            </div>
+
+            {/* Beispiel mit deaktiviertem Feld */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Beispiel mit deaktiviertem Feld:
+              </h3>
+              <MotorDate
+                value="2020-01-01"
+                onChange={() => { }} // Dummy-Funktion für deaktiviertes Feld
+                label="Deaktiviertes Datum"
+                disabled={true}
+              />
+            </div>
+          </div>
+
+          {/* Right Column - Chat Component */}
+          <div className="lg:col-span-1">
+            <div className="h-full min-h-[700px]">
+              <ChatComponent
+                vehicleData={{
+                  beginndatum,
+                  ablaufdatum,
+                  erstzulassungsdatum,
+                  anmeldedatum
+                }}
+              />
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
-}
+};
+
+export default Page;
