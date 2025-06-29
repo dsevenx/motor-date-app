@@ -1,40 +1,90 @@
 "use client"
 import React, { useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
+import { ChatComponentProps, ChatMessage, FieldConfig } from '@/constants';
 
-// Chat Component
-interface ChatMessage {
-  id: number;
-  text: string;
-  isUser: boolean;
-  timestamp: Date;
-}
-
-interface ChatComponentProps {
-  vehicleData: {
-    beginndatum: string;
-    ablaufdatum: string;
-    erstzulassungsdatum: string;
-    anmeldedatum: string;
-  };
-}
-
-export const ChatComponent: React.FC<ChatComponentProps> = ({ vehicleData }) => {
+export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
-      text: "Wie kann ich Ihnen helfen?",
+      text: "Wie kann ich Ihnen helfen? Sie können mir zum Beispiel sagen: 'Ich habe mein Auto am 15.3.2024 gekauft'",
       isUser: false,
       timestamp: new Date()
     }
   ]);
-  const [inputMessage, setInputMessage] = useState<string>(''); // Expliziter Typ
+  const [inputMessage, setInputMessage] = useState<string>('');
   const [isTyping, setIsTyping] = useState(false);
+
+  // Datum aus Text extrahieren
+  const extractDateFromText = (text: string): string | null => {
+    // Verschiedene Datumsformate erkennen
+    const datePatterns = [
+      /(\d{1,2})\.(\d{1,2})\.(\d{4})/g, // DD.MM.YYYY
+      /(\d{1,2})\/(\d{1,2})\/(\d{4})/g, // DD/MM/YYYY
+      /(\d{4})-(\d{1,2})-(\d{1,2})/g,   // YYYY-MM-DD
+    ];
+
+    for (const pattern of datePatterns) {
+      const match = pattern.exec(text);
+      if (match) {
+        if (text.includes('.')) {
+          // DD.MM.YYYY Format
+          const day = match[1].padStart(2, '0');
+          const month = match[2].padStart(2, '0');
+          const year = match[3];
+          return `${year}-${month}-${day}`;
+        } else if (text.includes('/')) {
+          // DD/MM/YYYY Format  
+          const day = match[1].padStart(2, '0');
+          const month = match[2].padStart(2, '0');
+          const year = match[3];
+          return `${year}-${month}-${day}`;
+        } else {
+          // YYYY-MM-DD Format
+          return match[0];
+        }
+      }
+    }
+    return null;
+  };
+
+  // Feld basierend auf Synonymen identifizieren
+  const identifyField = (text: string): FieldConfig | null => {
+    const lowerText = text.toLowerCase();
+    
+    for (const fieldConfig of fieldConfigs) {
+      for (const synonym of fieldConfig.synonyms) {
+        if (lowerText.includes(synonym.toLowerCase())) {
+          return fieldConfig;
+        }
+      }
+    }
+    return null;
+  };
+
+  // KI-Antwort basierend auf Benutzereingabe generieren
+  const generateAIResponse = (userText: string): string => {
+    const extractedDate = extractDateFromText(userText);
+    const identifiedField = identifyField(userText);
+
+    if (extractedDate && identifiedField) {
+      // Datum aktualisieren
+      identifiedField.onChange(extractedDate);
+      
+      const formattedDate = new Date(extractedDate).toLocaleDateString('de-DE');
+      return `Verstanden! Ich habe das ${identifiedField.label} auf den ${formattedDate} gesetzt.`;
+    } else if (extractedDate && !identifiedField) {
+      return `Ich habe ein Datum (${new Date(extractedDate).toLocaleDateString('de-DE')}) erkannt, bin mir aber nicht sicher, zu welchem Feld es gehört. Könnten Sie präziser sein? Z.B. "Kaufdatum", "Erstzulassung", etc.`;
+    } else if (!extractedDate && identifiedField) {
+      return `Ich verstehe, dass es um das ${identifiedField.label} geht, aber ich konnte kein Datum erkennen. Bitte geben Sie das Datum im Format TT.MM.JJJJ an.`;
+    } else {
+      return getRandomResponse();
+    }
+  };
 
   const aiResponses = [
     "Wie kann ich Ihnen helfen?",
-    "Ich schaue mir Ihrer Fahrzeugdaten an",
-    "Ich sehe, dass Ihr Fahrzeug am " + (vehicleData.erstzulassungsdatum ? new Date(vehicleData.erstzulassungsdatum).toLocaleDateString('de-DE') : 'unbekannten Datum') + " erstmals zugelassen wurde.",
+    "Ich schaue mir Ihre Fahrzeugdaten an",
     "Basierend auf Ihren Daten kann ich Ihnen bei der Terminplanung helfen.",
     "Möchten Sie, dass ich die Gültigkeit Ihrer Fahrzeugdaten überprüfe?",
     "Ich kann Ihnen auch bei der Berechnung von Fristen behilflich sein.",
@@ -73,7 +123,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ vehicleData }) => 
     setTimeout(() => {
       const aiMessage: ChatMessage = {
         id: Date.now() + 1,
-        text: getRandomResponse(),
+        text: generateAIResponse(inputMessage),
         isUser: false,
         timestamp: new Date()
       };
@@ -86,6 +136,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ vehicleData }) => 
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isTyping) {
+      setInputMessage(e.target.value || '');
     }
   };
 
@@ -176,16 +232,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ vehicleData }) => 
         <div className="flex gap-2">
           <input
             type="text"
-            value={inputMessage || ''} // Sicherstellung dass nie undefined
-            onChange={(e) => setInputMessage(e.target.value || '')} // Fallback für leeren Wert
+            value={inputMessage}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             placeholder="Fragen Sie mich etwas..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             disabled={isTyping}
+            readOnly={isTyping}
           />
           <button
             onClick={handleSendMessage}
-            disabled={!inputMessage?.trim() || isTyping} // Optional chaining
+            disabled={!inputMessage?.trim() || isTyping}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200"
           >
             <Send className="w-4 h-4" />

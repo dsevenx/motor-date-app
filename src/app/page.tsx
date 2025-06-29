@@ -7,10 +7,10 @@ import { ChatComponent } from '@/components/ChatComponent';
 
 // Main Page Component
 const Page: React.FC = () => {
-  const [beginndatum, setBeginnDatum] = useState('2024-01-01');
-  const [ablaufdatum, setAblaufDatum] = useState('2025-12-31');
-  const [erstzulassungsdatum, setErstzulassungsDatum] = useState('2020-06-15');
-  const [anmeldedatum, setAnmeldeDatum] = useState('2024-03-10');
+  const [beginndatum, setBeginnDatum] = useState<string>('2024-01-01');
+  const [ablaufdatum, setAblaufDatum] = useState<string>('2025-12-31');
+  const [erstzulassungsdatum, setErstzulassungsDatum] = useState<string>('2020-06-15');
+  const [anmeldedatum, setAnmeldeDatum] = useState<string>('2024-03-10');
 
   const handleReset = () => {
     setBeginnDatum('');
@@ -18,6 +18,55 @@ const Page: React.FC = () => {
     setErstzulassungsDatum('');
     setAnmeldeDatum('');
   };
+
+  const handleUpdateVehicleData = (field: 'beginndatum' | 'ablaufdatum' | 'erstzulassungsdatum' | 'anmeldedatum', value: string) => {
+    switch (field) {
+      case 'beginndatum':
+        setBeginnDatum(value);
+        break;
+      case 'ablaufdatum':
+        setAblaufDatum(value);
+        break;
+      case 'erstzulassungsdatum':
+        setErstzulassungsDatum(value);
+        break;
+      case 'anmeldedatum':
+        setAnmeldeDatum(value);
+        break;
+    }
+  };
+
+  // Field Configs für Chat-Komponente
+  const fieldConfigs = [
+    {
+      fieldKey: 'beginndatum',
+      label: 'Beginndatum',
+      synonyms: ['beginndatum', 'startdatum', 'anfangsdatum', 'ab wann', 'von wann', 'vertragsbeginn', 'versicherungsbeginn', 'gültigkeitsbeginn'],
+      currentValue: beginndatum,
+      onChange: (value: string) => setBeginnDatum(value)
+    },
+    {
+      fieldKey: 'ablaufdatum', 
+      label: 'Ablaufdatum',
+      synonyms: ['ablaufdatum', 'enddatum', 'gültigkeitsende', 'bis wann', 'vertragsende', 'versicherungsende', 'läuft ab', 'endet', 'frist'],
+      currentValue: ablaufdatum,
+      onChange: (value: string) => setAblaufDatum(value)
+    },
+    {
+      fieldKey: 'erstzulassungsdatum',
+      label: 'Erstzulassungsdatum', 
+      synonyms: ['erstzulassung', 'erstmals zugelassen', 'zulassung', 'neuzulassung', 'zum ersten mal angemeldet', 'fahrzeug ist von'],
+      currentValue: erstzulassungsdatum,
+      onChange: (value: string) => setErstzulassungsDatum(value)
+    },
+    {
+      fieldKey: 'anmeldedatum',
+      label: 'Anmeldedatum',
+      synonyms: ['anmeldedatum', 'gekauft', 'erworben', 'auto gekauft', 'fahrzeug gekauft', 'kauf', 'kaufdatum', 'übernommen', 'angemeldet'],
+      currentValue: anmeldedatum,
+      onChange: (value: string) => setAnmeldeDatum(value)
+    }
+  ];
 
   const handleSetToday = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -53,18 +102,21 @@ const Page: React.FC = () => {
                   value={beginndatum}
                   onChange={setBeginnDatum}
                   label="Beginndatum"
+                  valueText4KiModell="Beginndatum, Startdatum, Anfangsdatum, ab wann, von wann, Vertragsbeginn, Versicherungsbeginn, Gültigkeitsbeginn"
                 />
 
                 <MotorDate
                   value={ablaufdatum}
                   onChange={setAblaufDatum}
                   label="Ablaufdatum"
+                  valueText4KiModell="Ablaufdatum, Enddatum, Gültigkeitsende, bis wann, Vertragsende, Versicherungsende, läuft ab, endet, Frist"
                 />
 
                 <MotorDate
                   value={erstzulassungsdatum}
                   onChange={setErstzulassungsDatum}
                   label="Erstzulassungsdatum"
+                  valueText4KiModell="Erstzulassung, erstmals zugelassen, Zulassung, Neuzulassung, zum ersten Mal angemeldet, Fahrzeug ist von"
                   // disabled={true} // Beispiel für deaktiviertes Feld
                 />
 
@@ -72,6 +124,7 @@ const Page: React.FC = () => {
                   value={anmeldedatum}
                   onChange={setAnmeldeDatum}
                   label="Anmeldedatum"
+                  valueText4KiModell="Anmeldedatum, gekauft, erworben, Auto gekauft, Fahrzeug gekauft, Kauf, Kaufdatum, übernommen, angemeldet"
                 />
               </div>
 
@@ -115,7 +168,7 @@ const Page: React.FC = () => {
               </div>
             </div>
 
-            {/* Beispiel mit deaktiviertem Feld 
+            {/* Beispiel mit deaktiviertem Feld */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 Beispiel mit deaktiviertem Feld:
@@ -126,20 +179,14 @@ const Page: React.FC = () => {
                 label="Deaktiviertes Datum"
                 disabled={true}
               />
-            </div> */}
+            </div>
           </div>
-         
 
           {/* Right Column - Chat Component */}
           <div className="lg:col-span-1">
             <div className="h-full min-h-[700px]">
               <ChatComponent
-                vehicleData={{
-                  beginndatum,
-                  ablaufdatum,
-                  erstzulassungsdatum,
-                  anmeldedatum
-                }}
+                fieldConfigs={fieldConfigs}
               />
             </div>
           </div>

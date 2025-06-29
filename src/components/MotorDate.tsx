@@ -43,7 +43,19 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
     }
   }, [value]);
 
+  // Handle input changes (required for controlled component)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Do nothing if disabled - React still needs this handler for controlled inputs
+    if (disabled) return;
+    
+    // For manual typing, we handle this in onKeyDown instead
+    // This handler is mainly to satisfy React's controlled component requirements
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Skip event handling if disabled
+    if (disabled) return;
+
     const input = e.currentTarget;
     const cursorPos = input.selectionStart || 0;
     const currentValue = inputValue;
@@ -115,6 +127,12 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
+    // Skip paste handling if disabled
+    if (disabled) {
+      e.preventDefault();
+      return;
+    }
+
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
     const numbers = pastedText.replace(/\D/g, '').substring(0, 8);
@@ -142,10 +160,12 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
         ref={inputRef}
         type="text"
         value={inputValue}
+        onChange={handleInputChange} // ← Hinzugefügt: React benötigt dies für controlled components
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
         placeholder="DD.MM.YYYY"
         disabled={disabled}
+        readOnly={disabled}
         className={`
           px-3 py-2 border border-gray-300 rounded-md shadow-sm
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
