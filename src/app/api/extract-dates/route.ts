@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { ClaudeResponse } from '@/constants';
 
-
 // Claude Client initialisieren
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -51,8 +50,11 @@ Antworte IMMER mit einem gültigen JSON-Objekt in diesem Format:
   "overallConfidence": 0.85,
   "validationErrors": ["Liste von Regelverstößen"],
   "suggestions": ["Verbesserungsvorschläge"],
-  "recognizedPhrases": ["Erkannte relevante Textteile"]
+  "recognizedPhrases": ["Erkannte relevante Textteile"],
+  "explanation": "Kurze Erläuterung der Extraktion"
 }
+
+WICHTIG: Antworte NUR mit dem JSON-Objekt, ohne zusätzlichen Text davor oder danach!
 
 CONFIDENCE-BEWERTUNG:
 - 1.0: Eindeutiges Datum mit klarem Feldverweis
@@ -63,6 +65,28 @@ CONFIDENCE-BEWERTUNG:
 
 Erkenne Daten in verschiedenen Formaten: DD.MM.YYYY, DD/MM/YYYY, DD.MM.YY, "am 1. Juli 2025", etc.
 Prüfe alle Geschäftsregeln und gib Warnungen aus.`;
+
+// Hilfsfunktion zum Extrahieren von JSON aus Text
+function extractJsonFromText(text: string): { json: string; explanation?: string } {
+  // Versuche zuerst, den gesamten Text als JSON zu parsen
+  try {
+    JSON.parse(text);
+    return { json: text };
+  } catch {
+    // Falls das nicht funktioniert, suche nach JSON-Block
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const jsonStr = jsonMatch[0];
+      // Text nach dem JSON als Erläuterung extrahieren
+      const afterJson = text.substring(jsonMatch.index! + jsonStr.length).trim();
+      return { 
+        json: jsonStr, 
+        explanation: afterJson || undefined 
+      };
+    }
+    throw new Error('Kein gültiges JSON gefunden');
+  }
+}
 
 export async function POST(request: NextRequest) {
   console.log('API Route wurde aufgerufen!');
@@ -113,14 +137,23 @@ Extrahiere nur die Daten, die im Text erwähnt sind. Bereits gesetzte Werte nich
     const responseText: string = responseContent.text;
     console.log('Claude Response Text:', responseText);
 
-    // JSON parsen mit Typisierung
+    // JSON aus Text extrahieren
     let extractedData: ClaudeResponse;
+    let explanation: string | undefined;
+    
     try {
-      extractedData = JSON.parse(responseText) as ClaudeResponse;
+      const { json, explanation: extractedExplanation } = extractJsonFromText(responseText);
+      extractedData = JSON.parse(json) as ClaudeResponse;
+      explanation = extractedExplanation;
 
       // Basis-Validierung der Response-Struktur
       if (!extractedData.extractedDates) {
         throw new Error('Fehlende extractedDates in Claude Response');
+      }
+
+      // Explanation aus dem JSON ins Objekt integrieren, falls nicht schon vorhanden
+      if (explanation && !extractedData.explanation) {
+        extractedData.explanation = explanation;
       }
 
     } catch (parseError: unknown) {

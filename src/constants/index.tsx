@@ -45,4 +45,5 @@ export interface ClaudeResponse {
   validationErrors: string[];
   suggestions: string[];
   recognizedPhrases: string[];
+  explanation: string;
 }
