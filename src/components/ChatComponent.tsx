@@ -71,6 +71,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       const aiData = result.data;
       let responseMessage = '';
 
+      // Aktuelle Werte vor der Aktualisierung speichern für Vergleich
+      const previousValues: Record<string, string> = {};
+      fieldConfigs.forEach(config => {
+        previousValues[config.fieldKey] = config.currentValue || '';
+      });
+
       // Extrahierte Daten verarbeiten und Felder aktualisieren
       const updatedFieldsWithValues: Array<{label: string, value: string, formattedValue: string}> = [];
       
@@ -79,18 +85,26 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
           // Passende FieldConfig finden
           const fieldConfig = fieldConfigs.find(config => config.fieldKey === fieldKey);
           if (fieldConfig) {
-            // Feld aktualisieren
-            fieldConfig.onChange(extractedDate.value);
+            const previousValue = previousValues[fieldKey];
+            const newValue = extractedDate.value;
             
-            // Werte für die Antwort speichern (die neuen Werte verwenden)
-            const formattedDate = new Date(extractedDate.value).toLocaleDateString('de-DE');
-            updatedFieldsWithValues.push({
-              label: fieldConfig.label,
-              value: extractedDate.value,
-              formattedValue: formattedDate
-            });
-            
-            console.log(`Updated ${fieldKey} to ${extractedDate.value} (formatted: ${formattedDate})`);
+            // Nur bei tatsächlicher Änderung zur Anzeige hinzufügen
+            if (previousValue !== newValue) {
+              // Feld aktualisieren
+              fieldConfig.onChange(newValue);
+              
+              // Werte für die Antwort speichern (nur die geänderten Werte)
+              const formattedDate = new Date(newValue).toLocaleDateString('de-DE');
+              updatedFieldsWithValues.push({
+                label: fieldConfig.label,
+                value: newValue,
+                formattedValue: formattedDate
+              });
+              
+              console.log(`Updated ${fieldKey} from "${previousValue}" to "${newValue}" (formatted: ${formattedDate})`);
+            } else {
+              console.log(`${fieldKey} unchanged: "${previousValue}"`);
+            }
           }
         }
       });
@@ -114,7 +128,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         }
 
       } else {
-        responseMessage = 'Ich konnte keine eindeutigen Datumsinformationen in Ihrer Nachricht erkennen. ';
+        responseMessage = 'Ich konnte keine neuen oder geänderten Datumsinformationen in Ihrer Nachricht erkennen. ';
         
         if (aiData.recognizedPhrases && aiData.recognizedPhrases.length > 0) {
           responseMessage += `Ich habe folgende Begriffe erkannt: ${aiData.recognizedPhrases.join(', ')}. `;
