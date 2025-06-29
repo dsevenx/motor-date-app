@@ -13,10 +13,10 @@ const Page: React.FC = () => {
   const [anmeldedatum, setAnmeldeDatum] = useState<string>('0001-01-01');
 
   const handleReset = () => {
-    setBeginnDatum('');
-    setAblaufDatum('');
-    setErstzulassungsDatum('');
-    setAnmeldeDatum('');
+    setBeginnDatum('0001-01-01');
+    setAblaufDatum('0001-01-01');
+    setErstzulassungsDatum('0001-01-01');
+    setAnmeldeDatum('0001-01-01');
   };
 
   const handleUpdateVehicleData = (field: 'beginndatum' | 'ablaufdatum' | 'erstzulassungsdatum' | 'anmeldedatum', value: string) => {

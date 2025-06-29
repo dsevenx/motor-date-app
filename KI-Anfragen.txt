@@ -58,3 +58,24 @@ Erwartet Antwort ist :
 aktualisiert: Beginndatum: 1.1.2026, Erstzulassungsdatum: 5.1.2026, Anmeldedatum: 5.1.2026
 
 Wir hatten gehofft das GESCHÄFTSREGEL: 6 den soll Effekt erreicht - wie sollten wir diese umformulieren
+
+------------------------------------------------------------------------------------------------------------
+ 
+Anfrage 5
+ 
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+Dann haben wir gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
+Mit dem Modell teste ich etwas und möchte das Verhalten noch etwas optimieren:
+
+Wenn man im Chat bereits ein Datum ermittelt hat, dann soll bei weiterer Chat Nutzung nur die wirklichen Aktualisierungen erwähnt werden.
+
+Kunde: Wir haben ab nächste Jahr ein Neues Auto. Der Auto-Hersteller hat 5. Januar versprochen.
+KI:
+Verstanden! Ich habe folgende Daten aktualisiert: Beginndatum: 5.1.2026, Erstzulassungsdatum: 5.1.2026, Anmeldedatum: 5.1.2026  ⚠️ Hinweise: Beginndatum wurde auf Anmeldedatum korrigiert (Regel 3)  💡 Vorschläge: Ablaufdatum sollte angegeben werden
+Kunde:
+Ok Ablaufdatum wäre der 1.7.2027
+KI
+Verstanden! Ich habe folgende Daten aktualisiert: Beginndatum: 5.1.2026, Ablaufdatum: 1.7.2027, Erstzulassungsdatum: 5.1.2026, Anmeldedatum: 5.1.2026
+18:29
+
+Es wäre gut wenn bei der letzten Antwort nur Ablaufdatum erwähnt wird da ja die Beginndatum,Anmeldedatum, Erstzulassungsgdatum nicht mehr geändert worden.
