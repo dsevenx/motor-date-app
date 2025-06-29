@@ -27,3 +27,22 @@ export interface ChatComponentProps {
   fieldConfigs: FieldConfig[];
 }
 
+// Interfaces für die API Response
+export interface ExtractedDate {
+  value: string | null;
+  confidence: number;
+  source: string;
+}
+
+export interface ClaudeResponse {
+  extractedDates: {
+    beginndatum: ExtractedDate;
+    ablaufdatum: ExtractedDate;
+    erstzulassungsdatum: ExtractedDate;
+    anmeldedatum: ExtractedDate;
+  };
+  overallConfidence: number;
+  validationErrors: string[];
+  suggestions: string[];
+  recognizedPhrases: string[];
+}

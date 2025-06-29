@@ -7,10 +7,10 @@ import { ChatComponent } from '@/components/ChatComponent';
 
 // Main Page Component
 const Page: React.FC = () => {
-  const [beginndatum, setBeginnDatum] = useState<string>('2024-01-01');
-  const [ablaufdatum, setAblaufDatum] = useState<string>('2025-12-31');
-  const [erstzulassungsdatum, setErstzulassungsDatum] = useState<string>('2020-06-15');
-  const [anmeldedatum, setAnmeldeDatum] = useState<string>('2024-03-10');
+  const [beginndatum, setBeginnDatum] = useState<string>('0001-01-01');
+  const [ablaufdatum, setAblaufDatum] = useState<string>('0001-01-01');
+  const [erstzulassungsdatum, setErstzulassungsDatum] = useState<string>('0001-01-01');
+  const [anmeldedatum, setAnmeldeDatum] = useState<string>('0001-01-01');
 
   const handleReset = () => {
     setBeginnDatum('');
