@@ -1,0 +1,60 @@
+Anfrage 1
+
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+
+Jetzt haben gemeinsam ein wir gern ein echtes KI-Modell anbinden. 
+Wir möchten das ein Satz wie "Mein Versicherung soll am 1.7.2025 beginnen und am 1.12.2025 enden.", 
+das das zu führt das ein Beginntdatum 1.7.2025 unfd ein Ablaufdatum 1.12.2025 ermittelt wird.
+
+Wir möchten dem Modell auch einige Regeln mit geben - wie :
+- Ablaufdatum soll grösser als Beginndatumdatum sein.
+- Erstzulassungsdatum soll kleiner als Anmeldedatum sein.
+- Anmeldedatum soll kleiner-gleich dem Beginndatum
+
+Welche KI-Modell empfiehlst Du, so das wir die 4 Datümer aus dem Anhang aus einem sprachlich formulierten Text ermittelt.
+Zur Zeit ist dies im Code nur programmatisch gelöst.
+
+Bitte lass uns erstmal beraten - Du sollst nicht gleich den Code verändern.
+--------------------------------------------------------------------------------------------------------------------------
+
+Anfrage 2
+
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+Jetzt haben gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
+
+Dieses Modell haben wir mit curl getestet.
+
+Jetzt möchten wir das Modell in unsere Anwendung intergriert wird. 
+Bitte pass mal die ChatComponent an. Die vorher manuell programmierte Datumsermittlung wird nicht benötigt.
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 3
+ 
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+Dann haben wir gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
+Mit dem Modell teste ich etwas und habe aktuell einen kleinen Antwort-ParseFehler:
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 4
+ 
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+Dann haben wir gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
+Mit dem Modell teste ich etwas und habe aktuell einen kleinen Fehler:
+Leider ist das Tagesdatum im Claude.ai Modell 2024 - wir haben heute aber den 29.6.2025. Kann man das Claude.ai via Systemprompt auf aktuelles Datum einstellen ?
+------------------------------------------------------------------------------------------------------------
+ 
+Anfrage 5
+ 
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+Dann haben wir gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
+Mit dem Modell teste ich etwas und möchte das SystemPrompt etwas optimieren:
+
+Die Anfrage ist :
+Wir haben ab nächste Jahr ein Neues Auto. Der Auto-Hersteller hat 5. Januar versprochen.
+
+Aktuelle Antwort ist:
+aktualisiert: Beginndatum: 1.1.2026, Erstzulassungsdatum: 5.1.2026, Anmeldedatum: 5.1.2026
+Erwartet Antwort ist :
+aktualisiert: Beginndatum: 1.1.2026, Erstzulassungsdatum: 5.1.2026, Anmeldedatum: 5.1.2026
+
+Wir hatten gehofft das GESCHÄFTSREGEL: 6 den soll Effekt erreicht - wie sollten wir diese umformulieren
