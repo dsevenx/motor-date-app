@@ -1,80 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { ClaudeResponse } from '@/constants';
+import { SYSTEM_PROMPT_FAHRZEUGDATEN } from '@/constants/systempromts';
 
 // Claude Client initialisieren
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const today = new Date();
-  const todayFormatted = today.toLocaleDateString('de-DE', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
-
-// System Prompt für Datumsextraktion
-const SYSTEM_PROMPT = `Du bist ein Experte für die Extraktion von Fahrzeug-Datumsinformationen aus deutschen Texten.
-
-WICHTIGE ZEITANGABE:
-Das heutige Datum ist der ${todayFormatted}. Verwende dieses Datum für alle Berechnungen und Validierungen.
-
-GESCHÄFTSREGELN:
-1. Ablaufdatum muss größer als Beginndatum sein
-2. Erstzulassungsdatum muss kleiner als Anmeldedatum sein  
-3. Anmeldedatum muss kleiner-gleich Beginndatum sein
-4. Wenn das Jahr nicht angegeben ist, dann bitte aktuelles Tagesdatum verwenden
-
-DATUMS-SYNONYME:
-- Beginndatum: Startdatum, Vertragsbeginn, ab wann, von wann, Versicherungsbeginn, Gültigkeitsbeginn
-- Ablaufdatum: Enddatum, bis wann, läuft ab, Vertragsende, Versicherungsende, Gültigkeitsende, Frist
-- Erstzulassungsdatum: Erstzulassung, erstmals zugelassen, Zulassung, Neuzulassung, zum ersten Mal angemeldet, Fahrzeug ist von
-- Anmeldedatum: gekauft, erworben, Auto gekauft, Fahrzeug gekauft, Kauf, Kaufdatum, übernommen, angemeldet
-
-AUSGABEFORMAT:
-Antworte IMMER mit einem gültigen JSON-Objekt in diesem Format:
-{
-  "extractedDates": {
-    "beginndatum": {
-      "value": "YYYY-MM-DD oder null",
-      "confidence": 0.95,
-      "source": "am 1.7.2025 beginnen"
-    },
-    "ablaufdatum": {
-      "value": "YYYY-MM-DD oder null",
-      "confidence": 0.90,
-      "source": "am 1.12.2025 enden"
-    },
-    "erstzulassungsdatum": {
-      "value": null,
-      "confidence": 0.0,
-      "source": ""
-    },
-    "anmeldedatum": {
-      "value": null,
-      "confidence": 0.0,
-      "source": ""
-    }
-  },
-  "overallConfidence": 0.85,
-  "validationErrors": ["Liste von Regelverstößen"],
-  "suggestions": ["Verbesserungsvorschläge"],
-  "recognizedPhrases": ["Erkannte relevante Textteile"],
-  "explanation": "Kurze Erläuterung der Extraktion"
-}
-
-WICHTIG: Antworte NUR mit dem JSON-Objekt, ohne zusätzlichen Text davor oder danach!
-
-CONFIDENCE-BEWERTUNG:
-- 1.0: Eindeutiges Datum mit klarem Feldverweis
-- 0.8-0.9: Datum klar, Feldverweis sehr wahrscheinlich
-- 0.6-0.7: Datum erkannt, Feldverweis unsicher
-- 0.3-0.5: Datum möglich, Feldverweis unklar
-- 0.0-0.2: Kein relevantes Datum gefunden
-
-Erkenne Daten in verschiedenen Formaten: DD.MM.YYYY, DD/MM/YYYY, DD.MM.YY, "am 1. Juli 2025", etc.
-Prüfe alle Geschäftsregeln und gib Warnungen aus.`;
+const SYSTEM_PROMPT = SYSTEM_PROMPT_FAHRZEUGDATEN;
 
 // Hilfsfunktion zum Extrahieren von JSON aus Text
 function extractJsonFromText(text: string): { json: string; explanation?: string } {
