@@ -15,6 +15,7 @@ GESCHÄFTSREGELN:
 1. Ablaufdatum muss größer als Beginndatum sein
 2. Erstzulassungsdatum muss kleiner als Anmeldedatum sein  
 3. Anmeldedatum muss kleiner-gleich Beginndatum sein
+4. Wenn das Jahr nicht angegeben ist, dann bitte aktuelles Tagesdatum verwenden
 
 DATUMS-SYNONYME:
 - Beginndatum: Startdatum, Vertragsbeginn, ab wann, von wann, Versicherungsbeginn, Gültigkeitsbeginn
