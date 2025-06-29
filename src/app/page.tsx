@@ -115,7 +115,7 @@ const Page: React.FC = () => {
               </div>
             </div>
 
-            {/* Beispiel mit deaktiviertem Feld */}
+            {/* Beispiel mit deaktiviertem Feld 
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 Beispiel mit deaktiviertem Feld:
@@ -126,8 +126,9 @@ const Page: React.FC = () => {
                 label="Deaktiviertes Datum"
                 disabled={true}
               />
-            </div>
+            </div> */}
           </div>
+         
 
           {/* Right Column - Chat Component */}
           <div className="lg:col-span-1">
