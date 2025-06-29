@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 import { ChatComponentProps, ChatMessage, ClaudeResponse } from '@/constants';
 
-
-
 interface ApiResponse {
   success: boolean;
   message?: string;
@@ -71,9 +69,10 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
 
       const aiData = result.data;
       let responseMessage = '';
-      let updatedFields: string[] = [];
 
       // Extrahierte Daten verarbeiten und Felder aktualisieren
+      const updatedFieldsWithValues: Array<{label: string, value: string, formattedValue: string}> = [];
+      
       Object.entries(aiData.extractedDates).forEach(([fieldKey, extractedDate]) => {
         if (extractedDate.value && extractedDate.confidence > 0.5) {
           // Passende FieldConfig finden
@@ -81,23 +80,25 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
           if (fieldConfig) {
             // Feld aktualisieren
             fieldConfig.onChange(extractedDate.value);
-            updatedFields.push(fieldConfig.label);
             
-            console.log(`Updated ${fieldKey} to ${extractedDate.value}`);
+            // Werte für die Antwort speichern (die neuen Werte verwenden)
+            const formattedDate = new Date(extractedDate.value).toLocaleDateString('de-DE');
+            updatedFieldsWithValues.push({
+              label: fieldConfig.label,
+              value: extractedDate.value,
+              formattedValue: formattedDate
+            });
+            
+            console.log(`Updated ${fieldKey} to ${extractedDate.value} (formatted: ${formattedDate})`);
           }
         }
       });
 
       // Response-Message generieren
-      if (updatedFields.length > 0) {
-        const formattedDates = updatedFields.map(fieldLabel => {
-          const fieldConfig = fieldConfigs.find(config => config.label === fieldLabel);
-          if (fieldConfig && fieldConfig.currentValue) {
-            const formattedDate = new Date(fieldConfig.currentValue).toLocaleDateString('de-DE');
-            return `${fieldLabel}: ${formattedDate}`;
-          }
-          return fieldLabel;
-        }).join(', ');
+      if (updatedFieldsWithValues.length > 0) {
+        const formattedDates = updatedFieldsWithValues.map(field => 
+          `${field.label}: ${field.formattedValue}`
+        ).join(', ');
 
         responseMessage = `Verstanden! Ich habe folgende Daten aktualisiert: ${formattedDates}`;
 
