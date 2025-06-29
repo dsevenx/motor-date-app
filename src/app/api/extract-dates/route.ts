@@ -7,8 +7,18 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const today = new Date();
+  const todayFormatted = today.toLocaleDateString('de-DE', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
 // System Prompt für Datumsextraktion
 const SYSTEM_PROMPT = `Du bist ein Experte für die Extraktion von Fahrzeug-Datumsinformationen aus deutschen Texten.
+
+WICHTIGE ZEITANGABE:
+Das heutige Datum ist der ${todayFormatted}. Verwende dieses Datum für alle Berechnungen und Validierungen.
 
 GESCHÄFTSREGELN:
 1. Ablaufdatum muss größer als Beginndatum sein
