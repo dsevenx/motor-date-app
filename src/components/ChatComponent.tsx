@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Info } from 'lucide-react';
 import { ChatComponentProps, ChatMessage, ClaudeResponse } from '@/constants';
 
 interface ApiResponse {
@@ -22,6 +22,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
   ]);
   const [inputMessage, setInputMessage] = useState<string>('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showExplanation, setShowExplanation] = useState<boolean>(false);
 
   // Aktuelle Werte für die API zusammenstellen
   const getCurrentValues = () => {
@@ -122,9 +123,20 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         responseMessage += 'Können Sie präziser sein? Zum Beispiel: "Das Auto wurde am 15.03.2024 gekauft" oder "Der Vertrag beginnt am 01.01.2025".';
       }
 
-      // Confidence Score anzeigen (für Debugging)
-      if (aiData.overallConfidence < 0.7) {
-        responseMessage += `\n\n(Sicherheit: ${Math.round(aiData.overallConfidence * 100)}%)`;
+      // Erläuterung und Confidence Score hinzufügen (wenn aktiviert)
+      if (showExplanation) {
+        // Confidence Score anzeigen
+        responseMessage += `\n\n📊 Sicherheit: ${Math.round(aiData.overallConfidence * 100)}%`;
+        
+        // Erläuterung hinzufügen, falls vorhanden
+        if (aiData.explanation) {
+          responseMessage += `\n\n💭 Erläuterung: ${aiData.explanation}`;
+        }
+      } else {
+        // Nur bei niedriger Confidence Score anzeigen (auch wenn Checkbox nicht aktiviert)
+        if (aiData.overallConfidence < 0.7) {
+          responseMessage += `\n\n📊 Sicherheit: ${Math.round(aiData.overallConfidence * 100)}%`;
+        }
       }
 
       return responseMessage;
@@ -206,9 +218,23 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
           <Bot className="w-6 h-6 text-white" />
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="font-semibold text-gray-800">Claude KI-Assistent</h3>
           <p className="text-sm text-gray-600">Powered by Anthropic Claude</p>
+        </div>
+        
+        {/* Explanation Checkbox */}
+        <div className="flex items-center gap-2">
+          <Info className="w-4 h-4 text-gray-500" />
+          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showExplanation}
+              onChange={(e) => setShowExplanation(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <span>Erläuterung anzeigen</span>
+          </label>
         </div>
       </div>
 
