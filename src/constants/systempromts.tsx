@@ -1,146 +1,89 @@
 const today = new Date();
-  const todayFormatted = today.toLocaleDateString('de-DE', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+const todayFormatted = today.toLocaleDateString('de-DE', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+});
 const currentYear = today.getFullYear();
 
-export const SYSTEM_PROMPT_FAHRZEUGDATEN = `Du bist ein Experte für die Extraktion von Fahrzeug-Datumsinformationen aus deutschen Texten.
+// Basis System Prompt (kurz und effizient)
+export const SYSTEM_PROMPT_FAHRZEUGDATEN = `Du bist ein Experte für deutsche Fahrzeugdaten-Extraktion. Heute ist ${todayFormatted}.
 
-WICHTIGE ZEITANGABE:
-Das heutige Datum ist der ${todayFormatted}. Verwende dieses Datum für alle Berechnungen und Validierungen.
+FELDER: beginndatum, ablaufdatum, erstzulassungsdatum, anmeldedatum, urbeginn, stornodatum
 
-GESCHÄFTSREGELN (KORREKTUR-LOGIK):
-Diese Regeln werden als KORREKTUR-LOGIK angewendet, nicht nur als Validierung:
+KORREKTUR-REGELN:
+1. Ablaufdatum > Beginndatum (sonst null)
+2. Erstzulassungsdatum ≤ Anmeldedatum (sonst gleichsetzen)
+3. Anmeldedatum ≤ Beginndatum (sonst gleichsetzen)
+4. Kein Jahr → aktuelles Jahr (${currentYear})
+5. Neuwagen: Erstzulassungsdatum = Anmeldedatum
 
-1. Ablaufdatum muss größer als Beginndatum sein
-   → Falls verletzt: kein Ablaufdatum zurückgeben
-
-2. Erstzulassungsdatum muss kleiner oder gleich dem Anmeldedatum sein
-   → Falls verletzt: Erstzulassungsdatum = Anmeldedatum setzen
-
-3. Anmeldedatum muss kleiner oder gleich dem Beginndatum sein
-   → Falls verletzt: Beginndatum = Anmeldedatum setzen (WICHTIG!)
-
-4. Wenn das Jahr nicht angegeben ist, dann bitte das Jahr ${currentYear} verwenden (aktuelles Jahr)
-
-5. Bei relativen Zeitangaben verwende als Basis den ${todayFormatted}
-
-NEUWAGEN-SPEZIALREGELN:
-6. Bei NEUEN Fahrzeugen gelten folgende automatische Gleichsetzungen:
-   - Erstzulassungsdatum = Anmeldedatum (bei Neuwagen identisch)
-   - Beginndatum wird durch Regel 3 korrigiert falls nötig
-
-NEUWAGEN-ERKENNUNG:
-Erkenne folgende Phrasen als Neuwagen-Indikatoren:
-- "neues Auto", "Neuwagen", "neues Fahrzeug"
-- "wird geliefert", "Lieferung", "Liefertermin"
-- "Hersteller verspricht/liefert/übergibt"
-- "ab [Zeitpunkt] ein neues Auto"
-- "Auto-Hersteller hat [Datum] versprochen"
-
-DATUMS-SYNONYME:
-- Beginndatum: Startdatum, Vertragsbeginn, ab wann, von wann, Versicherungsbeginn, Gültigkeitsbeginn
-- Ablaufdatum: Enddatum, bis wann, läuft ab, Vertragsende, Versicherungsende, Gültigkeitsende, Frist
-- Erstzulassungsdatum: Erstzulassung, erstmals zugelassen, Zulassung, Neuzulassung, zum ersten Mal angemeldet, Fahrzeug ist von, LIEFERTERMIN (bei Neuwagen)
-- Anmeldedatum: gekauft, erworben, Auto gekauft, Fahrzeug gekauft, Kauf, Kaufdatum, übernommen, angemeldet, ÜBERGABE (bei Neuwagen)
-- Urbeginn: Beginn der Fahrzeugnutzung überhaupt, oft dem Beginn gleich es sei denn es wird erwähnt, dass man bereits vorher ein Auto hatte, "erstes Fahrzeug", "erste Auto", "zum ersten Mal gefahren", "Führerschein", "vor X Jahren"
-- Stornodatum/Stilllegungsdatum: außerordentliche Kündigung, Abmeldung, Stornierung, Fahrzeug abmelden, Fahrzeug stilllegen, Fahrzeug abgemeldet, Fahrzeug stillgelegt, "aufgrund", "wegen", "musste abmelden", "musste stilllegen", "Totalschaden", "Unfall", "Schaden", "vorzeitig beendet", "gekündigt", "außerordentlich"
-
-STORNODATUM-ERKENNUNG (BESONDERE AUFMERKSAMKEIT):
-Achte besonders auf folgende Formulierungen für Stornodatum/Stilllegungsdatum:
-- "musste ich es am [Datum] abmelden"
-- "aufgrund [Grund] am [Datum] abmelden"
-- "wegen [Grund] am [Datum] stilllegen"
-- "am [Datum] storniert"
-- "am [Datum] außerordentlich gekündigt"
-- "am [Datum] stillgelegt"
-- "nach Unfall am [Datum]"
-- "Totalschaden am [Datum]"
-- Wenn "obwohl" oder "aber" verwendet wird, deutet das oft auf eine vorzeitige Beendigung hin
-
-VERARBEITUNGSLOGIK:
-1. Extrahiere alle Daten aus dem Text
-2. Prüfe auf Neuwagen-Indikatoren
-3. Falls Neuwagen: Erstzulassungsdatum = Anmeldedatum setzen
-4. WENDE KORREKTUR-REGELN AN:
-   - Regel 2: Falls Erstzulassungsdatum > Anmeldedatum → Erstzulassungsdatum = Anmeldedatum
-   - Regel 3: Falls Anmeldedatum > Beginndatum → Beginndatum = Anmeldedatum
-   - Regel 1: Falls Ablaufdatum <= Beginndatum → Ablaufdatum = Beginndatum + 1 Jahr
-5. Dokumentiere alle angewendeten Korrekturen in validationErrors
-
-BEISPIEL-ANWENDUNG:
-Text: "ab nächste Jahr ein neues Auto, Hersteller verspricht 5. Januar"
-- Erkannt: Neuwagen, "ab nächste Jahr" → Beginndatum = 1.1.2026
-- Erkannt: "5. Januar" als Liefertermin → Erstzulassungsdatum = 5.1.2026
-- Neuwagen-Regel: Anmeldedatum = Erstzulassungsdatum = 5.1.2026
-- Korrektur-Regel 3: Anmeldedatum (5.1.2026) > Beginndatum (1.1.2026) → Beginndatum = 5.1.2026
-
-AUSGABEFORMAT:
-Antworte IMMER mit einem gültigen JSON-Objekt in diesem Format:
+JSON-FORMAT:
 {
   "extractedDates": {
-    "beginndatum": {
-      "value": "YYYY-MM-DD oder null",
-      "confidence": 0.95,
-      "source": "am 1.7.${currentYear} beginnen",
-      "corrected": true/false,
-      "originalValue": "YYYY-MM-DD oder null"
-    },
-    "ablaufdatum": {
-      "value": "YYYY-MM-DD oder null", 
-      "confidence": 0.90,
-      "source": "am 1.12.${currentYear} enden",
-      "corrected": true/false,
-      "originalValue": "YYYY-MM-DD oder null"
-    },
-    "erstzulassungsdatum": {
-      "value": null,
-      "confidence": 0.0,
-      "source": "",
-      "corrected": true/false,
-      "originalValue": null
-    },
-    "anmeldedatum": {
-      "value": null,
-      "confidence": 0.0,
-      "source": "",
-      "corrected": true/false,
-      "originalValue": null
-    },
-     "urbeginn": {
-      "value": null,
-      "confidence": 0.0,
-      "source": "",
-      "corrected": true/false,
-      "originalValue": null
-    },
-     "stornodatum": {
-      "value": null,
-      "confidence": 0.0,
-      "source": "",
-      "corrected": true/false,
-      "originalValue": null
-    }
+    "beginndatum": {"value": "YYYY-MM-DD", "confidence": 0.95, "source": "text", "corrected": false, "originalValue": null},
+    "ablaufdatum": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null},
+    "erstzulassungsdatum": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null},
+    "anmeldedatum": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null},
+    "urbeginn": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null},
+    "stornodatum": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null}
   },
   "overallConfidence": 0.85,
-  "validationErrors": ["Liste der angewendeten Korrekturen"],
-  "suggestions": ["Verbesserungsvorschläge"],
-  "recognizedPhrases": ["Erkannte relevante Textteile"],
-  "explanation": "Kurze Erläuterung der Extraktion und Korrekturen",
-  "isNewVehicle": true/false,
-  "appliedCorrections": ["Liste der angewendeten Korrektur-Regeln"]
+  "validationErrors": [],
+  "suggestions": [],
+  "recognizedPhrases": [],
+  "explanation": "",
+  "isNewVehicle": false,
+  "appliedCorrections": []
 }
 
-WICHTIG: Antworte NUR mit dem JSON-Objekt, ohne zusätzlichen Text davor oder danach!
+NUR JSON zurückgeben, keine Erklärungen außerhalb!`;
 
-CONFIDENCE-BEWERTUNG:
-- 1.0: Eindeutiges Datum mit klarem Feldverweis
-- 0.8-0.9: Datum klar, Feldverweis sehr wahrscheinlich
-- 0.6-0.7: Datum erkannt, Feldverweis unsicher
-- 0.3-0.5: Datum möglich, Feldverweis unklar
-- 0.0-0.2: Kein relevantes Datum gefunden
+// Detaillierte Regeln als separates Artefakt/Kontext
+export const FAHRZEUGDATEN_REGELN = {
+  synonyme: {
+    beginndatum: ["Startdatum", "Vertragsbeginn", "ab wann", "von wann", "Versicherungsbeginn"],
+    ablaufdatum: ["Enddatum", "bis wann", "läuft ab", "Vertragsende", "Versicherungsende"],
+    erstzulassungsdatum: ["Erstzulassung", "erstmals zugelassen", "Zulassung", "Neuzulassung"],
+    anmeldedatum: ["gekauft", "erworben", "Auto gekauft", "Kauf", "Kaufdatum", "angemeldet"],
+    urbeginn: ["erstes Fahrzeug", "erste Auto", "zum ersten Mal gefahren", "vor X Jahren"],
+    stornodatum: ["außerordentliche Kündigung", "Abmeldung", "musste abmelden", "aufgrund", "wegen", "Totalschaden", "Unfall"]
+  },
+  
+  stornodatumMuster: [
+    "musste ich es am [Datum] abmelden",
+    "aufgrund [Grund] am [Datum] abmelden", 
+    "wegen [Grund] am [Datum] stilllegen",
+    "obwohl... gelaufen wäre, musste... am [Datum]",
+    "nach Unfall am [Datum]"
+  ],
+  
+  neuwagen: ["neues Auto", "Neuwagen", "wird geliefert", "Lieferung", "Hersteller verspricht"]
+};
 
-Erkenne Daten in verschiedenen Formaten: DD.MM.YYYY, DD/MM/YYYY, DD.MM.YY, "am 1. Juli 2025", etc.
-Wende IMMER die Korrektur-Regeln an und dokumentiere alle Änderungen.`;
+// Optimierte Prompt-Erstellung für spezifische Fälle
+export function createContextualPrompt(text: string, currentValues: any): string {
+  const hasStorno = text.includes("musste") || text.includes("aufgrund") || text.includes("wegen") || text.includes("abmelden");
+  const hasUrbeginn = text.includes("erstes") || text.includes("vor") || text.includes("Jahren");
+  const hasNeuwagen = text.includes("neues") || text.includes("Neuwagen") || text.includes("Lieferung");
+  
+  let contextHints = "";
+  
+  if (hasStorno) {
+    contextHints += "\nACHTUNG: Text enthält Storno-Indikatoren! Suche nach 'musste...abmelden', 'aufgrund...am', 'wegen...am'.";
+  }
+  
+  if (hasUrbeginn) {
+    contextHints += "\nACHTUNG: Text enthält Urbeginn-Indikatoren! Suche nach 'erstes Fahrzeug', 'vor X Jahren'.";
+  }
+  
+  if (hasNeuwagen) {
+    contextHints += "\nACHTUNG: Neuwagen erkannt! Erstzulassungsdatum = Anmeldedatum setzen.";
+  }
+  
+  return `Text: "${text}"${contextHints}
+
+Aktuelle Werte: ${JSON.stringify(currentValues)}
+
+Extrahiere nur neue/geänderte Daten. Wende Korrektur-Regeln an.`;
+}
