@@ -51,6 +51,8 @@ Aktuelle Feldwerte:
 - Ablaufdatum: ${currentValues.ablaufdatum || 'nicht gesetzt'}  
 - Erstzulassungsdatum: ${currentValues.erstzulassungsdatum || 'nicht gesetzt'}
 - Anmeldedatum: ${currentValues.anmeldedatum || 'nicht gesetzt'}
+- Urbeginn: ${currentValues.urbeginn || 'nicht gesetzt'}
+- Stornodatum/Stilllegung: ${currentValues.stornodatum || 'nicht gesetzt'}
 
 Extrahiere nur die Daten, die im Text erwähnt sind. Bereits gesetzte Werte nicht überschreiben, außer sie werden explizit im Text geändert.
 `;

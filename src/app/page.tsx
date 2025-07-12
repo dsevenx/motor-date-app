@@ -11,15 +11,19 @@ const Page: React.FC = () => {
   const [ablaufdatum, setAblaufDatum] = useState<string>('0001-01-01');
   const [erstzulassungsdatum, setErstzulassungsDatum] = useState<string>('0001-01-01');
   const [anmeldedatum, setAnmeldeDatum] = useState<string>('0001-01-01');
+  const [urbeginn, setUrbeginn] = useState<string>('0001-01-01');
+  const [stornodatum, setStornodatum] = useState<string>('0001-01-01');
 
   const handleReset = () => {
     setBeginnDatum('0001-01-01');
     setAblaufDatum('0001-01-01');
     setErstzulassungsDatum('0001-01-01');
     setAnmeldeDatum('0001-01-01');
+    setUrbeginn('0001-01-01');
+    setStornodatum('0001-01-01');
   };
 
-  const handleUpdateVehicleData = (field: 'beginndatum' | 'ablaufdatum' | 'erstzulassungsdatum' | 'anmeldedatum', value: string) => {
+  const handleUpdateVehicleData = (field: 'beginndatum' | 'ablaufdatum' | 'erstzulassungsdatum' | 'anmeldedatum' | 'urbeginn' | 'stornodatum', value: string) => {
     switch (field) {
       case 'beginndatum':
         setBeginnDatum(value);
@@ -32,6 +36,12 @@ const Page: React.FC = () => {
         break;
       case 'anmeldedatum':
         setAnmeldeDatum(value);
+        break;
+      case 'urbeginn':
+        setUrbeginn(value);
+        break;
+      case 'stornodatum':
+        setStornodatum(value);
         break;
     }
   };
@@ -46,7 +56,7 @@ const Page: React.FC = () => {
       onChange: (value: string) => setBeginnDatum(value)
     },
     {
-      fieldKey: 'ablaufdatum', 
+      fieldKey: 'ablaufdatum',
       label: 'Ablaufdatum',
       synonyms: ['ablaufdatum', 'enddatum', 'gültigkeitsende', 'bis wann', 'vertragsende', 'versicherungsende', 'läuft ab', 'endet', 'frist'],
       currentValue: ablaufdatum,
@@ -54,7 +64,7 @@ const Page: React.FC = () => {
     },
     {
       fieldKey: 'erstzulassungsdatum',
-      label: 'Erstzulassungsdatum', 
+      label: 'Erstzulassungsdatum',
       synonyms: ['erstzulassung', 'erstmals zugelassen', 'zulassung', 'neuzulassung', 'zum ersten mal angemeldet', 'fahrzeug ist von'],
       currentValue: erstzulassungsdatum,
       onChange: (value: string) => setErstzulassungsDatum(value)
@@ -65,6 +75,20 @@ const Page: React.FC = () => {
       synonyms: ['anmeldedatum', 'gekauft', 'erworben', 'auto gekauft', 'fahrzeug gekauft', 'kauf', 'kaufdatum', 'übernommen', 'angemeldet'],
       currentValue: anmeldedatum,
       onChange: (value: string) => setAnmeldeDatum(value)
+    },
+    {
+      fieldKey: 'urbeginn',
+      label: 'Urbeginn',
+      synonyms: ['urbeginn', 'ursprüngliche Beginn', 'startdatum des ersten vertrags', 'anfangsdatum des ersten vertrags', 'ursprünglicher vertragsbeginn'],
+      currentValue: urbeginn,
+      onChange: (value: string) => setUrbeginn(value)
+    },
+    {
+      fieldKey: 'stornodatum',
+      label: 'Stornodatum/Stilllegung',
+      synonyms: ['stornodatum', 'kündigungsdatum', 'stilllegung', 'abmeldung', 'vertrag beenden', 'vertrag kündigen'],
+      currentValue: stornodatum,
+      onChange: (value: string) => setStornodatum(value)
     }
   ];
 
@@ -74,6 +98,8 @@ const Page: React.FC = () => {
     setAblaufDatum(today);
     setErstzulassungsDatum(today);
     setAnmeldeDatum(today);
+    setUrbeginn(today);
+    setStornodatum(today);
   };
 
   return (
@@ -81,7 +107,7 @@ const Page: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
+
           {/* Left Column - Fahrzeug Datenverwaltung */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg p-8">
@@ -117,7 +143,7 @@ const Page: React.FC = () => {
                   onChange={setErstzulassungsDatum}
                   label="Erstzulassungsdatum"
                   valueText4KiModell="Erstzulassung, erstmals zugelassen, Zulassung, Neuzulassung, zum ersten Mal angemeldet, Fahrzeug ist von"
-                  // disabled={true} // Beispiel für deaktiviertes Feld
+                // disabled={true} // Beispiel für deaktiviertes Feld
                 />
 
                 <MotorDate
@@ -125,6 +151,18 @@ const Page: React.FC = () => {
                   onChange={setAnmeldeDatum}
                   label="Anmeldedatum"
                   valueText4KiModell="Anmeldedatum, gekauft, erworben, Auto gekauft, Fahrzeug gekauft, Kauf, Kaufdatum, übernommen, angemeldet"
+                />
+                <MotorDate
+                  value={urbeginn}
+                  onChange={setUrbeginn}
+                  label="Urbeginn"
+                  valueText4KiModell="Urbeginn, ursprüngliche Beginn, Startdatum des ersten Vertrags, Anfangsdatum des ersten Vertrags, ursprünglicher Vertragsbeginn"
+                />
+                <MotorDate
+                  value={stornodatum}
+                  onChange={setStornodatum}
+                  label="Stornodatum/Stilllegung"
+                  valueText4KiModell="Stornodatum, Kündigungsdatum, Stilllegung, Abmeldung, Vertrag beenden, Vertrag kündigen"
                 />
               </div>
 
@@ -148,6 +186,14 @@ const Page: React.FC = () => {
                   <div className="flex justify-between">
                     <span className="font-medium">Anmeldedatum:</span>
                     <span className="text-gray-600">{anmeldedatum || 'Nicht gesetzt'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Urbeginn:</span>
+                    <span className="text-gray-600">{urbeginn || 'Nicht gesetzt'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Stornodatum:</span>
+                    <span className="text-gray-600">{stornodatum || 'Nicht gesetzt'}</span>
                   </div>
                 </div>
               </div>

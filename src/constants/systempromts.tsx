@@ -45,6 +45,8 @@ DATUMS-SYNONYME:
 - Ablaufdatum: Enddatum, bis wann, läuft ab, Vertragsende, Versicherungsende, Gültigkeitsende, Frist
 - Erstzulassungsdatum: Erstzulassung, erstmals zugelassen, Zulassung, Neuzulassung, zum ersten Mal angemeldet, Fahrzeug ist von, LIEFERTERMIN (bei Neuwagen)
 - Anmeldedatum: gekauft, erworben, Auto gekauft, Fahrzeug gekauft, Kauf, Kaufdatum, übernommen, angemeldet, ÜBERGABE (bei Neuwagen)
+- Urbeginn: Beginn der Fahrzeugnutzung überhaupt, oft dem Beginn gleich es sei denn es wir erwähnt, das man bereits vorher ein Auto hatten
+- Stornodatum/Stilllegung: ausserordentliche Kündigung, abmeldung, stornierung , Fahrzeug abmelden, Fahrzeug stilllegen, Fahrzeug abgemeldet, Fahrzeug stillgelegt
 
 VERARBEITUNGSLOGIK:
 1. Extrahiere alle Daten aus dem Text
@@ -89,6 +91,20 @@ Antworte IMMER mit einem gültigen JSON-Objekt in diesem Format:
       "originalValue": null
     },
     "anmeldedatum": {
+      "value": null,
+      "confidence": 0.0,
+      "source": "",
+      "corrected": true/false,
+      "originalValue": null
+    },
+     "urbeginn": {
+      "value": null,
+      "confidence": 0.0,
+      "source": "",
+      "corrected": true/false,
+      "originalValue": null
+    },
+     "stornodatum/stillegungsdatum": {
       "value": null,
       "confidence": 0.0,
       "source": "",
