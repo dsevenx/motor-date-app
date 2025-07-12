@@ -45,8 +45,20 @@ DATUMS-SYNONYME:
 - Ablaufdatum: Enddatum, bis wann, läuft ab, Vertragsende, Versicherungsende, Gültigkeitsende, Frist
 - Erstzulassungsdatum: Erstzulassung, erstmals zugelassen, Zulassung, Neuzulassung, zum ersten Mal angemeldet, Fahrzeug ist von, LIEFERTERMIN (bei Neuwagen)
 - Anmeldedatum: gekauft, erworben, Auto gekauft, Fahrzeug gekauft, Kauf, Kaufdatum, übernommen, angemeldet, ÜBERGABE (bei Neuwagen)
-- Urbeginn: Beginn der Fahrzeugnutzung überhaupt, oft dem Beginn gleich es sei denn es wir erwähnt, das man bereits vorher ein Auto hatten
-- Stornodatum/Stilllegung: ausserordentliche Kündigung, abmeldung, stornierung , Fahrzeug abmelden, Fahrzeug stilllegen, Fahrzeug abgemeldet, Fahrzeug stillgelegt
+- Urbeginn: Beginn der Fahrzeugnutzung überhaupt, oft dem Beginn gleich es sei denn es wird erwähnt, dass man bereits vorher ein Auto hatte, "erstes Fahrzeug", "erste Auto", "zum ersten Mal gefahren", "Führerschein", "vor X Jahren"
+- Stornodatum/Stilllegungsdatum: außerordentliche Kündigung, Abmeldung, Stornierung, Fahrzeug abmelden, Fahrzeug stilllegen, Fahrzeug abgemeldet, Fahrzeug stillgelegt, "aufgrund", "wegen", "musste abmelden", "musste stilllegen", "Totalschaden", "Unfall", "Schaden", "vorzeitig beendet", "gekündigt", "außerordentlich"
+
+STORNODATUM-ERKENNUNG (BESONDERE AUFMERKSAMKEIT):
+Achte besonders auf folgende Formulierungen für Stornodatum/Stilllegungsdatum:
+- "musste ich es am [Datum] abmelden"
+- "aufgrund [Grund] am [Datum] abmelden"
+- "wegen [Grund] am [Datum] stilllegen"
+- "am [Datum] storniert"
+- "am [Datum] außerordentlich gekündigt"
+- "am [Datum] stillgelegt"
+- "nach Unfall am [Datum]"
+- "Totalschaden am [Datum]"
+- Wenn "obwohl" oder "aber" verwendet wird, deutet das oft auf eine vorzeitige Beendigung hin
 
 VERARBEITUNGSLOGIK:
 1. Extrahiere alle Daten aus dem Text
@@ -104,7 +116,7 @@ Antworte IMMER mit einem gültigen JSON-Objekt in diesem Format:
       "corrected": true/false,
       "originalValue": null
     },
-     "stornodatum/stillegungsdatum": {
+     "stornodatum": {
       "value": null,
       "confidence": 0.0,
       "source": "",

@@ -52,9 +52,11 @@ Aktuelle Feldwerte:
 - Erstzulassungsdatum: ${currentValues.erstzulassungsdatum || 'nicht gesetzt'}
 - Anmeldedatum: ${currentValues.anmeldedatum || 'nicht gesetzt'}
 - Urbeginn: ${currentValues.urbeginn || 'nicht gesetzt'}
-- Stornodatum/Stilllegung: ${currentValues.stornodatum || 'nicht gesetzt'}
+- Stornodatum: ${currentValues.stornodatum || 'nicht gesetzt'}
 
 Extrahiere nur die Daten, die im Text erwähnt sind. Bereits gesetzte Werte nicht überschreiben, außer sie werden explizit im Text geändert.
+
+WICHTIG: Achte besonders auf das Stornodatum! Formulierungen wie "musste ich es am [Datum] abmelden", "aufgrund [Grund] am [Datum]", "wegen [Grund] am [Datum]" deuten auf ein Stornodatum hin.
 `;
 
     console.log('Sende Request an Claude...');
