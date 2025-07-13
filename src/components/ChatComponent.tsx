@@ -1,15 +1,17 @@
 "use client"
 import React, { useState } from 'react';
 import { Send, Bot, User, Info } from 'lucide-react';
-import { ChatComponentProps, ChatMessage, ClaudeResponse } from '@/constants';
-
-interface ApiResponse {
-  success: boolean;
-  message?: string;
-  data?: ClaudeResponse;
-  error?: string;
-  details?: string;
-}
+import { 
+  ApiResponse, 
+  ChatComponentProps, 
+  ChatMessage, 
+  ClaudeResponse,
+  ExtractedFieldValue,
+  validateFieldValue,
+  formatValueForDisplay,
+  convertValueToFieldType
+} from '@/constants';
+import { FieldDefinition, getFieldByKey } from '@/constants/fieldConfig';
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -25,12 +27,158 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
   const [showExplanation, setShowExplanation] = useState<boolean>(false);
 
   // Aktuelle Werte für die API zusammenstellen
-  const getCurrentValues = () => {
+  const getCurrentValues = (): Record<string, string> => {
     const currentValues: Record<string, string> = {};
     fieldConfigs.forEach(config => {
       currentValues[config.fieldKey] = config.currentValue || '';
     });
     return currentValues;
+  };
+
+  // Sichere Extraktion der Daten mit Null-Checks
+  const processExtractedData = (aiData: ClaudeResponse): Array<{label: string, value: string, formattedValue: string}> => {
+    const updatedFieldsWithValues: Array<{label: string, value: string, formattedValue: string}> = [];
+    
+    // Null-Check für extractedData
+    if (!aiData.extractedData || typeof aiData.extractedData !== 'object') {
+      console.warn('extractedData ist null, undefined oder kein Objekt:', aiData.extractedData);
+      return updatedFieldsWithValues;
+    }
+
+    // Aktuelle Werte vor der Aktualisierung speichern für Vergleich
+    const previousValues: Record<string, string> = {};
+    fieldConfigs.forEach(config => {
+      previousValues[config.fieldKey] = config.currentValue || '';
+    });
+
+    // Sichere Iteration über extractedData
+    try {
+      Object.entries(aiData.extractedData).forEach(([fieldKey, extractedValue]) => {
+        // Null-Check für extractedValue
+        if (!extractedValue || typeof extractedValue !== 'object') {
+          console.warn(`Ungültiger extractedValue für ${fieldKey}:`, extractedValue);
+          return;
+        }
+
+        const typedExtractedValue = extractedValue as ExtractedFieldValue;
+        
+        // Confidence-Check
+        if (!typedExtractedValue.value || typedExtractedValue.confidence <= 0.5) {
+          console.log(`Überspringe ${fieldKey} - niedrige Confidence oder kein Wert:`, typedExtractedValue);
+          return;
+        }
+
+        // Passende FieldConfig finden
+        const fieldConfig = fieldConfigs.find(config => config.fieldKey === fieldKey);
+        if (!fieldConfig) {
+          console.warn(`Keine FieldConfig gefunden für ${fieldKey}`);
+          return;
+        }
+
+        const previousValue = previousValues[fieldKey];
+        
+        // Wert konvertieren basierend auf Feldtyp
+        let newValue: string;
+        try {
+          const convertedValue = convertValueToFieldType(typedExtractedValue.value, fieldConfig.type);
+          newValue = String(convertedValue);
+        } catch (conversionError) {
+          console.error(`Fehler bei Typkonvertierung für ${fieldKey}:`, conversionError);
+          newValue = String(typedExtractedValue.value);
+        }
+
+        // Validierung
+        const validationResult = validateFieldValue(fieldConfig, newValue);
+        if (!validationResult.isValid) {
+          console.warn(`Validierungsfehler für ${fieldKey}:`, validationResult.errors);
+          // Optional: Trotzdem setzen oder überspringen
+          // return;
+        }
+
+        // Nur bei tatsächlicher Änderung zur Anzeige hinzufügen
+        if (previousValue !== newValue) {
+          try {
+            // Feld aktualisieren
+            fieldConfig.onChange(newValue);
+            
+            // Formatierung für die Anzeige
+            const formattedValue = formatValueForDisplay(newValue, fieldConfig.type);
+            
+            // Werte für die Antwort speichern (nur die geänderten Werte)
+            updatedFieldsWithValues.push({
+              label: fieldConfig.label,
+              value: newValue,
+              formattedValue: formattedValue
+            });
+            
+            console.log(`Updated ${fieldKey} from "${previousValue}" to "${newValue}" (formatted: ${formattedValue})`);
+          } catch (updateError) {
+            console.error(`Fehler beim Aktualisieren von ${fieldKey}:`, updateError);
+          }
+        } else {
+          console.log(`${fieldKey} unchanged: "${previousValue}"`);
+        }
+      });
+    } catch (iterationError) {
+      console.error('Fehler beim Iterieren über extractedData:', iterationError);
+    }
+
+    return updatedFieldsWithValues;
+  };
+
+  // Response-Message generieren
+  const generateResponseMessage = (
+    updatedFieldsWithValues: Array<{label: string, value: string, formattedValue: string}>,
+    aiData: ClaudeResponse
+  ): string => {
+    let responseMessage = '';
+
+    if (updatedFieldsWithValues.length > 0) {
+      const formattedDates = updatedFieldsWithValues.map(field => 
+        `${field.label}: ${field.formattedValue}`
+      ).join(', ');
+
+      responseMessage = `Verstanden! Ich habe folgende Daten aktualisiert: ${formattedDates}`;
+
+      // Validation Errors hinzufügen
+      if (aiData.validationErrors && Array.isArray(aiData.validationErrors) && aiData.validationErrors.length > 0) {
+        responseMessage += `\n\n⚠️ Hinweise: ${aiData.validationErrors.join(', ')}`;
+      }
+
+      // Suggestions hinzufügen
+      if (aiData.suggestions && Array.isArray(aiData.suggestions) && aiData.suggestions.length > 0) {
+        responseMessage += `\n\n💡 Vorschläge: ${aiData.suggestions.join(', ')}`;
+      }
+
+    } else {
+      responseMessage = 'Ich konnte keine neuen oder geänderten Datumsinformationen in Ihrer Nachricht erkennen. ';
+      
+      if (aiData.recognizedPhrases && Array.isArray(aiData.recognizedPhrases) && aiData.recognizedPhrases.length > 0) {
+        responseMessage += `Ich habe folgende Begriffe erkannt: ${aiData.recognizedPhrases.join(', ')}. `;
+      }
+      
+      responseMessage += 'Können Sie präziser sein? Zum Beispiel: "Das Auto wurde am 15.03.2024 gekauft" oder "Der Vertrag beginnt am 01.01.2025".';
+    }
+
+    // Erläuterung und Confidence Score hinzufügen (wenn aktiviert)
+    if (showExplanation) {
+      // Confidence Score anzeigen
+      const confidenceScore = typeof aiData.overallConfidence === 'number' ? aiData.overallConfidence : 0;
+      responseMessage += `\n\n📊 Sicherheit: ${Math.round(confidenceScore * 100)}%`;
+      
+      // Erläuterung hinzufügen, falls vorhanden
+      if (aiData.explanation && typeof aiData.explanation === 'string') {
+        responseMessage += `\n\n💭 Erläuterung: ${aiData.explanation}`;
+      }
+    } else {
+      // Nur bei niedriger Confidence Score anzeigen (auch wenn Checkbox nicht aktiviert)
+      const confidenceScore = typeof aiData.overallConfidence === 'number' ? aiData.overallConfidence : 0;
+      if (confidenceScore < 0.7) {
+        responseMessage += `\n\n📊 Sicherheit: ${Math.round(confidenceScore * 100)}%`;
+      }
+    }
+
+    return responseMessage;
   };
 
   // KI-Antwort über API generieren
@@ -56,102 +204,51 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       console.log('API Response Status:', response.status);
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API Error:', errorData);
-        return `Entschuldigung, es gab einen Fehler bei der Verarbeitung: ${errorData.error || 'Unbekannter Fehler'}`;
+        let errorMessage = 'Unbekannter Fehler';
+        try {
+          const errorData = await response.json();
+          console.error('API Error:', errorData);
+          errorMessage = errorData.error || errorMessage;
+        } catch (jsonError) {
+          console.error('Fehler beim Parsen der Error-Response:', jsonError);
+        }
+        return `Entschuldigung, es gab einen Fehler bei der Verarbeitung: ${errorMessage}`;
       }
 
-      const result: ApiResponse = await response.json();
+      let result: ApiResponse;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        console.error('Fehler beim Parsen der API-Response:', jsonError);
+        return 'Entschuldigung, die API-Antwort konnte nicht verarbeitet werden.';
+      }
+
       console.log('API Result:', result);
 
-      if (!result.success || !result.data) {
-        return `Es gab ein Problem bei der Analyse: ${result.error || 'Keine Daten erhalten'}`;
+      // Validierung der API-Response
+      if (!result || typeof result !== 'object') {
+        console.error('API-Response ist null oder kein Objekt:', result);
+        return 'Entschuldigung, die API-Antwort ist ungültig.';
+      }
+
+      if (!result.success) {
+        const errorMsg = result.error || 'Unbekannter API-Fehler';
+        console.error('API Success=false:', errorMsg);
+        return `Es gab ein Problem bei der Analyse: ${errorMsg}`;
+      }
+
+      if (!result.data) {
+        console.error('API-Response hat keine Daten:', result);
+        return 'Es gab ein Problem bei der Analyse: Keine Daten erhalten';
       }
 
       const aiData = result.data;
-      let responseMessage = '';
-
-      // Aktuelle Werte vor der Aktualisierung speichern für Vergleich
-      const previousValues: Record<string, string> = {};
-      fieldConfigs.forEach(config => {
-        previousValues[config.fieldKey] = config.currentValue || '';
-      });
-
-      // Extrahierte Daten verarbeiten und Felder aktualisieren
-      const updatedFieldsWithValues: Array<{label: string, value: string, formattedValue: string}> = [];
       
-      Object.entries(aiData.extractedDates).forEach(([fieldKey, extractedDate]) => {
-        if (extractedDate.value && extractedDate.confidence > 0.5) {
-          // Passende FieldConfig finden
-          const fieldConfig = fieldConfigs.find(config => config.fieldKey === fieldKey);
-          if (fieldConfig) {
-            const previousValue = previousValues[fieldKey];
-            const newValue = extractedDate.value;
-            
-            // Nur bei tatsächlicher Änderung zur Anzeige hinzufügen
-            if (previousValue !== newValue) {
-              // Feld aktualisieren
-              fieldConfig.onChange(newValue);
-              
-              // Werte für die Antwort speichern (nur die geänderten Werte)
-              const formattedDate = new Date(newValue).toLocaleDateString('de-DE');
-              updatedFieldsWithValues.push({
-                label: fieldConfig.label,
-                value: newValue,
-                formattedValue: formattedDate
-              });
-              
-              console.log(`Updated ${fieldKey} from "${previousValue}" to "${newValue}" (formatted: ${formattedDate})`);
-            } else {
-              console.log(`${fieldKey} unchanged: "${previousValue}"`);
-            }
-          }
-        }
-      });
-
+      // Daten verarbeiten
+      const updatedFieldsWithValues = processExtractedData(aiData);
+      
       // Response-Message generieren
-      if (updatedFieldsWithValues.length > 0) {
-        const formattedDates = updatedFieldsWithValues.map(field => 
-          `${field.label}: ${field.formattedValue}`
-        ).join(', ');
-
-        responseMessage = `Verstanden! Ich habe folgende Daten aktualisiert: ${formattedDates}`;
-
-        // Validation Errors hinzufügen
-        if (aiData.validationErrors && aiData.validationErrors.length > 0) {
-          responseMessage += `\n\n⚠️ Hinweise: ${aiData.validationErrors.join(', ')}`;
-        }
-
-        // Suggestions hinzufügen
-        if (aiData.suggestions && aiData.suggestions.length > 0) {
-          responseMessage += `\n\n💡 Vorschläge: ${aiData.suggestions.join(', ')}`;
-        }
-
-      } else {
-        responseMessage = 'Ich konnte keine neuen oder geänderten Datumsinformationen in Ihrer Nachricht erkennen. ';
-        
-        if (aiData.recognizedPhrases && aiData.recognizedPhrases.length > 0) {
-          responseMessage += `Ich habe folgende Begriffe erkannt: ${aiData.recognizedPhrases.join(', ')}. `;
-        }
-        
-        responseMessage += 'Können Sie präziser sein? Zum Beispiel: "Das Auto wurde am 15.03.2024 gekauft" oder "Der Vertrag beginnt am 01.01.2025".';
-      }
-
-      // Erläuterung und Confidence Score hinzufügen (wenn aktiviert)
-      if (showExplanation) {
-        // Confidence Score anzeigen
-        responseMessage += `\n\n📊 Sicherheit: ${Math.round(aiData.overallConfidence * 100)}%`;
-        
-        // Erläuterung hinzufügen, falls vorhanden
-        if (aiData.explanation) {
-          responseMessage += `\n\n💭 Erläuterung: ${aiData.explanation}`;
-        }
-      } else {
-        // Nur bei niedriger Confidence Score anzeigen (auch wenn Checkbox nicht aktiviert)
-        if (aiData.overallConfidence < 0.7) {
-          responseMessage += `\n\n📊 Sicherheit: ${Math.round(aiData.overallConfidence * 100)}%`;
-        }
-      }
+      const responseMessage = generateResponseMessage(updatedFieldsWithValues, aiData);
 
       return responseMessage;
 

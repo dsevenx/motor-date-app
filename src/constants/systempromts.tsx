@@ -1,3 +1,10 @@
+import { 
+  FIELD_DEFINITIONS, 
+  getAllSynonyms, 
+  getValidationRules, 
+  getFieldsByType 
+} from '@/constants/fieldConfig';
+
 const today = new Date();
 const todayFormatted = today.toLocaleDateString('de-DE', {
   day: 'numeric',
@@ -6,28 +13,45 @@ const todayFormatted = today.toLocaleDateString('de-DE', {
 });
 const currentYear = today.getFullYear();
 
-// Basis System Prompt (kurz und effizient)
-export const SYSTEM_PROMPT_FAHRZEUGDATEN = `Du bist ein Experte für deutsche Fahrzeugdaten-Extraktion. Heute ist ${todayFormatted}.
+// Dynamische Generierung des System Prompts
+export const SYSTEM_PROMPT_FAHRZEUGDATEN = (() => {
+  const fieldKeys = FIELD_DEFINITIONS.map(field => field.key).join(', ');
+  const correctionRules = getValidationRules();
+  
+  // Generiere Korrektur-Regeln String
+  const correctionRulesText = Object.entries(correctionRules)
+    .map(([key, rules]) => rules.map(rule => `${key}: ${rule}`))
+    .flat()
+    .join('\n');
 
-FELDER: beginndatum, ablaufdatum, erstzulassungsdatum, anmeldedatum, urbeginn, stornodatum
+  // Generiere JSON-Schema dynamisch
+  const jsonSchema = FIELD_DEFINITIONS.reduce((schema, field) => {
+    const defaultValue = field.type === 'date' ? null : 
+                        field.type === 'number' ? 0 : 
+                        field.type === 'boolean' ? false : null;
+    
+    schema[field.key] = {
+      value: defaultValue,
+      confidence: 0.0,
+      source: "",
+      corrected: false,
+      originalValue: null
+    };
+    return schema;
+  }, {} as Record<string, any>);
+
+  return `Du bist ein Experte für deutsche Fahrzeugdaten-Extraktion. Heute ist ${todayFormatted}.
+
+FELDER: ${fieldKeys}
 
 KORREKTUR-REGELN:
-1. Ablaufdatum > Beginndatum (sonst null)
-2. Erstzulassungsdatum ≤ Anmeldedatum (sonst gleichsetzen)
-3. Anmeldedatum ≤ Beginndatum (sonst gleichsetzen)
-4. Kein Jahr → aktuelles Jahr (${currentYear})
-5. Neuwagen: Erstzulassungsdatum = Anmeldedatum
+${correctionRulesText}
+- Kein Jahr → aktuelles Jahr (${currentYear})
+- Neuwagen: Erstzulassungsdatum = Anmeldedatum
 
 JSON-FORMAT:
 {
-  "extractedDates": {
-    "beginndatum": {"value": "YYYY-MM-DD", "confidence": 0.95, "source": "text", "corrected": false, "originalValue": null},
-    "ablaufdatum": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null},
-    "erstzulassungsdatum": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null},
-    "anmeldedatum": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null},
-    "urbeginn": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null},
-    "stornodatum": {"value": null, "confidence": 0.0, "source": "", "corrected": false, "originalValue": null}
-  },
+  "extractedData": ${JSON.stringify(jsonSchema, null, 2)},
   "overallConfidence": 0.85,
   "validationErrors": [],
   "suggestions": [],
@@ -38,17 +62,11 @@ JSON-FORMAT:
 }
 
 NUR JSON zurückgeben, keine Erklärungen außerhalb!`;
+})();
 
-// Detaillierte Regeln als separates Artefakt/Kontext
+// Dynamische Synonyme basierend auf Konfiguration
 export const FAHRZEUGDATEN_REGELN = {
-  synonyme: {
-    beginndatum: ["Startdatum", "Vertragsbeginn", "ab wann", "von wann", "Versicherungsbeginn"],
-    ablaufdatum: ["Enddatum", "bis wann", "läuft ab", "Vertragsende", "Versicherungsende"],
-    erstzulassungsdatum: ["Erstzulassung", "erstmals zugelassen", "Zulassung", "Neuzulassung"],
-    anmeldedatum: ["gekauft", "erworben", "Auto gekauft", "Kauf", "Kaufdatum", "angemeldet"],
-    urbeginn: ["erstes Fahrzeug", "erste Auto", "zum ersten Mal gefahren", "vor X Jahren"],
-    stornodatum: ["außerordentliche Kündigung", "Abmeldung", "musste abmelden", "aufgrund", "wegen", "Totalschaden", "Unfall"]
-  },
+  synonyme: getAllSynonyms(),
   
   stornodatumMuster: [
     "musste ich es am [Datum] abmelden",
@@ -81,9 +99,51 @@ export function createContextualPrompt(text: string, currentValues: any): string
     contextHints += "\nACHTUNG: Neuwagen erkannt! Erstzulassungsdatum = Anmeldedatum setzen.";
   }
   
+  // Dynamische Feld-Hinweise basierend auf Konfiguration
+  FIELD_DEFINITIONS.forEach(field => {
+    if (field.ai?.context && field.synonyms.some(synonym => text.toLowerCase().includes(synonym.toLowerCase()))) {
+      contextHints += `\nKONTEXT ${field.key}: ${field.ai.context}`;
+    }
+  });
+  
   return `Text: "${text}"${contextHints}
 
 Aktuelle Werte: ${JSON.stringify(currentValues)}
 
 Extrahiere nur neue/geänderte Daten. Wende Korrektur-Regeln an.`;
+}
+
+// Hilfsfunktion für die Validierung der extrahierten Daten
+export function validateExtractedData(extractedData: any): string[] {
+  const errors: string[] = [];
+  
+  FIELD_DEFINITIONS.forEach(field => {
+    const value = extractedData[field.key]?.value;
+    
+    if (field.required && !value) {
+      errors.push(`${field.label} ist ein Pflichtfeld`);
+    }
+    
+    if (field.type === 'date' && value) {
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        errors.push(`${field.label} enthält ein ungültiges Datum`);
+      }
+    }
+    
+    if (field.type === 'number' && value !== null) {
+      const num = Number(value);
+      if (isNaN(num)) {
+        errors.push(`${field.label} muss eine Zahl sein`);
+      }
+      if (field.validation?.min !== undefined && num < Number(field.validation.min)) {
+        errors.push(`${field.label} muss mindestens ${field.validation.min} sein`);
+      }
+      if (field.validation?.max !== undefined && num > Number(field.validation.max)) {
+        errors.push(`${field.label} darf maximal ${field.validation.max} sein`);
+      }
+    }
+  });
+  
+  return errors;
 }

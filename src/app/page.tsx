@@ -1,105 +1,62 @@
 "use client"
 
 import { Car } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { MotorDate } from '@/components/MotorDate';
 import { ChatComponent } from '@/components/ChatComponent';
+import { 
+  FIELD_DEFINITIONS, 
+  generateDefaultValues, 
+  generateFieldConfigs,
+  getFieldsByType 
+} from '@/constants/fieldConfig';
 
 // Main Page Component
 const Page: React.FC = () => {
-  const [beginndatum, setBeginnDatum] = useState<string>('0001-01-01');
-  const [ablaufdatum, setAblaufDatum] = useState<string>('0001-01-01');
-  const [erstzulassungsdatum, setErstzulassungsDatum] = useState<string>('0001-01-01');
-  const [anmeldedatum, setAnmeldeDatum] = useState<string>('0001-01-01');
-  const [urbeginn, setUrbeginn] = useState<string>('0001-01-01');
-  const [stornodatum, setStornodatum] = useState<string>('0001-01-01');
+  // Generiere State und Setter basierend auf der Konfiguration
+  const defaultValues = useMemo(() => generateDefaultValues(), []);
+  const [fieldValues, setFieldValues] = useState(defaultValues);
+
+  // Generiere individuelle Setter für jedes Feld
+  const setters = useMemo(() => {
+    return FIELD_DEFINITIONS.reduce((acc, field) => {
+      acc[field.key] = (value: any) => {
+        setFieldValues(prev => ({
+          ...prev,
+          [field.key]: value
+        }));
+      };
+      return acc;
+    }, {} as Record<string, (value: any) => void>);
+  }, []);
 
   const handleReset = () => {
-    setBeginnDatum('0001-01-01');
-    setAblaufDatum('0001-01-01');
-    setErstzulassungsDatum('0001-01-01');
-    setAnmeldeDatum('0001-01-01');
-    setUrbeginn('0001-01-01');
-    setStornodatum('0001-01-01');
+    setFieldValues(generateDefaultValues());
   };
 
-  const handleUpdateVehicleData = (field: 'beginndatum' | 'ablaufdatum' | 'erstzulassungsdatum' | 'anmeldedatum' | 'urbeginn' | 'stornodatum', value: string) => {
-    switch (field) {
-      case 'beginndatum':
-        setBeginnDatum(value);
-        break;
-      case 'ablaufdatum':
-        setAblaufDatum(value);
-        break;
-      case 'erstzulassungsdatum':
-        setErstzulassungsDatum(value);
-        break;
-      case 'anmeldedatum':
-        setAnmeldeDatum(value);
-        break;
-      case 'urbeginn':
-        setUrbeginn(value);
-        break;
-      case 'stornodatum':
-        setStornodatum(value);
-        break;
-    }
+  const handleUpdateVehicleData = (field: string, value: any) => {
+    setFieldValues(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  // Field Configs für Chat-Komponente
-  const fieldConfigs = [
-    {
-      fieldKey: 'beginndatum',
-      label: 'Beginndatum',
-      synonyms: ['beginndatum', 'startdatum', 'anfangsdatum', 'ab wann', 'von wann', 'vertragsbeginn', 'versicherungsbeginn', 'gültigkeitsbeginn'],
-      currentValue: beginndatum,
-      onChange: (value: string) => setBeginnDatum(value)
-    },
-    {
-      fieldKey: 'ablaufdatum',
-      label: 'Ablaufdatum',
-      synonyms: ['ablaufdatum', 'enddatum', 'gültigkeitsende', 'bis wann', 'vertragsende', 'versicherungsende', 'läuft ab', 'endet', 'frist'],
-      currentValue: ablaufdatum,
-      onChange: (value: string) => setAblaufDatum(value)
-    },
-    {
-      fieldKey: 'erstzulassungsdatum',
-      label: 'Erstzulassungsdatum',
-      synonyms: ['erstzulassung', 'erstmals zugelassen', 'zulassung', 'neuzulassung', 'zum ersten mal angemeldet', 'fahrzeug ist von'],
-      currentValue: erstzulassungsdatum,
-      onChange: (value: string) => setErstzulassungsDatum(value)
-    },
-    {
-      fieldKey: 'anmeldedatum',
-      label: 'Anmeldedatum',
-      synonyms: ['anmeldedatum', 'gekauft', 'erworben', 'auto gekauft', 'fahrzeug gekauft', 'kauf', 'kaufdatum', 'übernommen', 'angemeldet'],
-      currentValue: anmeldedatum,
-      onChange: (value: string) => setAnmeldeDatum(value)
-    },
-    {
-      fieldKey: 'urbeginn',
-      label: 'Urbeginn',
-      synonyms: ['urbeginn', 'ursprüngliche Beginn', 'startdatum des ersten vertrags', 'anfangsdatum des ersten vertrags', 'ursprünglicher vertragsbeginn'],
-      currentValue: urbeginn,
-      onChange: (value: string) => setUrbeginn(value)
-    },
-    {
-      fieldKey: 'stornodatum',
-      label: 'Stornodatum/Stilllegung',
-      synonyms: ['stornodatum', 'kündigungsdatum', 'stilllegung', 'abmeldung', 'vertrag beenden', 'vertrag kündigen'],
-      currentValue: stornodatum,
-      onChange: (value: string) => setStornodatum(value)
-    }
-  ];
+  // Field Configs für Chat-Komponente (dynamisch generiert)
+  const fieldConfigs = useMemo(() => 
+    generateFieldConfigs(fieldValues, setters), 
+    [fieldValues, setters]
+  );
 
   const handleSetToday = () => {
     const today = new Date().toISOString().split('T')[0];
-    setBeginnDatum(today);
-    setAblaufDatum(today);
-    setErstzulassungsDatum(today);
-    setAnmeldeDatum(today);
-    setUrbeginn(today);
-    setStornodatum(today);
+    const todayValues = { ...fieldValues };
+    
+    // Nur Datumsfelder auf heute setzen
+    getFieldsByType('date').forEach(field => {
+      todayValues[field.key] = today;
+    });
+    
+    setFieldValues(todayValues);
   };
 
   return (
@@ -123,41 +80,54 @@ const Page: React.FC = () => {
                 </p>
               </div>
 
+              {/* Dynamische Feld-Generierung */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <MotorDate
-                  value={beginndatum}
-                  onChange={setBeginnDatum}
-                  label="Beginndatum"
-                 />
-
-                <MotorDate
-                  value={ablaufdatum}
-                  onChange={setAblaufDatum}
-                  label="Ablaufdatum"
-                />
-
-                <MotorDate
-                  value={erstzulassungsdatum}
-                  onChange={setErstzulassungsDatum}
-                  label="Erstzulassungsdatum"
-                // disabled={true} // Beispiel für deaktiviertes Feld
-                />
-
-                <MotorDate
-                  value={anmeldedatum}
-                  onChange={setAnmeldeDatum}
-                  label="Anmeldedatum"
-                />
-                <MotorDate
-                  value={urbeginn}
-                  onChange={setUrbeginn}
-                  label="Urbeginn"
-                />
-                <MotorDate
-                  value={stornodatum}
-                  onChange={setStornodatum}
-                  label="Stornodatum/Stilllegung"
-                />
+                {FIELD_DEFINITIONS.map(field => {
+                  if (field.type === 'date') {
+                    return (
+                      <MotorDate
+                        key={field.key}
+                        value={fieldValues[field.key] as string}
+                        onChange={(value) => handleUpdateVehicleData(field.key, value)}
+                        label={field.label}
+                        disabled={field.ui?.disabled}
+                      />
+                    );
+                  } else if (field.type === 'text') {
+                    return (
+                      <div key={field.key} className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {field.label}
+                        </label>
+                        <input
+                          type="text"
+                          value={fieldValues[field.key] as string}
+                          onChange={(e) => handleUpdateVehicleData(field.key, e.target.value)}
+                          placeholder={field.ui?.placeholder}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    );
+                  } else if (field.type === 'number') {
+                    return (
+                      <div key={field.key} className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {field.label}
+                        </label>
+                        <input
+                          type="number"
+                          value={fieldValues[field.key] as number}
+                          onChange={(e) => handleUpdateVehicleData(field.key, parseInt(e.target.value) || 0)}
+                          placeholder={field.ui?.placeholder}
+                          min={field.validation?.min}
+                          max={field.validation?.max}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
               </div>
 
               <div className="border-t pt-6">
@@ -165,30 +135,14 @@ const Page: React.FC = () => {
                   Aktuelle Werte:
                 </h3>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Beginndatum:</span>
-                    <span className="text-gray-600">{beginndatum || 'Nicht gesetzt'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Ablaufdatum:</span>
-                    <span className="text-gray-600">{ablaufdatum || 'Nicht gesetzt'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Erstzulassungsdatum:</span>
-                    <span className="text-gray-600">{erstzulassungsdatum || 'Nicht gesetzt'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Anmeldedatum:</span>
-                    <span className="text-gray-600">{anmeldedatum || 'Nicht gesetzt'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Urbeginn:</span>
-                    <span className="text-gray-600">{urbeginn || 'Nicht gesetzt'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Stornodatum:</span>
-                    <span className="text-gray-600">{stornodatum || 'Nicht gesetzt'}</span>
-                  </div>
+                  {FIELD_DEFINITIONS.map(field => (
+                    <div key={field.key} className="flex justify-between">
+                      <span className="font-medium">{field.label}:</span>
+                      <span className="text-gray-600">
+                        {fieldValues[field.key] || 'Nicht gesetzt'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
 

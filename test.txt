@@ -1,0 +1,97 @@
+Claude Response Text: {
+  "extractedData": {
+    "beginndatum": {
+      "value": "2025-07-01",
+      "confidence": 0.9,
+      "source": "ab 1.7.",
+      "corrected": false,
+      "originalValue": "2025-07-01"
+    },
+    "ablaufdatum": {
+      "value": null,
+      "confidence": 0,
+      "source": "",
+      "corrected": false,
+      "originalValue": null
+    },
+    "erstzulassungsdatum": {
+      "value": "2022-07-01",
+      "confidence": 0.7,
+      "source": "3 Jahre altes Auto",
+      "corrected": false,
+      "originalValue": "2022-07-01"
+    },
+    "anmeldedatum": {
+      "value": "2025-07-01",
+      "confidence": 0.9,
+      "source": "habe ich mein Auto gekauft",
+      "corrected": false,
+      "originalValue": "2025-07-01"
+    },
+    "urbeginn": {
+      "value": null,
+      "confidence": 0,
+      "source": "",
+      "corrected": false,
+      "originalValue": null
+    },
+    "stornodatum": {
+      "value": null,
+      "confidence": 0,
+      "source": "",
+      "corrected": false,
+      "originalValue": null
+    },
+    "fahrzeugmarke": {
+      "value": "BMW",
+      "confidence": 0.95,
+      "source": "mein BMW",
+      "corrected": false,
+      "originalValue": "BMW"
+    },
+    "kilometerstand": {
+      "value": 0,
+      "confidence": 0,
+      "source": "",
+      "corrected": false,
+      "originalValue": null
+    }
+  },
+  "overallConfidence": 0.85,
+  "validationErrors": [],
+  "suggestions": [],
+  "recognizedPhrases": [
+    "ab 1.7.",
+    "mein BMW",
+    "3 Jahre altes Auto",
+    "Auto gekauft"
+  ],
+  "explanation": "",
+  "isNewVehicle": false,
+  "appliedCorrections": []
+}
+Sende finale Antwort: {
+  success: true,
+  message: 'Daten-Extraktion erfolgreich!',
+  data: {
+    extractedData: {
+      beginndatum: [Object],
+      ablaufdatum: [Object],
+      erstzulassungsdatum: [Object],
+      anmeldedatum: [Object],
+      urbeginn: [Object],
+      stornodatum: [Object],
+      fahrzeugmarke: [Object],
+      kilometerstand: [Object]
+    },
+    overallConfidence: 0.85,
+    validationErrors: [],
+    suggestions: [],
+    recognizedPhrases: [ 'ab 1.7.', 'mein BMW', '3 Jahre altes Auto', 'Auto gekauft' ],
+    explanation: '',
+    isNewVehicle: false,
+    appliedCorrections: []
+  },
+  originalText: 'Ich benötige meine Autoversicherung für mein BMW ab 1.7., da habe ich mein 3 Jahre altes Auto gekauft.',
+  timestamp: '2025-07-13T08:20:07.586Z'
+}

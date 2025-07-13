@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { ClaudeResponse } from '@/constants';
-import { SYSTEM_PROMPT_FAHRZEUGDATEN } from '@/constants/systempromts';
+import { ClaudeResponse,FIELD_DEFINITIONS } from '@/constants/fieldConfig';
+import { 
+  SYSTEM_PROMPT_FAHRZEUGDATEN, 
+  validateExtractedData 
+} from '@/constants/systempromts';
+
 
 // Claude Client initialisieren
 const anthropic = new Anthropic({
@@ -40,23 +44,28 @@ export async function POST(request: NextRequest) {
 
     console.log('Empfangene Daten:', { text, currentValues });
 
-    // Claude API aufrufen
+    // Dynamisches User-Prompt basierend auf konfigurierten Feldern
+    const fieldList = FIELD_DEFINITIONS.map(field => 
+      `- ${field.label} (${field.key}): ${currentValues[field.key] || 'nicht gesetzt'}`
+    ).join('\n');
+
     const userPrompt = `
-Analysiere folgenden Text und extrahiere alle Datumsinformationen:
+Analysiere folgenden Text und extrahiere alle relevanten Informationen:
 
 Text: "${text}"
 
 Aktuelle Feldwerte:
-- Beginndatum: ${currentValues.beginndatum || 'nicht gesetzt'}
-- Ablaufdatum: ${currentValues.ablaufdatum || 'nicht gesetzt'}  
-- Erstzulassungsdatum: ${currentValues.erstzulassungsdatum || 'nicht gesetzt'}
-- Anmeldedatum: ${currentValues.anmeldedatum || 'nicht gesetzt'}
-- Urbeginn: ${currentValues.urbeginn || 'nicht gesetzt'}
-- Stornodatum: ${currentValues.stornodatum || 'nicht gesetzt'}
+${fieldList}
 
 Extrahiere nur die Daten, die im Text erwähnt sind. Bereits gesetzte Werte nicht überschreiben, außer sie werden explizit im Text geändert.
 
-WICHTIG: Achte besonders auf das Stornodatum! Formulierungen wie "musste ich es am [Datum] abmelden", "aufgrund [Grund] am [Datum]", "wegen [Grund] am [Datum]" deuten auf ein Stornodatum hin.
+WICHTIG: Achte besonders auf folgende Felder und deren Synonyme:
+${FIELD_DEFINITIONS.map(field => 
+  `- ${field.label}: ${field.synonyms.join(', ')}`
+).join('\n')}
+
+${FIELD_DEFINITIONS.find(f => f.key === 'stornodatum') ? 
+  'SPEZIAL - Stornodatum: Formulierungen wie "musste ich es am [Datum] abmelden", "aufgrund [Grund] am [Datum]", "wegen [Grund] am [Datum]" deuten auf ein Stornodatum hin.' : ''}
 `;
 
     console.log('Sende Request an Claude...');
@@ -95,8 +104,14 @@ WICHTIG: Achte besonders auf das Stornodatum! Formulierungen wie "musste ich es 
       explanation = extractedExplanation;
 
       // Basis-Validierung der Response-Struktur
-      if (!extractedData.extractedDates) {
-        throw new Error('Fehlende extractedDates in Claude Response');
+      if (!extractedData.extractedData) {
+        throw new Error('Fehlende extractedData in Claude Response');
+      }
+
+      // Validierung der extrahierten Daten
+      const validationErrors = validateExtractedData(extractedData.extractedData);
+      if (validationErrors.length > 0) {
+        extractedData.validationErrors = [...(extractedData.validationErrors || []), ...validationErrors];
       }
 
       // Explanation aus dem JSON ins Objekt integrieren, falls nicht schon vorhanden
@@ -117,7 +132,7 @@ WICHTIG: Achte besonders auf das Stornodatum! Formulierungen wie "musste ich es 
 
     const result = {
       success: true,
-      message: "Datums-Extraktion erfolgreich!",
+      message: "Daten-Extraktion erfolgreich!",
       data: extractedData,
       originalText: text,
       timestamp: new Date().toISOString()
@@ -144,7 +159,12 @@ WICHTIG: Achte besonders auf das Stornodatum! Formulierungen wie "musste ich es 
 export async function GET() {
   console.log('GET Request an extract-dates API');
   return NextResponse.json({
-    message: "Extract-dates API ist aktiv!",
-    timestamp: new Date().toISOString()
+    message: "Extract-data API ist aktiv!",
+    timestamp: new Date().toISOString(),
+    configuredFields: FIELD_DEFINITIONS.map(field => ({
+      key: field.key,
+      label: field.label,
+      type: field.type
+    }))
   });
 }
