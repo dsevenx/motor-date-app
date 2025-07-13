@@ -61,16 +61,36 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       correctionRules: ['Ablaufdatum > Beginndatum (sonst null)']
     }
   },
-  {
+   {
     key: 'erstzulassungsdatum',
     label: 'Erstzulassungsdatum',
     type: 'date',
     defaultValue: '0001-01-01',
-    synonyms: ['erstzulassung', 'erstmals zugelassen', 'zulassung', 'neuzulassung', 'zum ersten mal angemeldet', 'fahrzeug ist von'],
+    synonyms: [
+      'erstzulassung', 
+      'erstmals zugelassen', 
+      'zulassung', 
+      'neuzulassung', 
+      'zum ersten mal angemeldet', 
+      'fahrzeug ist von',
+      'jahre alt',
+      'jahr alt', 
+      'baujahr',
+      'alter',
+      'alt',
+      'von 20', // für "von 2020", "von 2021", etc.
+      'aus dem jahr',
+      'aus 20' // für "aus 2020", etc.
+    ],
     ai: {
       priority: 'medium',
-      context: 'Erstzulassungsdatum ist das erste Zulassungsdatum des Fahrzeugs',
-      correctionRules: ['Erstzulassungsdatum ≤ Anmeldedatum (sonst gleichsetzen)', 'Neuwagen: Erstzulassungsdatum = Anmeldedatum']
+      context: 'Erstzulassungsdatum ist das erste Zulassungsdatum des Fahrzeugs. WICHTIG: Bei Altersangaben wie "X Jahre alt" das Erstzulassungsdatum berechnen: aktuelles Jahr - X Jahre.',
+      correctionRules: [
+        'Erstzulassungsdatum ≤ Anmeldedatum (sonst gleichsetzen)', 
+        'Neuwagen: Erstzulassungsdatum = Anmeldedatum',
+        'Bei "X Jahre alt": Erstzulassungsdatum = aktuelles Jahr - X Jahre (1. Januar als Default)',
+        'Bei "X Jahre altes Auto": Erstzulassungsdatum = aktuelles Jahr - X Jahre'
+      ]
     }
   },
   {
