@@ -164,6 +164,25 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       priority: 'low',
       context: 'Kilometerstand des Fahrzeugs'
     }
+  },
+  {
+    key: 'neuwert',
+    label: 'Neuwert',
+    type: 'number',
+    defaultValue: 0,
+    synonyms: ['Neupreis', 'habe beim Hersteller bezahlt', 'Listenpreis', 'laufleistung', 'gefahren'],
+    validation: {
+      min: 0,
+      max: 2000000,
+      numberFormat: 'decimal' // Dezimalzahlen erlaubt
+    },
+    ui: {
+      placeholder: 'Neuwert eingeben...'
+    },
+    ai: {
+      priority: 'low',
+      context: 'Neuwert des Fahrzeugs'
+    }
   }
 ];
 
