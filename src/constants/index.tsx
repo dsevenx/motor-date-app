@@ -4,7 +4,6 @@ export interface MotorDateProps {
   onChange: (value: string) => void;
   label: string;
   disabled?: boolean;
-  valueText4KiModell?: string;
 }
 
 export interface FieldConfig {
@@ -40,6 +39,8 @@ export interface ClaudeResponse {
     ablaufdatum: ExtractedDate;
     erstzulassungsdatum: ExtractedDate;
     anmeldedatum: ExtractedDate;
+    urbeginn: ExtractedDate;
+    stornodatum: ExtractedDate;
   };
   overallConfidence: number;
   validationErrors: string[];

@@ -128,21 +128,18 @@ const Page: React.FC = () => {
                   value={beginndatum}
                   onChange={setBeginnDatum}
                   label="Beginndatum"
-                  valueText4KiModell="Beginndatum, Startdatum, Anfangsdatum, ab wann, von wann, Vertragsbeginn, Versicherungsbeginn, Gültigkeitsbeginn"
-                />
+                 />
 
                 <MotorDate
                   value={ablaufdatum}
                   onChange={setAblaufDatum}
                   label="Ablaufdatum"
-                  valueText4KiModell="Ablaufdatum, Enddatum, Gültigkeitsende, bis wann, Vertragsende, Versicherungsende, läuft ab, endet, Frist"
                 />
 
                 <MotorDate
                   value={erstzulassungsdatum}
                   onChange={setErstzulassungsDatum}
                   label="Erstzulassungsdatum"
-                  valueText4KiModell="Erstzulassung, erstmals zugelassen, Zulassung, Neuzulassung, zum ersten Mal angemeldet, Fahrzeug ist von"
                 // disabled={true} // Beispiel für deaktiviertes Feld
                 />
 
@@ -150,19 +147,16 @@ const Page: React.FC = () => {
                   value={anmeldedatum}
                   onChange={setAnmeldeDatum}
                   label="Anmeldedatum"
-                  valueText4KiModell="Anmeldedatum, gekauft, erworben, Auto gekauft, Fahrzeug gekauft, Kauf, Kaufdatum, übernommen, angemeldet"
                 />
                 <MotorDate
                   value={urbeginn}
                   onChange={setUrbeginn}
                   label="Urbeginn"
-                  valueText4KiModell="Urbeginn, ursprüngliche Beginn, Startdatum des ersten Vertrags, Anfangsdatum des ersten Vertrags, ursprünglicher Vertragsbeginn"
                 />
                 <MotorDate
                   value={stornodatum}
                   onChange={setStornodatum}
                   label="Stornodatum/Stilllegung"
-                  valueText4KiModell="Stornodatum, Kündigungsdatum, Stilllegung, Abmeldung, Vertrag beenden, Vertrag kündigen"
                 />
               </div>
 
