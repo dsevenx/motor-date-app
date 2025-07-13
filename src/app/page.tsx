@@ -3,6 +3,8 @@
 import { Car } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { MotorDate } from '@/components/MotorDate';
+import { MotorEditText } from '@/components/MotorEditText';
+import { MotorEditNumber } from '@/components/MotorEditNumber';
 import { ChatComponent } from '@/components/ChatComponent';
 import { 
   FIELD_DEFINITIONS, 
@@ -95,35 +97,29 @@ const Page: React.FC = () => {
                     );
                   } else if (field.type === 'text') {
                     return (
-                      <div key={field.key} className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          {field.label}
-                        </label>
-                        <input
-                          type="text"
-                          value={fieldValues[field.key] as string}
-                          onChange={(e) => handleUpdateVehicleData(field.key, e.target.value)}
-                          placeholder={field.ui?.placeholder}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
+                      <MotorEditText
+                        key={field.key}
+                        value={fieldValues[field.key] as string}
+                        onChange={(value) => handleUpdateVehicleData(field.key, value)}
+                        label={field.label}
+                        placeholder={field.ui?.placeholder}
+                        disabled={field.ui?.disabled}
+                        maxLength={field.validation?.maxLength}
+                      />
                     );
                   } else if (field.type === 'number') {
                     return (
-                      <div key={field.key} className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          {field.label}
-                        </label>
-                        <input
-                          type="number"
-                          value={fieldValues[field.key] as number}
-                          onChange={(e) => handleUpdateVehicleData(field.key, parseInt(e.target.value) || 0)}
-                          placeholder={field.ui?.placeholder}
-                          min={field.validation?.min}
-                          max={field.validation?.max}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
+                      <MotorEditNumber
+                        key={field.key}
+                        value={fieldValues[field.key] as number}
+                        onChange={(value) => handleUpdateVehicleData(field.key, value)}
+                        label={field.label}
+                        placeholder={field.ui?.placeholder}
+                        disabled={field.ui?.disabled}
+                        min={field.validation?.min as number}
+                        max={field.validation?.max as number}
+                        format={field.validation?.numberFormat}
+                      />
                     );
                   }
                   return null;
@@ -165,14 +161,28 @@ const Page: React.FC = () => {
             {/* Beispiel mit deaktiviertem Feld */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Beispiel mit deaktiviertem Feld:
+                Beispiel mit deaktivierten Feldern:
               </h3>
-              <MotorDate
-                value="2020-01-01"
-                onChange={() => { }} // Dummy-Funktion für deaktiviertes Feld
-                label="Deaktiviertes Datum"
-                disabled={true}
-              />
+              <div className="space-y-4">
+                <MotorDate
+                  value="2020-01-01"
+                  onChange={() => { }} // Dummy-Funktion für deaktiviertes Feld
+                  label="Deaktiviertes Datum"
+                  disabled={true}
+                />
+                <MotorEditText
+                  value="BMW X5"
+                  onChange={() => { }}
+                  label="Deaktiviertes Textfeld"
+                  disabled={true}
+                />
+                <MotorEditNumber
+                  value={25000}
+                  onChange={() => { }}
+                  label="Deaktiviertes Zahlenfeld"
+                  disabled={true}
+                />
+              </div>
             </div>
           </div>
 

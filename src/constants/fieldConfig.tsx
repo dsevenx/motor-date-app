@@ -2,6 +2,8 @@
 
 export type FieldType = 'date' | 'text' | 'number' | 'boolean' | 'select';
 
+export type NumberFormat = 'currency' | 'integer' | 'decimal' | 'percentage' | 'count';
+
 export interface FieldDefinition {
   key: string;                    // Eindeutiger Schlüssel
   label: string;                  // Anzeigename
@@ -12,8 +14,9 @@ export interface FieldDefinition {
   validation?: {
     min?: string | number;       // Mindestvalue (für Datum/Zahl)
     max?: string | number;       // Maximalwert
-    pattern?: string;           // Regex-Pattern
+    numberFormat?: NumberFormat;           // Regex-Pattern
     customRule?: string;        // Benutzerdefinierte Regel für KI
+    maxLength?: number; // Maximale Länge (für Text)
   };
   ui?: {
     disabled?: boolean;         // UI-Zustand
@@ -151,7 +154,8 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     synonyms: ['kilometer', 'km', 'kilometerstand', 'laufleistung', 'gefahren'],
     validation: {
       min: 0,
-      max: 1000000
+      max: 1000000,
+      numberFormat: 'integer' // Nur ganze Zahlen erlaubt
     },
     ui: {
       placeholder: 'Kilometerstand eingeben...'
