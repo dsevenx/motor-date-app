@@ -79,3 +79,53 @@ Verstanden! Ich habe folgende Daten aktualisiert: Beginndatum: 5.1.2026, Ablaufd
 18:29
 
 Es wäre gut wenn bei der letzten Antwort nur Ablaufdatum erwähnt wird da ja die Beginndatum,Anmeldedatum, Erstzulassungsgdatum nicht mehr geändert worden.
+------------------------------------------------------------------------------------------------------------
+ 
+Anfrage 5
+ 
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+Dann haben wir gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
+Wir möchten jetzt gern neben den EinfachTypen MotorDate,MotorEditText und MotorEditNumber noch ein komplexeren Typ MotorTable einführen.
+Hier bitte in jeder Zeile ein Lösch-Papierkorb vorsehen und am Ende ein "+" für eine Zeile hinzufügen.
+Aktuell habe wir zwei Art von Tabellen. 
+1. Kilometerstaende - sieht im Json so aus:
+[{
+   "datum" : "2025-04-01",
+   "art"   : "Versichrungsbeginn"
+   "kmstand" : 22000
+},
+{
+   "datum" : "2025-03-22",
+   "art"   : "Antragsaufnahme"
+   "kmstand" : 16000
+}]
+- wir würden gern ein header Prop mit den Überschriften Datum,"Art des Km Stand", KmStand übergeben.
+2.Zubehör - sieht im Json so aus:
+[{
+   "Hersteller" : "Monro",
+   "art"   : "Fahrwerkstuning"
+   "Zuschlag" : true,
+   "Wert in Euro" : 11000
+},
+{
+   "Hersteller" : "Melitta",
+   "art"   : "Kaffeemaschine"
+   "Zuschlag" : false,
+   "Wert in Euro" : 100
+}]
+- wir würden gern ein header Prop mit den Überschriften Herster,"Art des Zubehör", zuschlagspflichtig und Wert übergeben.
+Das Interface FieldDefinition muss so angepasst werden das ein Element im Array FIELD_DEFINITIONS dann einer Zeile in der jeweilien Tabelle entspricht.
+Dies ist wichtig, da ja über den KI-Dialog solche Sätze wie "Zu Beginn war der Kilometerstand 55", als eine Kilimoterstandszeile erkannt werden soll.
+Dieser Satz soll dann in ein Element im Array FIELD_DEFINITIONS  '"datum" : beginndatum,"art": "Versichrungsbeginn","kmstand" : 55' überführt werden.
+Auch ein Satz wie: "Ich habe ein Soundystem im Wert von 4000 Euro, ein Launchcontrollsystem von Ferrari für 11000 Euro und Diebstahlsicherungsystem von CarGuard zu meinem Auto."
+Soll zu 3 Zubehörzeilen führen und 3 Zeilen in FieldDefinition führen.
+Bitte versuch die Komponente MotorTable zu erstellen. MotorTable soll intern für die Zellen MotorEditNumber, MotorEditText und MotorDate benutzen.
+Bitte auch filedConfig.tsx so erweitern , da die Zeile in FIELD_DEFINITIONS aufgenommen und entfernt werden können.
+Bitte beachte auch die Befüllung der Tabelle über ChatKomponente.
+Zum Schluss bitte die beiden Tabellen Kilometerstände und Zubehört in page.tsx einbauen. 
+
+
+
+
+
+
