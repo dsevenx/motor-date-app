@@ -1,6 +1,6 @@
 // fieldConfig.ts - Zentrale Feld-Konfiguration mit Tabellen-Unterstützung
 
-export type FieldType = 'date' | 'text' | 'number' | 'boolean' | 'select' | 'table' | 'tristate';
+export type FieldType = 'date' | 'text' | 'number' | 'boolean' | 'select' | 'table' | 'tristate' | 'dropdown';
 
 export type NumberFormat = 'currency' | 'integer' | 'decimal' | 'percentage' | 'count';
 
@@ -57,6 +57,10 @@ export interface FieldDefinition {
     addButtonText?: string;      // Text für Add-Button
     emptyText?: string;          // Text bei leerer Tabelle
     relatedFields?: string[];    // Verbundene Felder für KI-Erkennung
+  };
+  // DropDown-spezifische Eigenschaften
+  dropdown?: {
+    domainId: string;           // ID für FetchDomainData
   };
 }
 
@@ -242,6 +246,71 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       infoText: 'Fahrzeug wurde modifiziert oder weicht von Seriendaten ab'
     }
   },
+  // DropDown-Felder
+  {
+    key: 'fahrerkreis',
+    label: 'Fahrerkreis',
+    type: 'dropdown',
+    defaultValue: '',
+    synonyms: [
+      'fahrerkreis', 'wer darf fahren', 'fahrer', 'berechtigt', 'einzelfahrer',
+      'partnertarif', 'familienfahrer', 'beliebige fahrer', 'mindestalter',
+      'nur ich', 'mit partner', 'ganze familie', 'alle'
+    ],
+    ai: {
+      priority: 'medium',
+      context: 'Fahrerkreis bestimmt, wer das Fahrzeug fahren darf',
+      correctionRules: [
+        'Bei "nur ich/allein" meist "Einzelfahrer"',
+        'Bei "mit Partner/Ehepartner" meist "Partnertarif"',
+        'Bei "Familie/Kinder" meist "Familienfahrer"',
+        'Bei "jeder/alle" meist "Beliebige Fahrer mit Mindestalter"'
+      ]
+    },
+    dropdown: {
+      domainId: 'KraftBoGruppeMoeglFahrerkreis'
+    }
+  },
+  {
+    key: 'wirtschaftszweig',
+    label: 'Wirtschaftszweig',
+    type: 'dropdown',
+    defaultValue: '',
+    synonyms: [
+      'wirtschaftszweig', 'branche', 'tätigkeit', 'beruf', 'wirtschaftsbereich',
+      'sektor', 'berufsfeld', 'arbeitsbereich', 'geschäftstätigkeit'
+    ],
+    ai: {
+      priority: 'low',
+      context: 'Wirtschaftszweig des Versicherungsnehmers'
+    },
+    dropdown: {
+      domainId: 'KraftBoGruppeMoeglWirtschaftszweig'
+    }
+  },
+  {
+    key: 'inkassoart',
+    label: 'Inkassoart',
+    type: 'dropdown',
+    defaultValue: '',
+    synonyms: [
+      'inkassoart', 'zahlungsart', 'zahlungsweise', 'wie bezahlen',
+      'lastschrift', 'überweisung', 'vermittlerinkasso', 'einzug',
+      'abbuchung', 'sepa', 'dauerauftrag', 'bezahlart'
+    ],
+    ai: {
+      priority: 'medium',
+      context: 'Art der Beitragszahlung/Inkasso',
+      correctionRules: [
+        'Bei "Lastschrift/Einzug/SEPA" meist "Lastschrift"',
+        'Bei "Überweisung/Dauerauftrag/selbst zahlen" meist "Überweisung"',
+        'Bei "über Makler/Vermittler" meist "Vermittlerinkasso"'
+      ]
+    },
+    dropdown: {
+      domainId: 'KraftBoGruppeMoeglInkassoart'
+    }
+  },
   // Tabelle: Kilometerstände
   {
     key: 'kilometerstaende',
@@ -384,6 +453,10 @@ export const getTableFields = (): FieldDefinition[] => {
   return FIELD_DEFINITIONS.filter(field => field.type === 'table');
 };
 
+export const getDropdownFields = (): FieldDefinition[] => {
+  return FIELD_DEFINITIONS.filter(field => field.type === 'dropdown');
+};
+
 export const getAllSynonyms = (): Record<string, string[]> => {
   return FIELD_DEFINITIONS.reduce((acc, field) => {
     acc[field.key] = field.synonyms;
@@ -424,6 +497,7 @@ export const createEmptyTableRow = (tableField: FieldDefinition): TableRow => {
         break;
       case 'text':
       case 'select':
+      case 'dropdown':
       default:
         row[column.key] = '';
         break;
@@ -497,6 +571,7 @@ export const generateFieldConfigs = (
     currentValue: values[field.key],
     onChange: setters[field.key],
     type: field.type,
-    table: field.table
+    table: field.table,
+    dropdown: field.dropdown
   }));
 };

@@ -124,6 +124,10 @@ Bitte auch filedConfig.tsx so erweitern , da die Zeile in FIELD_DEFINITIONS aufg
 Bitte beachte auch die Befüllung der Tabelle über ChatKomponente.
 Zum Schluss bitte die beiden Tabellen Kilometerstände und Zubehört in page.tsx einbauen. 
 
+------------------------------------------------------------------------------------------------------------
+ 
+Anfrage 6
+ 
 Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
 Dann haben wir gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
 Wir möchten jetzt gern neben den EinfachTypen MotorDate,MotorEditText und MotorEditNumber noch ein weitere Typ MotorCheckBox einführen.
@@ -131,6 +135,19 @@ Die FIELD_DEFINITIONS sollen so angepasst werden, das die beiden fachliche Infos
 Bitte diesen Typ nicht als boolen moedellieren, das es die Werte "J"<=>Ja,"N"<=>nein," "<=> nicht bekannt.
 Die MotorCheckBox selbst kann nur J oder N setzen. Der " " ist der Startzustand. 
 Die Optik - bitte wirklich nur das Aussehen aus der angehängten MotorCheckBox ableiten. Bitte dies beiden MotorCheckBox auf page.tsx einbauen.
+
+------------------------------------------------------------------------------------------------------------
+Anfrage 7
+
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+Dann haben wir gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
+Wir möchten jetzt gern neben den EinfachTypen MotorDate,MotorEditText,MotorEditNumber, MotorCheckBox noch ein weitere Typ MotorDropDown einführen.
+Die auswählbaren Werte (=options) kommen aus FetchDomainData. Die passende Liste wird über "id" ermittelt. 
+Die FIELD_DEFINITIONS sollen so angepasst werden, das die fachlichen Infos Fahrerkreis (auswählbaren Werte aus KraftBoGruppeMoeglFahrerkreis)
+, Wirtschaftszweig (auswwählbaren Werte aus KraftBoGruppeMoeglWirtschaftszweig) und Inkassoart (auswählbaren Werte aus KraftBoGruppeMoeglInkassoart)
+enthalten sind.
+Die Optik - bitte wirklich nur das Aussehen aus der angehängten MotorDropDown ableiten.
+Bitte dies 3 MotorDropDown auf page.tsx einbauen.
 
 
 

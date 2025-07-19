@@ -16,6 +16,19 @@ export interface MotorDateProps {
   disabled?: boolean;
 }
 
+export interface DropdownOption {
+  classId: string;
+  value: string;
+  label: string;
+}
+
+export interface Datalist {
+  classId: string;
+  id: string;
+  options: DropdownOption[];
+}
+
+
 // Erweiterte Field Config für verschiedene Datentypen
 export interface FieldConfig {
   fieldKey: string;        // Eindeutige ID

@@ -6,6 +6,7 @@ import { MotorDate } from '@/components/MotorDate';
 import { MotorEditText } from '@/components/MotorEditText';
 import { MotorEditNumber } from '@/components/MotorEditNumber';
 import { MotorCheckBox } from '@/components/MotorCheckBox';
+import { MotorDropDown } from '@/components/MotorDropDown';
 import { ChatComponent } from '@/components/ChatComponent';
 import { 
   FIELD_DEFINITIONS, 
@@ -133,6 +134,18 @@ const Page: React.FC = () => {
                         infoText={field.ui?.infoText}
                       />
                     );
+                  } else if (field.type === 'dropdown') {
+                    return (
+                      <MotorDropDown
+                        key={field.key}
+                        value={fieldValues[field.key] as string}
+                        onChange={(value) => handleUpdateVehicleData(field.key, value)}
+                        label={field.label}
+                        disabled={field.ui?.disabled}
+                        domainId={field.dropdown?.domainId || ''}
+                        placeholder={field.ui?.placeholder || 'Bitte auswählen...'}
+                      />
+                    );
                   }
                   // Tabellen werden hier nicht gerendert, da sie zu komplex für das Grid sind
                   return null;
@@ -204,6 +217,14 @@ const Page: React.FC = () => {
                   label="Deaktivierte Checkbox"
                   disabled={true}
                   infoText="Dies ist eine deaktivierte Checkbox"
+                />
+                <MotorDropDown
+                  value="E"
+                  onChange={() => { }}
+                  label="Deaktiviertes Dropdown"
+                  disabled={true}
+                  domainId="KraftBoGruppeMoeglFahrerkreis"
+                  placeholder="Deaktiviert..."
                 />
               </div>
             </div>
