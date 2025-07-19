@@ -205,13 +205,13 @@ export const MotorTable: React.FC<MotorTableProps> = ({
                   {columns.map((column) => (
                     <th
                       key={column.key}
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
                       style={{ width: column.width || 'auto' }}
                     >
                       {column.label}
                     </th>
                   ))}
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 tracking-wider w-16">
                     Aktionen
                   </th>
                 </tr>
