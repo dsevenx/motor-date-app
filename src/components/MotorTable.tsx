@@ -1,55 +1,37 @@
 "use client"
 
-import { Trash2, Plus, Table } from 'lucide-react';
-import React from "react";
+import React, { useState } from 'react';
+import { Plus, Trash2, Table } from 'lucide-react';
 import { MotorDate } from './MotorDate';
-import { MotorEditNumber } from './MotorEditNumber';
 import { MotorEditText } from './MotorEditText';
-import { FieldType, NumberFormat } from '@/constants/fieldConfig';
-
-export interface TableColumn {
-  key: string;
-  label: string;
-  type: FieldType;
-  width?: string;
-  validation?: {
-    min?: string | number;
-    max?: string | number;
-    numberFormat?: NumberFormat;
-    maxLength?: number;
-  };
-  ui?: {
-    placeholder?: string;
-  };
-}
-
-export interface TableRow {
-  id: string;
-  [key: string]: any;
-}
+import { MotorEditNumber } from './MotorEditNumber';
+import { MotorCheckBox } from './MotorCheckBox';
+import { MotorDropDown } from './MotorDropDown';
+import { TableRow, TableColumn, FieldType } from '@/constants/fieldConfig';
 
 export interface MotorTableProps {
+  value: TableRow[];
+  onChange: (value: TableRow[]) => void;
   label: string;
   columns: TableColumn[];
-  rows: TableRow[];
-  onChange: (rows: TableRow[]) => void;
-  disabled?: boolean;
   addButtonText?: string;
   emptyText?: string;
+  disabled?: boolean;
 }
 
 export const MotorTable: React.FC<MotorTableProps> = ({
+  value = [],
+  onChange,
   label,
   columns,
-  rows,
-  onChange,
-  disabled = false,
-  addButtonText = "Zeile hinzufügen",
-  emptyText = "Keine Einträge vorhanden"
+  addButtonText = 'Zeile hinzufügen',
+  emptyText = 'Keine Daten vorhanden',
+  disabled = false
 }) => {
-  
-  // Neue leere Zeile erstellen
-  const createEmptyRow = (): TableRow => {
+  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
+
+  // Neue Zeile erstellen
+  const createNewRow = (): TableRow => {
     const newRow: TableRow = {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
     };
@@ -65,8 +47,12 @@ export const MotorTable: React.FC<MotorTableProps> = ({
         case 'boolean':
           newRow[column.key] = false;
           break;
+        case 'tristate':
+          newRow[column.key] = ' ';
+          break;
         case 'text':
         case 'select':
+        case 'dropdown':
         default:
           newRow[column.key] = '';
           break;
@@ -77,90 +63,106 @@ export const MotorTable: React.FC<MotorTableProps> = ({
   };
 
   // Zeile hinzufügen
-  const handleAddRow = () => {
+  const addRow = () => {
     if (disabled) return;
-    const newRow = createEmptyRow();
-    onChange([...rows, newRow]);
+    const newRow = createNewRow();
+    onChange([...value, newRow]);
   };
 
   // Zeile löschen
-  const handleDeleteRow = (rowId: string) => {
+  const deleteRow = (rowId: string) => {
     if (disabled) return;
-    onChange(rows.filter(row => row.id !== rowId));
+    onChange(value.filter(row => row.id !== rowId));
   };
 
-  // Zellenwert ändern
-  const handleCellChange = (rowId: string, columnKey: string, value: any) => {
+  // Zellenwert aktualisieren
+  const updateCell = (rowId: string, columnKey: string, newValue: any) => {
     if (disabled) return;
-    
-    const updatedRows = rows.map(row => {
-      if (row.id === rowId) {
-        return { ...row, [columnKey]: value };
-      }
-      return row;
-    });
-    
+    const updatedRows = value.map(row => 
+      row.id === rowId 
+        ? { ...row, [columnKey]: newValue }
+        : row
+    );
     onChange(updatedRows);
   };
 
-  // Render-Funktion für eine Zelle
+  // Render-Funktion für verschiedene Zelltypen
   const renderCell = (row: TableRow, column: TableColumn) => {
-    const value = row[column.key];
+    const cellValue = row[column.key];
     const cellId = `${row.id}-${column.key}`;
-    
+
     switch (column.type) {
       case 'date':
         return (
           <MotorDate
-            value={value}
-            onChange={(newValue) => handleCellChange(row.id, column.key, newValue)}
+            key={cellId}
+            value={cellValue as string}
+            onChange={(newValue) => updateCell(row.id, column.key, newValue)}
             label=""
             disabled={disabled}
           />
         );
-      
-      case 'number':
-        return (
-          <MotorEditNumber
-            value={value}
-            onChange={(newValue) => handleCellChange(row.id, column.key, newValue)}
-            label=""
-            placeholder={column.ui?.placeholder}
-            disabled={disabled}
-            min={column.validation?.min as number}
-            max={column.validation?.max as number}
-            format={column.validation?.numberFormat || 'decimal'}
-          />
-        );
-      
-      case 'boolean':
-        return (
-          <div className="flex items-center justify-center">
-            <input
-              type="checkbox"
-              checked={value}
-              onChange={(e) => handleCellChange(row.id, column.key, e.target.checked)}
-              disabled={disabled}
-              className={`
-                w-4 h-4 text-blue-600 rounded border-gray-300 
-                focus:ring-blue-500 focus:ring-2
-                ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
-              `}
-            />
-          </div>
-        );
-      
+
       case 'text':
-      case 'select':
-      default:
         return (
           <MotorEditText
-            value={value}
-            onChange={(newValue) => handleCellChange(row.id, column.key, newValue)}
+            key={cellId}
+            value={cellValue as string}
+            onChange={(newValue) => updateCell(row.id, column.key, newValue)}
             label=""
             placeholder={column.ui?.placeholder}
             disabled={disabled}
             maxLength={column.validation?.maxLength}
+          />
+        );
+
+      case 'number':
+        return (
+          <MotorEditNumber
+            key={cellId}
+            value={cellValue as number}
+            onChange={(newValue) => updateCell(row.id, column.key, newValue)}
+            label=""
+            disabled={disabled}
+            min={column.validation?.min as number}
+            max={column.validation?.max as number}
+            format={column.validation?.numberFormat}
+          />
+        );
+
+      case 'boolean':
+      case 'tristate':
+        return (
+          <MotorCheckBox
+            key={cellId}
+            value={cellValue as 'J' | 'N' | ' '}
+            onChange={(newValue) => updateCell(row.id, column.key, newValue)}
+            label=""
+            disabled={disabled}
+          />
+        );
+
+      case 'dropdown':
+        return (
+          <MotorDropDown
+            key={cellId}
+            value={cellValue as string}
+            onChange={(newValue) => updateCell(row.id, column.key, newValue)}
+            label=""
+            disabled={disabled}
+            domainId={column.dropdown?.domainId || ''}
+            placeholder={column.ui?.placeholder || 'Bitte auswählen...'}
+          />
+        );
+
+      default:
+        return (
+          <MotorEditText
+            key={cellId}
+            value={cellValue as string}
+            onChange={(newValue) => updateCell(row.id, column.key, newValue)}
+            label=""
+            disabled={disabled}
           />
         );
     }
@@ -170,35 +172,35 @@ export const MotorTable: React.FC<MotorTableProps> = ({
     <div className="flex flex-col space-y-4">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Table className="w-5 h-5 text-gray-700" />
+        <Table className="w-4 h-4" />
         <label className="text-sm font-medium text-gray-700">
           {label}
         </label>
-        <span className="text-xs text-gray-500 ml-2">
-          ({rows.length} Einträge)
+        <span className="text-xs text-gray-500 ml-auto">
+          {value.length} {value.length === 1 ? 'Eintrag' : 'Einträge'}
         </span>
       </div>
 
       {/* Tabelle */}
-      <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
-        {rows.length === 0 ? (
+      <div className="border border-gray-300 rounded-lg overflow-hidden">
+        {value.length === 0 ? (
           // Leere Tabelle
-          <div className="p-8 text-center text-gray-500">
-            <Table className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+          <div className="p-8 text-center text-gray-500 bg-gray-50">
+            <Table className="w-8 h-8 mx-auto mb-2 text-gray-400" />
             <p className="text-sm">{emptyText}</p>
           </div>
         ) : (
           // Tabelle mit Daten
           <div className="overflow-x-auto">
             <table className="w-full">
-              {/* Header */}
+              {/* Tabellen-Header */}
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   {columns.map((column) => (
                     <th
                       key={column.key}
                       className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{ width: column.width }}
+                      style={{ width: column.width || 'auto' }}
                     >
                       {column.label}
                     </th>
@@ -208,35 +210,39 @@ export const MotorTable: React.FC<MotorTableProps> = ({
                   </th>
                 </tr>
               </thead>
-              
-              {/* Body */}
+
+              {/* Tabellen-Body */}
               <tbody className="bg-white divide-y divide-gray-200">
-                {rows.map((row, index) => (
+                {value.map((row, rowIndex) => (
                   <tr
                     key={row.id}
-                    className={`hover:bg-gray-50 ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                    className={`hover:bg-gray-50 transition-colors duration-150 ${
+                      rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-25'
                     }`}
+                    onMouseEnter={() => setHoveredRowId(row.id)}
+                    onMouseLeave={() => setHoveredRowId(null)}
                   >
                     {columns.map((column) => (
                       <td
-                        key={column.key}
-                        className="px-4 py-3 whitespace-nowrap"
-                        style={{ width: column.width }}
+                        key={`${row.id}-${column.key}`}
+                        className="px-4 py-3"
+                        style={{ width: column.width || 'auto' }}
                       >
                         {renderCell(row, column)}
                       </td>
                     ))}
-                    <td className="px-4 py-3 text-center whitespace-nowrap">
+                    
+                    {/* Aktionen-Spalte */}
+                    <td className="px-4 py-3 text-center">
                       <button
-                        onClick={() => handleDeleteRow(row.id)}
+                        onClick={() => deleteRow(row.id)}
                         disabled={disabled}
                         className={`
-                          inline-flex items-center justify-center
-                          w-8 h-8 rounded-full
-                          text-red-600 hover:text-red-800
-                          hover:bg-red-50
-                          transition-colors duration-200
+                          p-1 rounded-md transition-all duration-200
+                          ${hoveredRowId === row.id 
+                            ? 'text-red-600 hover:bg-red-50 hover:text-red-700' 
+                            : 'text-gray-400 hover:text-red-500'
+                          }
                           ${disabled 
                             ? 'cursor-not-allowed opacity-50' 
                             : 'cursor-pointer'
@@ -255,25 +261,22 @@ export const MotorTable: React.FC<MotorTableProps> = ({
         )}
       </div>
 
-      {/* Add Button */}
-      {!disabled && (
-        <div className="flex justify-start">
-          <button
-            onClick={handleAddRow}
-            className="
-              inline-flex items-center gap-2 px-4 py-2
-              text-sm font-medium text-blue-600
-              border border-blue-300 rounded-md
-              hover:bg-blue-50 hover:border-blue-400
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-              transition-colors duration-200
-            "
-          >
-            <Plus className="w-4 h-4" />
-            {addButtonText}
-          </button>
-        </div>
-      )}
+      {/* Hinzufügen-Button */}
+      <button
+        onClick={addRow}
+        disabled={disabled}
+        className={`
+          flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg
+          transition-all duration-200
+          ${disabled
+            ? 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
+            : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
+          }
+        `}
+      >
+        <Plus className="w-4 h-4" />
+        <span className="text-sm font-medium">{addButtonText}</span>
+      </button>
     </div>
   );
 };

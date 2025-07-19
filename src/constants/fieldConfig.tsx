@@ -18,6 +18,9 @@ export interface TableColumn {
   ui?: {
     placeholder?: string;
   };
+  dropdown?: {
+    domainId?: string;
+  };
 }
 
 export interface TableRow {
@@ -343,10 +346,13 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
         {
           key: 'art',
           label: 'Art des KM-Stands',
-          type: 'text',
+          type: 'dropdown',
           width: '250px',
           ui: {
-            placeholder: 'z.B. Versicherungsbeginn, Antragsaufnahme...'
+            placeholder: 'Art auswählen...'
+          },
+          dropdown: {
+            domainId: 'KilometerstandArt'
           }
         },
         {
@@ -405,16 +411,19 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
         {
           key: 'art',
           label: 'Art des Zubehörs',
-          type: 'text',
+          type: 'dropdown',
           width: '250px',
           ui: {
-            placeholder: 'z.B. Soundsystem, Fahrwerkstuning...'
+            placeholder: 'Art auswählen...'
+          },
+          dropdown: {
+            domainId: 'ZubehoerArt'
           }
         },
         {
           key: 'zuschlag',
           label: 'Zuschlagspflichtig',
-          type: 'boolean',
+          type: 'tristate',
           width: '120px'
         },
         {
