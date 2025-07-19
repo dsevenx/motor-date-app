@@ -341,13 +341,13 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           key: 'datum',
           label: 'Datum',
           type: 'date',
-          width: '200px'
+          width: '160px'
         },
         {
           key: 'art',
           label: 'Art des KM-Stands',
           type: 'dropdown',
-          width: '250px',
+          width: '200px',
           ui: {
             placeholder: 'Bitte eingeben'
           },
@@ -359,7 +359,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           key: 'kmstand',
           label: 'KM-Stand',
           type: 'number',
-          width: '150px',
+          width: '120px',
           validation: {
             min: 0,
             max: 1000000,
@@ -403,16 +403,16 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           key: 'hersteller',
           label: 'Hersteller',
           type: 'text',
-          width: '200px',
+          width: '140px',
           ui: {
-            placeholder: 'z.B. BMW, Bose, Alpine...'
+            placeholder: 'z.B. BMW, Bose...'
           }
         },
         {
           key: 'art',
           label: 'Art des Zubehörs',
           type: 'dropdown',
-          width: '250px',
+          width: '180px',
           ui: {
             placeholder: 'Bitte eingeben'
           },
@@ -424,13 +424,13 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           key: 'zuschlag',
           label: 'Zuschlagspflichtig',
           type: 'tristate',
-          width: '120px'
+          width: '100px'
         },
         {
           key: 'wert',
           label: 'Wert in Euro',
           type: 'number',
-          width: '150px',
+          width: '120px',
           validation: {
             min: 0,
             max: 100000,
