@@ -5,6 +5,7 @@ import { useState, useMemo } from 'react';
 import { MotorDate } from '@/components/MotorDate';
 import { MotorEditText } from '@/components/MotorEditText';
 import { MotorEditNumber } from '@/components/MotorEditNumber';
+import { MotorCheckBox } from '@/components/MotorCheckBox';
 import { ChatComponent } from '@/components/ChatComponent';
 import { 
   FIELD_DEFINITIONS, 
@@ -121,7 +122,19 @@ const Page: React.FC = () => {
                         format={field.validation?.numberFormat}
                       />
                     );
+                  } else if (field.type === 'tristate') {
+                    return (
+                      <MotorCheckBox
+                        key={field.key}
+                        value={fieldValues[field.key] as 'J' | 'N' | ' '}
+                        onChange={(value) => handleUpdateVehicleData(field.key, value)}
+                        label={field.label}
+                        disabled={field.ui?.disabled}
+                        infoText={field.ui?.infoText}
+                      />
+                    );
                   }
+                  // Tabellen werden hier nicht gerendert, da sie zu komplex für das Grid sind
                   return null;
                 })}
               </div>
@@ -135,7 +148,10 @@ const Page: React.FC = () => {
                     <div key={field.key} className="flex justify-between">
                       <span className="font-medium">{field.label}:</span>
                       <span className="text-gray-600">
-                        {fieldValues[field.key] || 'Nicht gesetzt'}
+                        {field.type === 'tristate' 
+                          ? (fieldValues[field.key] === 'J' ? 'Ja' : fieldValues[field.key] === 'N' ? 'Nein' : 'Nicht gesetzt')
+                          : (fieldValues[field.key] || 'Nicht gesetzt')
+                        }
                       </span>
                     </div>
                   ))}
@@ -181,6 +197,13 @@ const Page: React.FC = () => {
                   onChange={() => { }}
                   label="Deaktiviertes Zahlenfeld"
                   disabled={true}
+                />
+                <MotorCheckBox
+                  value="J"
+                  onChange={() => { }}
+                  label="Deaktivierte Checkbox"
+                  disabled={true}
+                  infoText="Dies ist eine deaktivierte Checkbox"
                 />
               </div>
             </div>

@@ -1,6 +1,6 @@
 // fieldConfig.ts - Zentrale Feld-Konfiguration mit Tabellen-Unterstützung
 
-export type FieldType = 'date' | 'text' | 'number' | 'boolean' | 'select' | 'table';
+export type FieldType = 'date' | 'text' | 'number' | 'boolean' | 'select' | 'table' | 'tristate';
 
 export type NumberFormat = 'currency' | 'integer' | 'decimal' | 'percentage' | 'count';
 
@@ -29,7 +29,7 @@ export interface FieldDefinition {
   key: string;                    // Eindeutiger Schlüssel
   label: string;                  // Anzeigename
   type: FieldType;               // Datentyp
-  defaultValue: string | number | boolean | TableRow[]; // Standardwert
+  defaultValue: string | number | boolean | TableRow[] | 'J' | 'N' | ' '; // Standardwert
   synonyms: string[];            // KI-Erkennungsworte
   required?: boolean;            // Pflichtfeld
   validation?: {
@@ -44,6 +44,7 @@ export interface FieldDefinition {
     placeholder?: string;        // Platzhalter
     helpText?: string;           // Hilfetext
     group?: string;              // Gruppierung in der UI
+    infoText?: string;           // Info-Text für Tooltip
   };
   ai?: {
     priority?: 'high' | 'medium' | 'low';  // KI-Priorität
@@ -190,6 +191,55 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     ai: {
       priority: 'low',
       context: 'Neuwert des Fahrzeugs'
+    }
+  },
+  // TriState-Felder
+  {
+    key: 'vorsteuerabzugsberechtigt',
+    label: 'Vorsteuerabzugsberechtigt',
+    type: 'tristate',
+    defaultValue: ' ',
+    synonyms: [
+      'vorsteuerabzugsberechtigt', 'vorsteuer', 'berechtigt', 'abzugsberechtigt',
+      'steuerlich absetzbar', 'absetzbar', 'betrieblich', 'geschäftlich',
+      'unternehmen', 'firma', 'selbstständig', 'gewerblich',
+      'kann absetzen', 'steuerlich', 'von der steuer absetzen'
+    ],
+    ai: {
+      priority: 'medium',
+      context: 'Vorsteuerabzugsberechtigung für geschäftliche/betriebliche Nutzung des Fahrzeugs',
+      correctionRules: [
+        'Bei geschäftlicher/betrieblicher Nutzung meist "J"',
+        'Bei privater Nutzung meist "N"',
+        'Bei Unsicherheit " " (unbekannt)'
+      ]
+    },
+    ui: {
+      infoText: 'Berechtigung zum Vorsteuerabzug bei geschäftlicher Nutzung'
+    }
+  },
+  {
+    key: 'abweichende_fahrzeugdaten',
+    label: 'Abweichende Fahrzeugdaten',
+    type: 'tristate',
+    defaultValue: ' ',
+    synonyms: [
+      'abweichende fahrzeugdaten', 'abweichend', 'anders', 'unterschiedlich',
+      'modifiziert', 'verändert', 'tuning', 'umgebaut', 'angepasst',
+      'nicht original', 'nicht serienmäßig', 'custom', 'individuell',
+      'besonderheiten', 'abweichungen', 'sonderausstattung'
+    ],
+    ai: {
+      priority: 'medium',
+      context: 'Fahrzeug weicht von Standarddaten ab (Tuning, Modifikationen, etc.)',
+      correctionRules: [
+        'Bei Tuning/Modifikationen meist "J"',
+        'Bei Serienfahrzeug meist "N"',
+        'Bei Unsicherheit " " (unbekannt)'
+      ]
+    },
+    ui: {
+      infoText: 'Fahrzeug wurde modifiziert oder weicht von Seriendaten ab'
     }
   },
   // Tabelle: Kilometerstände
@@ -369,6 +419,9 @@ export const createEmptyTableRow = (tableField: FieldDefinition): TableRow => {
       case 'boolean':
         row[column.key] = false;
         break;
+      case 'tristate':
+        row[column.key] = ' ';
+        break;
       case 'text':
       case 'select':
       default:
@@ -400,11 +453,11 @@ export const updateTableRow = (currentRows: TableRow[], rowId: string, updates: 
 
 // Typen für die API-Responses (dynamisch generiert)
 export type ExtractedFieldValue = {
-  value: string | number | boolean | TableRow[] | null;
+  value: string | number | boolean | TableRow[] | 'J' | 'N' | ' ' | null;
   confidence: number;
   source: string;
   corrected?: boolean;
-  originalValue?: string | number | boolean | TableRow[] | null;
+  originalValue?: string | number | boolean | TableRow[] | 'J' | 'N' | ' ' | null;
 };
 
 export type ExtractedData = {

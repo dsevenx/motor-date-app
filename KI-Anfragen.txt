@@ -124,6 +124,16 @@ Bitte auch filedConfig.tsx so erweitern , da die Zeile in FIELD_DEFINITIONS aufg
 Bitte beachte auch die Befüllung der Tabelle über ChatKomponente.
 Zum Schluss bitte die beiden Tabellen Kilometerstände und Zubehört in page.tsx einbauen. 
 
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+Dann haben wir gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
+Wir möchten jetzt gern neben den EinfachTypen MotorDate,MotorEditText und MotorEditNumber noch ein weitere Typ MotorCheckBox einführen.
+Die FIELD_DEFINITIONS sollen so angepasst werden, das die beiden fachliche Infos "vorsteuerabzugsberechtigt" und "abweichende Fahrzeugdaten" ergänzt werden.
+Bitte diesen Typ nicht als boolen moedellieren, das es die Werte "J"<=>Ja,"N"<=>nein," "<=> nicht bekannt.
+Die MotorCheckBox selbst kann nur J oder N setzen. Der " " ist der Startzustand. 
+Die Optik - bitte wirklich nur das Aussehen aus der angehängten MotorCheckBox ableiten. Bitte dies beiden MotorCheckBox auf page.tsx einbauen.
+
+
+
 
 
 
