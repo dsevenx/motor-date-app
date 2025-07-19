@@ -2,20 +2,35 @@
 
 import { MotorDateProps } from "@/constants";
 import { Calendar } from 'lucide-react';
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, disabled = false, hideLabel = false }) => {
+  // State für Calendar Picker
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  
+  // State für manuelle Eingabe (bestehende Logik)
   const [inputValue, setInputValue] = useState('');
+  
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // Convert ISO date (YYYY-MM-DD) to German format (DD.MM.YYYY)
+  // Deutsche Monatsnamen
+  const monthsLong: string[] = [
+    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+  ];
+
+  const weekDays: string[] = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+  // Convert ISO date (YYYY-MM-DD) to German format (DD.MM.YYYY) - bestehende Funktion
   const formatToGerman = (isoDate: string): string => {
-    if (!isoDate) return '';
+    if (!isoDate || isoDate === '0001-01-01') return '';
     const [year, month, day] = isoDate.split('-');
     return `${day}.${month}.${year}`;
   };
 
-  // Convert German format to ISO date
+  // Convert German format to ISO date - bestehende Funktion
   const parseGermanDate = (germanDate: string): string => {
     const numbers = germanDate.replace(/\D/g, '');
     if (numbers.length !== 8) return '';
@@ -36,14 +51,87 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   };
 
+  // Neue Funktionen für Calendar Picker
+  const formatToISO = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const parseISODate = (dateString: string): Date | null => {
+    if (!dateString || dateString === '0001-01-01') return null;
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+    return null;
+  };
+
+  const generateCalendarDays = (): Date[] => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    const days: Date[] = [];
+    const currentDateObj = new Date(startDate);
+    
+    for (let i = 0; i < 42; i++) {
+      days.push(new Date(currentDateObj));
+      currentDateObj.setDate(currentDateObj.getDate() + 1);
+    }
+    
+    return days;
+  };
+
+  const isCurrentMonth = (date: Date): boolean => {
+    return date.getMonth() === currentDate.getMonth();
+  };
+
+  const isSelected = (date: Date): boolean => {
+    if (!value || value === '0001-01-01') return false;
+    const selectedDate = parseISODate(value);
+    return selectedDate !== null && 
+           selectedDate.getDate() === date.getDate() &&
+           selectedDate.getMonth() === date.getMonth() &&
+           selectedDate.getFullYear() === date.getFullYear();
+  };
+
+  const handleDateSelect = (date: Date): void => {
+    const isoDate = formatToISO(date);
+    onChange(isoDate);
+    setIsOpen(false);
+  };
+
+  const handleMonthChange = (direction: number): void => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + direction);
+    setCurrentDate(newDate);
+  };
+
   // Initialize input value
   React.useEffect(() => {
-    if (value) {
-      setInputValue(formatToGerman(value));
+    if (value && value !== '0001-01-01') {
+      const formatted = formatToGerman(value);
+      setInputValue(formatted);
+      
+      // Set currentDate for calendar
+      const parsedDate = parseISODate(value);
+      if (parsedDate) {
+        setCurrentDate(parsedDate);
+      }
+    } else {
+      setInputValue('');
     }
   }, [value]);
 
-  // Handle input changes (required for controlled component)
+  // Handle input changes (required for controlled component) - bestehende Funktion
   const handleInputChange = () => {
     // Do nothing if disabled - React still needs this handler for controlled inputs
     if (disabled) return;
@@ -52,6 +140,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
     // This handler is mainly to satisfy React's controlled component requirements
   };
 
+  // Bestehende manuelle Eingabe-Logik
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Skip event handling if disabled
     if (disabled) return;
@@ -150,6 +239,20 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
     }
   };
 
+  // Schließt Dropdown bei Klick außerhalb
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const calendarDays: Date[] = generateCalendarDays();
+
   return (
     <div className="flex flex-col space-y-2">
       {!hideLabel && (
@@ -158,26 +261,118 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
           {label}
         </label>
       )}
-      <input
-        ref={inputRef}
-        type="text"
-        value={inputValue}
-        onChange={handleInputChange} // ← Hinzugefügt: React benötigt dies für controlled components
-        onKeyDown={handleKeyDown}
-        onPaste={handlePaste}
-        placeholder="DD.MM.YYYY"
-        disabled={disabled}
-        readOnly={disabled}
-        className={`
-          px-3 py-2 border border-gray-300 rounded-md shadow-sm
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          ${disabled 
-            ? 'bg-gray-100 cursor-not-allowed text-gray-500' 
-            : 'bg-white hover:border-gray-400'
-          }
-          transition-colors duration-200
-        `}
-      />
+      
+      <div className="relative w-full" ref={dropdownRef}>
+        {/* Input Field */}
+        <div className="relative">
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            placeholder="DD.MM.YYYY"
+            disabled={disabled}
+            readOnly={disabled}
+            className={`
+              w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+              pr-10
+              ${disabled 
+                ? 'bg-gray-100 cursor-not-allowed text-gray-500' 
+                : 'bg-white hover:border-gray-400'
+              }
+              transition-colors duration-200
+            `}
+          />
+          
+          {/* Calendar Icon */}
+          <button
+            type="button"
+            onClick={() => !disabled && setIsOpen(!isOpen)}
+            disabled={disabled}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded disabled:cursor-not-allowed"
+          >
+            <Calendar className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+
+        {/* Calendar Dropdown */}
+        {isOpen && !disabled && (
+          <div className="absolute z-50 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <button
+                onClick={() => handleMonthChange(-1)}
+                className="p-1 hover:bg-gray-100 rounded"
+                type="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <div className="text-center">
+                <div className="font-medium text-lg">
+                  {monthsLong[currentDate.getMonth()]} {currentDate.getFullYear()}
+                </div>
+                <div className="text-sm text-blue-600 font-medium">
+                  Monat und Jahr wählen
+                </div>
+              </div>
+              
+              <button
+                onClick={() => handleMonthChange(1)}
+                className="p-1 hover:bg-gray-100 rounded"
+                type="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 hover:bg-gray-100 rounded ml-2"
+                type="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Weekday Headers */}
+            <div className="grid grid-cols-7 border-b border-gray-200">
+              {weekDays.map((day) => (
+                <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar Days */}
+            <div className="grid grid-cols-7">
+              {calendarDays.map((date, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleDateSelect(date)}
+                  type="button"
+                  className={`
+                    p-2 text-sm hover:bg-gray-100 transition-colors
+                    ${!isCurrentMonth(date) ? 'text-gray-300' : 'text-gray-900'}
+                    ${isSelected(date) ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
+                    ${isSelected(date) ? 'rounded-full' : ''}
+                  `}
+                >
+                  {date.getDate()}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

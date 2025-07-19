@@ -349,10 +349,10 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           type: 'dropdown',
           width: '250px',
           ui: {
-            placeholder: 'Art auswählen...'
+            placeholder: 'Bitte eingeben'
           },
           dropdown: {
-            domainId: 'KilometerstandArt'
+            domainId: 'KraftBoGruppeMoeglKmAngabeGrund'
           }
         },
         {
@@ -414,10 +414,10 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           type: 'dropdown',
           width: '250px',
           ui: {
-            placeholder: 'Art auswählen...'
+            placeholder: 'Bitte eingeben'
           },
           dropdown: {
-            domainId: 'ZubehoerArt'
+            domainId: 'KraftBoGruppeMoeglArtZubehoerteil'
           }
         },
         {

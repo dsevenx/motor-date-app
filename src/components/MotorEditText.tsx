@@ -46,9 +46,10 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
   };
 
   return (
-    <div className="flex flex-col space-y-2">
-      {!hideLabel && (
-        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+    <div className="relative w-full">
+      {/* Label - nur anzeigen wenn vorhanden und nicht versteckt */}
+      {label && !hideLabel && (
+        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
           <Type className="w-4 h-4" />
           {label}
           {maxLength && (
@@ -58,6 +59,8 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
           )}
         </label>
       )}
+      
+      {/* Input Field */}
       <div className="relative">
         <input
           type="text"
@@ -69,16 +72,18 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
           disabled={disabled}
           maxLength={maxLength}
           className={`
-            w-full px-3 py-2 border rounded-md shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            w-full px-3 py-2 border border-gray-300 rounded-md 
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+            disabled:bg-gray-100 disabled:cursor-not-allowed
             ${disabled 
-              ? 'bg-gray-100 cursor-not-allowed text-gray-500 border-gray-200' 
-              : 'bg-white hover:border-gray-400'
+              ? 'text-gray-500' 
+              : 'text-gray-900'
             }
             ${isFocused ? 'border-blue-500' : 'border-gray-300'}
             transition-colors duration-200
           `}
         />
+        
         {/* Anzeige der aktuellen Länge bei Fokus */}
         {isFocused && maxLength && (
           <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
@@ -90,6 +95,13 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
           </div>
         )}
       </div>
+      
+      {/* Character count (wenn maxLength gesetzt ist) */}
+      {maxLength && !hideLabel && (
+        <div className="text-xs text-gray-400 mt-1 text-right">
+          {value.length}/{maxLength}
+        </div>
+      )}
     </div>
   );
 };
