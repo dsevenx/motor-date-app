@@ -8,12 +8,22 @@ export interface ApiResponse {
   details?: string;
 }
 
-// MotorDate Component (bleibt gleich)
+// MotorDate Component
 export interface MotorDateProps {
   value: string;
   onChange: (value: string) => void;
   label: string;
   disabled?: boolean;
+}
+
+// MotorDropDown Component Props
+export interface MotorDropDownProps {
+  value: string;
+  onChange: (value: string) => void;
+  label: string;
+  disabled?: boolean;
+  domainId: string;
+  placeholder?: string;
 }
 
 export interface DropdownOption {
@@ -27,7 +37,6 @@ export interface Datalist {
   id: string;
   options: DropdownOption[];
 }
-
 
 // Erweiterte Field Config für verschiedene Datentypen
 export interface FieldConfig {
@@ -48,9 +57,20 @@ export interface FieldConfig {
     placeholder?: string;
     helpText?: string;
   };
+  // Ergänzung für DropDown
+  dropdown?: {
+    domainId: string;
+  };
+  // Ergänzung für Table
+  table?: {
+    columns: any[];
+    addButtonText?: string;
+    emptyText?: string;
+    relatedFields?: string[];
+  };
 }
 
-// Chat Component (erweitert)
+// Chat Component
 export interface ChatMessage {
   id: number;
   text: string;
@@ -87,23 +107,15 @@ export interface ClaudeResponse {
   isNewVehicle?: boolean;
 }
 
-// API Response Interface
-export interface ApiResponse {
-  success: boolean;
-  message?: string;
-  data?: ClaudeResponse;
-  originalText?: string;
-  timestamp?: string;
-  error?: string;
-  details?: string;
-}
-
 // Hilfsfunktionen für Type Guards
 export const isDateField = (field: FieldConfig): boolean => field.type === 'date';
 export const isTextField = (field: FieldConfig): boolean => field.type === 'text';
 export const isNumberField = (field: FieldConfig): boolean => field.type === 'number';
 export const isBooleanField = (field: FieldConfig): boolean => field.type === 'boolean';
 export const isSelectField = (field: FieldConfig): boolean => field.type === 'select';
+export const isDropdownField = (field: FieldConfig): boolean => field.type === 'dropdown';
+export const isTristateField = (field: FieldConfig): boolean => field.type === 'tristate';
+export const isTableField = (field: FieldConfig): boolean => field.type === 'table';
 
 // Validierungshelfer
 export interface ValidationResult {
@@ -174,6 +186,18 @@ export const validateFieldValue = (
         }
       }
       break;
+
+    case 'dropdown':
+      // DropDown-Validierung könnte hier erweitert werden
+      // Validierung gegen Domain-Daten würde hier stattfinden
+      break;
+
+    case 'tristate':
+      if (value !== null && value !== 'J' && value !== 'N' && value !== ' ') {
+        result.isValid = false;
+        result.errors.push(`${field.label} muss J, N oder leer sein`);
+      }
+      break;
   }
 
   return result;
@@ -188,9 +212,14 @@ export const convertValueToFieldType = (value: any, type: FieldType): any => {
       return typeof value === 'number' ? value : (typeof value === 'string' ? parseFloat(value) || 0 : 0);
     case 'boolean':
       return typeof value === 'boolean' ? value : Boolean(value);
+    case 'tristate':
+      return value === 'J' || value === 'N' || value === ' ' ? value : ' ';
     case 'text':
     case 'select':
+    case 'dropdown':
       return typeof value === 'string' ? value : String(value || '');
+    case 'table':
+      return Array.isArray(value) ? value : [];
     default:
       return value;
   }
@@ -212,10 +241,47 @@ export const formatValueForDisplay = (value: any, type: FieldType): string => {
       return value === 0 ? 'Nicht gesetzt' : value.toLocaleString('de-DE');
     case 'boolean':
       return value ? 'Ja' : 'Nein';
+    case 'tristate':
+      return value === 'J' ? 'Ja' : value === 'N' ? 'Nein' : 'Nicht gesetzt';
     case 'text':
     case 'select':
+    case 'dropdown':
       return value === '' ? 'Nicht gesetzt' : String(value);
+    case 'table':
+      return Array.isArray(value) ? `${value.length} Einträge` : 'Nicht gesetzt';
     default:
       return String(value);
   }
+};
+
+// Hilfsfunktion für DropDown-Label-Auflösung
+export const getDropdownDisplayValue = async (
+  value: string, 
+  domainId: string
+): Promise<string> => {
+  if (!value || !domainId) return 'Nicht gesetzt';
+  
+  try {
+    // Dynamischer Import um Circular Dependencies zu vermeiden
+    const { fetchDomainData } = await import('@/app/api/FetchDomainData');
+    const options = await fetchDomainData(domainId);
+    const option = options.find(opt => opt.value === value);
+    return option?.label || value;
+  } catch (error) {
+    console.error('Error fetching dropdown display value:', error);
+    return value;
+  }
+};
+
+// Erweiterte Formatierung mit DropDown-Label-Auflösung
+export const formatValueForDisplayAsync = async (
+  value: any, 
+  type: FieldType, 
+  domainId?: string
+): Promise<string> => {
+  if (type === 'dropdown' && domainId) {
+    return await getDropdownDisplayValue(value, domainId);
+  }
+  
+  return formatValueForDisplay(value, type);
 };

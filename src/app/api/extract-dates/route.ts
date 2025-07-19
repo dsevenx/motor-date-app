@@ -6,13 +6,10 @@ import {
   validateExtractedData 
 } from '@/constants/systempromts';
 
-
 // Claude Client initialisieren
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
-
-const SYSTEM_PROMPT = SYSTEM_PROMPT_FAHRZEUGDATEN;
 
 // Hilfsfunktion zum Extrahieren von JSON aus Text
 function extractJsonFromText(text: string): { json: string; explanation?: string } {
@@ -44,6 +41,9 @@ export async function POST(request: NextRequest) {
 
     console.log('Empfangene Daten:', { text, currentValues });
 
+    // WICHTIG: System Prompt asynchron laden!
+    const SYSTEM_PROMPT = await SYSTEM_PROMPT_FAHRZEUGDATEN();
+
     // Dynamisches User-Prompt basierend auf konfigurierten Feldern
     const fieldList = FIELD_DEFINITIONS.map(field => 
       `- ${field.label} (${field.key}): ${currentValues[field.key] || 'nicht gesetzt'}`
@@ -66,15 +66,18 @@ ${FIELD_DEFINITIONS.map(field =>
 
 ${FIELD_DEFINITIONS.find(f => f.key === 'stornodatum') ? 
   'SPEZIAL - Stornodatum: Formulierungen wie "musste ich es am [Datum] abmelden", "aufgrund [Grund] am [Datum]", "wegen [Grund] am [Datum]" deuten auf ein Stornodatum hin.' : ''}
+
+WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklärungen!
 `;
 
     console.log('Sende Request an Claude...');
+    console.log('System Prompt Length:', SYSTEM_PROMPT.length);
 
     const response = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userPrompt }],
-      max_tokens: 1000,
+      max_tokens: 1500, // Erhöht für komplexere Responses
       temperature: 0.1 // Niedrig für konsistente Ergebnisse
     });
 
@@ -122,12 +125,56 @@ ${FIELD_DEFINITIONS.find(f => f.key === 'stornodatum') ?
     } catch (parseError: unknown) {
       const errorMessage = parseError instanceof Error ? parseError.message : 'Unbekannter Parsing-Fehler';
       console.error('JSON Parse Error:', errorMessage);
-      return NextResponse.json({
-        success: false,
-        error: 'Ungültige JSON-Antwort von Claude',
-        details: errorMessage,
-        rawResponse: responseText
-      }, { status: 500 });
+      console.error('Rohe Claude Response:', responseText);
+      
+      // Erweiterte Fehlerbehandlung - versuche nochmal mit expliziterem Prompt
+      console.log('Versuche nochmal mit expliziterem JSON-Prompt...');
+      
+      try {
+        const retryPrompt = `${userPrompt}
+
+KRITISCH: Du MUSST mit einem gültigen JSON-Objekt antworten! Hier ist ein Beispiel der erwarteten Struktur:
+
+{
+  "extractedData": {
+    "fahrerkreis": {"value": "E", "confidence": 0.95, "source": "alleiniger Fahrer"},
+    "wirtschaftszweig": {"value": "W074", "confidence": 0.90, "source": "Unternehmen, das Tische herstellt"}
+  },
+  "overallConfidence": 0.92,
+  "validationErrors": [],
+  "suggestions": [],
+  "recognizedPhrases": ["alleiniger Fahrer", "Unternehmen"],
+  "explanation": "",
+  "appliedCorrections": []
+}
+
+Antworte AUSSCHLIESSLICH mit JSON!`;
+
+        const retryResponse = await anthropic.messages.create({
+          model: 'claude-3-5-sonnet-20241022',
+          system: SYSTEM_PROMPT,
+          messages: [{ role: 'user', content: retryPrompt }],
+          max_tokens: 1500,
+          temperature: 0.05 // Noch niedriger für konsistentere JSON-Ausgabe
+        });
+
+        const retryText = retryResponse.content[0].type === 'text' ? retryResponse.content[0].text : '';
+        console.log('Retry Response Text:', retryText);
+
+        const { json: retryJson } = extractJsonFromText(retryText);
+        extractedData = JSON.parse(retryJson) as ClaudeResponse;
+
+        console.log('Retry erfolgreich!');
+
+      } catch (retryError) {
+        console.error('Auch Retry fehlgeschlagen:', retryError);
+        return NextResponse.json({
+          success: false,
+          error: 'Claude antwortet nicht im erwarteten JSON-Format',
+          details: errorMessage,
+          rawResponse: responseText
+        }, { status: 500 });
+      }
     }
 
     const result = {
@@ -158,13 +205,35 @@ ${FIELD_DEFINITIONS.find(f => f.key === 'stornodatum') ?
 // Für Debugging auch GET erlauben
 export async function GET() {
   console.log('GET Request an extract-dates API');
-  return NextResponse.json({
-    message: "Extract-data API ist aktiv!",
-    timestamp: new Date().toISOString(),
-    configuredFields: FIELD_DEFINITIONS.map(field => ({
-      key: field.key,
-      label: field.label,
-      type: field.type
-    }))
-  });
+  
+  try {
+    // Teste den System Prompt
+    const systemPrompt = await SYSTEM_PROMPT_FAHRZEUGDATEN();
+    const promptLength = systemPrompt.length;
+    const hasDropdownMappings = systemPrompt.includes('DROPDOWN-FELD WERTE');
+    
+    return NextResponse.json({
+      message: "Extract-data API ist aktiv!",
+      timestamp: new Date().toISOString(),
+      systemPromptInfo: {
+        length: promptLength,
+        hasDropdownMappings,
+        preview: systemPrompt.substring(0, 200) + '...'
+      },
+      configuredFields: FIELD_DEFINITIONS.map(field => ({
+        key: field.key,
+        label: field.label,
+        type: field.type,
+        hasDropdown: field.type === 'dropdown',
+        domainId: field.dropdown?.domainId
+      }))
+    });
+  } catch (error) {
+    console.error('Error in GET handler:', error);
+    return NextResponse.json({
+      message: "Extract-data API ist aktiv, aber System Prompt hat Probleme",
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+  }
 }
