@@ -10,6 +10,7 @@ export interface MotorEditTextProps {
   placeholder?: string;
   disabled?: boolean;
   maxLength?: number;
+  hideLabel?: boolean;
 }
 
 export const MotorEditText: React.FC<MotorEditTextProps> = ({ 
@@ -18,7 +19,8 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
   label, 
   placeholder,
   disabled = false,
-  maxLength
+  maxLength,
+  hideLabel = false
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -45,15 +47,17 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
 
   return (
     <div className="flex flex-col space-y-2">
-      <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-        <Type className="w-4 h-4" />
-        {label}
-        {maxLength && (
-          <span className="text-xs text-gray-500 ml-auto">
-            {value.length}/{maxLength}
-          </span>
-        )}
-      </label>
+      {!hideLabel && (
+        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Type className="w-4 h-4" />
+          {label}
+          {maxLength && (
+            <span className="text-xs text-gray-500 ml-auto">
+              {value.length}/{maxLength}
+            </span>
+          )}
+        </label>
+      )}
       <div className="relative">
         <input
           type="text"

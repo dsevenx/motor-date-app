@@ -100,6 +100,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             onChange={(newValue) => updateCell(row.id, column.key, newValue)}
             label=""
             disabled={disabled}
+            hideLabel={true}
           />
         );
 
@@ -113,6 +114,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             placeholder={column.ui?.placeholder}
             disabled={disabled}
             maxLength={column.validation?.maxLength}
+            hideLabel={true}
           />
         );
 
@@ -127,6 +129,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             min={column.validation?.min as number}
             max={column.validation?.max as number}
             format={column.validation?.numberFormat}
+            hideLabel={true}
           />
         );
 
@@ -139,6 +142,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             onChange={(newValue) => updateCell(row.id, column.key, newValue)}
             label=""
             disabled={disabled}
+            hideLabel={true}
           />
         );
 
@@ -152,6 +156,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             disabled={disabled}
             domainId={column.dropdown?.domainId || ''}
             placeholder={column.ui?.placeholder || 'Bitte auswählen...'}
+            hideLabel={true}
           />
         );
 
@@ -163,6 +168,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             onChange={(newValue) => updateCell(row.id, column.key, newValue)}
             label=""
             disabled={disabled}
+            hideLabel={true}
           />
         );
     }

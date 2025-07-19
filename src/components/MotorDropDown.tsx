@@ -11,6 +11,7 @@ export interface MotorDropDownProps {
   disabled?: boolean;
   domainId: string;
   placeholder?: string;
+  hideLabel?: boolean;
 }
 
 export const MotorDropDown: React.FC<MotorDropDownProps> = ({
@@ -19,7 +20,8 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
   label = '',
   disabled = false,
   domainId,
-  placeholder = 'Type to search'
+  placeholder = 'Type to search',
+  hideLabel = false
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -111,8 +113,8 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      {/* Label - nur anzeigen wenn vorhanden */}
-      {label && (
+      {/* Label - nur anzeigen wenn vorhanden und nicht versteckt */}
+      {label && !hideLabel && (
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {label}
         </label>

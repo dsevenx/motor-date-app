@@ -1,6 +1,6 @@
 "use client"
 
-import { Calculator, Euro, Hash, Gauge, Percent } from 'lucide-react';
+import { Calculator, Euro, Hash, Percent } from 'lucide-react';
 import React, { useState, useEffect } from "react";
 
 import { NumberFormat } from '@/constants/fieldConfig';
@@ -14,6 +14,7 @@ export interface MotorEditNumberProps {
   min?: number;
   max?: number;
   format?: NumberFormat;
+  hideLabel?: boolean;
 }
 
 export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({ 
@@ -24,7 +25,8 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   disabled = false,
   min,
   max,
-  format = 'decimal'
+  format = 'decimal',
+  hideLabel = false
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -202,10 +204,12 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
 
   return (
     <div className="flex flex-col space-y-2">
-      <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-        <Icon className="w-4 h-4" />
-        {label}
-      </label>
+      {!hideLabel && (
+        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Icon className="w-4 h-4" />
+          {label}
+        </label>
+      )}
       <div className="relative">
         <input
           type="text"

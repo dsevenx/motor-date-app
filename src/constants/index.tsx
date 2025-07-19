@@ -14,6 +14,7 @@ export interface MotorDateProps {
   onChange: (value: string) => void;
   label: string;
   disabled?: boolean;
+  hideLabel?: boolean;
 }
 
 // MotorDropDown Component Props

@@ -4,7 +4,7 @@ import { MotorDateProps } from "@/constants";
 import { Calendar } from 'lucide-react';
 import React, { useState } from "react";
 
-export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, disabled = false }) => {
+export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, disabled = false, hideLabel = false }) => {
   const [inputValue, setInputValue] = useState('');
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -44,7 +44,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
   }, [value]);
 
   // Handle input changes (required for controlled component)
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = () => {
     // Do nothing if disabled - React still needs this handler for controlled inputs
     if (disabled) return;
     
@@ -152,10 +152,12 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
 
   return (
     <div className="flex flex-col space-y-2">
-      <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-        <Calendar className="w-4 h-4" />
-        {label}
-      </label>
+      {!hideLabel && (
+        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Calendar className="w-4 h-4" />
+          {label}
+        </label>
+      )}
       <input
         ref={inputRef}
         type="text"

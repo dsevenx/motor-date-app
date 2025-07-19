@@ -8,6 +8,7 @@ export interface MotorCheckBoxProps {
   label: string;
   disabled?: boolean;
   infoText?: string;
+  hideLabel?: boolean;
 }
 
 export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({ 
@@ -15,7 +16,8 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
   onChange,
   label = '',
   disabled = false,
-  infoText
+  infoText,
+  hideLabel = false
 }) => {
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -103,8 +105,8 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
           </div>
         </div>
 
-        {/* Label - nur anzeigen wenn vorhanden */}
-        {label && (
+        {/* Label - nur anzeigen wenn vorhanden und nicht versteckt */}
+        {label && !hideLabel && (
           <label 
             htmlFor={checkboxRef.current?.id}
             className={`
