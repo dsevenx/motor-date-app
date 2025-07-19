@@ -1,33 +1,61 @@
-// fieldConfig.ts - Zentrale Feld-Konfiguration
+// fieldConfig.ts - Zentrale Feld-Konfiguration mit Tabellen-Unterstützung
 
-export type FieldType = 'date' | 'text' | 'number' | 'boolean' | 'select';
+export type FieldType = 'date' | 'text' | 'number' | 'boolean' | 'select' | 'table';
 
 export type NumberFormat = 'currency' | 'integer' | 'decimal' | 'percentage' | 'count';
+
+export interface TableColumn {
+  key: string;
+  label: string;
+  type: FieldType;
+  width?: string;
+  validation?: {
+    min?: string | number;
+    max?: string | number;
+    numberFormat?: NumberFormat;
+    maxLength?: number;
+  };
+  ui?: {
+    placeholder?: string;
+  };
+}
+
+export interface TableRow {
+  id: string;
+  [key: string]: any;
+}
 
 export interface FieldDefinition {
   key: string;                    // Eindeutiger Schlüssel
   label: string;                  // Anzeigename
   type: FieldType;               // Datentyp
-  defaultValue: string | number | boolean; // Standardwert
+  defaultValue: string | number | boolean | TableRow[]; // Standardwert
   synonyms: string[];            // KI-Erkennungsworte
   required?: boolean;            // Pflichtfeld
   validation?: {
     min?: string | number;       // Mindestvalue (für Datum/Zahl)
     max?: string | number;       // Maximalwert
-    numberFormat?: NumberFormat;           // Regex-Pattern
-    customRule?: string;        // Benutzerdefinierte Regel für KI
-    maxLength?: number; // Maximale Länge (für Text)
+    numberFormat?: NumberFormat; // Zahlenformat
+    customRule?: string;         // Benutzerdefinierte Regel für KI
+    maxLength?: number;          // Maximale Länge (für Text)
   };
   ui?: {
-    disabled?: boolean;         // UI-Zustand
-    placeholder?: string;       // Platzhalter
-    helpText?: string;          // Hilfetext
-    group?: string;             // Gruppierung in der UI
+    disabled?: boolean;          // UI-Zustand
+    placeholder?: string;        // Platzhalter
+    helpText?: string;           // Hilfetext
+    group?: string;              // Gruppierung in der UI
   };
   ai?: {
     priority?: 'high' | 'medium' | 'low';  // KI-Priorität
-    context?: string;           // Zusätzlicher Kontext für KI
-    correctionRules?: string[]; // Spezifische Korrekturregeln
+    context?: string;            // Zusätzlicher Kontext für KI
+    correctionRules?: string[];  // Spezifische Korrekturregeln
+  };
+  // Tabellen-spezifische Eigenschaften
+  table?: {
+    columns: TableColumn[];      // Spalten-Definition
+    addButtonText?: string;      // Text für Add-Button
+    emptyText?: string;          // Text bei leerer Tabelle
+    relatedFields?: string[];    // Verbundene Felder für KI-Erkennung
   };
 }
 
@@ -64,7 +92,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       correctionRules: ['Ablaufdatum > Beginndatum (sonst null)']
     }
   },
-   {
+  {
     key: 'erstzulassungsdatum',
     label: 'Erstzulassungsdatum',
     type: 'date',
@@ -81,9 +109,9 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       'baujahr',
       'alter',
       'alt',
-      'von 20', // für "von 2020", "von 2021", etc.
+      'von 20',
       'aus dem jahr',
-      'aus 20' // für "aus 2020", etc.
+      'aus 20'
     ],
     ai: {
       priority: 'medium',
@@ -131,7 +159,6 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       correctionRules: ['Suche nach "musste...abmelden", "aufgrund...am", "wegen...am"']
     }
   },
-  // Beispiel für ein weiteres Feld (nicht Datum)
   {
     key: 'fahrzeugmarke',
     label: 'Fahrzeugmarke',
@@ -147,34 +174,15 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'kilometerstand',
-    label: 'Kilometerstand',
-    type: 'number',
-    defaultValue: 0,
-    synonyms: ['kilometer', 'km', 'kilometerstand', 'laufleistung', 'gefahren'],
-    validation: {
-      min: 0,
-      max: 1000000,
-      numberFormat: 'integer' // Nur ganze Zahlen erlaubt
-    },
-    ui: {
-      placeholder: 'Kilometerstand eingeben...'
-    },
-    ai: {
-      priority: 'low',
-      context: 'Kilometerstand des Fahrzeugs'
-    }
-  },
-  {
     key: 'neuwert',
     label: 'Neuwert',
     type: 'number',
     defaultValue: 0,
-    synonyms: ['Neupreis', 'habe beim Hersteller bezahlt', 'Listenpreis', 'laufleistung', 'gefahren'],
+    synonyms: ['Neupreis', 'habe beim Hersteller bezahlt', 'Listenpreis'],
     validation: {
       min: 0,
       max: 2000000,
-      numberFormat: 'decimal' // Dezimalzahlen erlaubt
+      numberFormat: 'currency'
     },
     ui: {
       placeholder: 'Neuwert eingeben...'
@@ -182,6 +190,129 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     ai: {
       priority: 'low',
       context: 'Neuwert des Fahrzeugs'
+    }
+  },
+  // Tabelle: Kilometerstände
+  {
+    key: 'kilometerstaende',
+    label: 'Kilometerstände',
+    type: 'table',
+    defaultValue: [],
+    synonyms: [
+      'kilometer', 'km', 'kilometerstand', 'laufleistung', 'gefahren', 
+      'bei antragsaufnahme', 'bei vertragsbeginn', 'bei versicherungsbeginn',
+      'zu beginn war', 'aktueller stand', 'jetzt', 'heute', 'momentan'
+    ],
+    ai: {
+      priority: 'medium',
+      context: 'Kilometerstände zu verschiedenen Zeitpunkten. Erkenne verschiedene Zeitpunkte und ordne sie zu: Antragsaufnahme, Versicherungsbeginn, Vertragsende, etc.',
+      correctionRules: [
+        'Datum sollte logisch zum Kontext passen',
+        'KM-Stand sollte chronologisch steigen',
+        'Bei "zu Beginn" verwende beginndatum',
+        'Bei "jetzt/heute/aktuell" verwende aktuelles Datum'
+      ]
+    },
+    table: {
+      columns: [
+        {
+          key: 'datum',
+          label: 'Datum',
+          type: 'date',
+          width: '200px'
+        },
+        {
+          key: 'art',
+          label: 'Art des KM-Stands',
+          type: 'text',
+          width: '250px',
+          ui: {
+            placeholder: 'z.B. Versicherungsbeginn, Antragsaufnahme...'
+          }
+        },
+        {
+          key: 'kmstand',
+          label: 'KM-Stand',
+          type: 'number',
+          width: '150px',
+          validation: {
+            min: 0,
+            max: 1000000,
+            numberFormat: 'integer'
+          }
+        }
+      ],
+      addButtonText: 'Kilometerstand hinzufügen',
+      emptyText: 'Keine Kilometerstände erfasst',
+      relatedFields: ['beginndatum', 'anmeldedatum', 'erstzulassungsdatum']
+    }
+  },
+  // Tabelle: Zubehör
+  {
+    key: 'zubehoer',
+    label: 'Zubehör',
+    type: 'table',
+    defaultValue: [],
+    synonyms: [
+      'zubehör', 'zusatzausstattung', 'extras', 'sonderausstattung',
+      'soundsystem', 'sound', 'musik', 'radio', 'navigation', 'navi',
+      'tuning', 'fahrwerk', 'felgen', 'räder', 'reifen',
+      'sicherheit', 'alarm', 'diebstahlschutz', 'wegfahrsperre',
+      'launch', 'launchcontrol', 'sportauspuff', 'auspuff',
+      'habe ein', 'habe eine', 'zusätzlich', 'eingebaut', 'montiert',
+      'im wert von', 'kostet', 'wert', 'euro', 'für', 'von'
+    ],
+    ai: {
+      priority: 'medium',
+      context: 'Fahrzeug-Zubehör mit Wertangaben. Erkenne Hersteller, Art des Zubehörs, Wert und ob es zuschlagspflichtig ist. Mehrere Zubehörteile in einem Satz sollen als separate Einträge erfasst werden.',
+      correctionRules: [
+        'Werte über 1000€ sind meist zuschlagspflichtig',
+        'Sicherheitssysteme sind meist zuschlagspflichtig',
+        'Tuning-Teile sind meist zuschlagspflichtig',
+        'Standard-Zubehör wie Radios unter 500€ meist nicht zuschlagspflichtig'
+      ]
+    },
+    table: {
+      columns: [
+        {
+          key: 'hersteller',
+          label: 'Hersteller',
+          type: 'text',
+          width: '200px',
+          ui: {
+            placeholder: 'z.B. BMW, Bose, Alpine...'
+          }
+        },
+        {
+          key: 'art',
+          label: 'Art des Zubehörs',
+          type: 'text',
+          width: '250px',
+          ui: {
+            placeholder: 'z.B. Soundsystem, Fahrwerkstuning...'
+          }
+        },
+        {
+          key: 'zuschlag',
+          label: 'Zuschlagspflichtig',
+          type: 'boolean',
+          width: '120px'
+        },
+        {
+          key: 'wert',
+          label: 'Wert in Euro',
+          type: 'number',
+          width: '150px',
+          validation: {
+            min: 0,
+            max: 100000,
+            numberFormat: 'currency'
+          }
+        }
+      ],
+      addButtonText: 'Zubehör hinzufügen',
+      emptyText: 'Kein Zubehör erfasst',
+      relatedFields: ['neuwert']
     }
   }
 ];
@@ -197,6 +328,10 @@ export const getFieldsByType = (type: FieldType): FieldDefinition[] => {
 
 export const getFieldsByGroup = (group: string): FieldDefinition[] => {
   return FIELD_DEFINITIONS.filter(field => field.ui?.group === group);
+};
+
+export const getTableFields = (): FieldDefinition[] => {
+  return FIELD_DEFINITIONS.filter(field => field.type === 'table');
 };
 
 export const getAllSynonyms = (): Record<string, string[]> => {
@@ -215,13 +350,61 @@ export const getValidationRules = (): Record<string, string[]> => {
   }, {} as Record<string, string[]>);
 };
 
+// Hilfsfunktionen für Tabellen
+export const createEmptyTableRow = (tableField: FieldDefinition): TableRow => {
+  if (!tableField.table) throw new Error('Field is not a table');
+  
+  const row: TableRow = {
+    id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
+  };
+  
+  tableField.table.columns.forEach(column => {
+    switch (column.type) {
+      case 'date':
+        row[column.key] = '0001-01-01';
+        break;
+      case 'number':
+        row[column.key] = 0;
+        break;
+      case 'boolean':
+        row[column.key] = false;
+        break;
+      case 'text':
+      case 'select':
+      default:
+        row[column.key] = '';
+        break;
+    }
+  });
+  
+  return row;
+};
+
+export const addTableRow = (tableKey: string, currentRows: TableRow[]): TableRow[] => {
+  const field = getFieldByKey(tableKey);
+  if (!field || field.type !== 'table') return currentRows;
+  
+  const newRow = createEmptyTableRow(field);
+  return [...currentRows, newRow];
+};
+
+export const removeTableRow = (currentRows: TableRow[], rowId: string): TableRow[] => {
+  return currentRows.filter(row => row.id !== rowId);
+};
+
+export const updateTableRow = (currentRows: TableRow[], rowId: string, updates: Partial<TableRow>): TableRow[] => {
+  return currentRows.map(row => 
+    row.id === rowId ? { ...row, ...updates } : row
+  );
+};
+
 // Typen für die API-Responses (dynamisch generiert)
 export type ExtractedFieldValue = {
-  value: string | number | boolean | null;
+  value: string | number | boolean | TableRow[] | null;
   confidence: number;
   source: string;
   corrected?: boolean;
-  originalValue?: string | number | boolean | null;
+  originalValue?: string | number | boolean | TableRow[] | null;
 };
 
 export type ExtractedData = {
@@ -236,6 +419,9 @@ export interface ClaudeResponse {
   recognizedPhrases: string[];
   explanation: string;
   appliedCorrections: string[];
+  newTableRows?: {
+    [tableKey: string]: TableRow[];
+  };
 }
 
 // Generiere Standardwerte für den State
@@ -257,6 +443,7 @@ export const generateFieldConfigs = (
     synonyms: field.synonyms,
     currentValue: values[field.key],
     onChange: setters[field.key],
-    type: field.type
+    type: field.type,
+    table: field.table
   }));
 };
