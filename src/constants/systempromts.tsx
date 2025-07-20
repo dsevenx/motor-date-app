@@ -169,6 +169,7 @@ export const generateSystemPrompt = async (): Promise<string> => {
                         field.type === 'number' ? 0 : 
                         field.type === 'boolean' ? false : 
                         field.type === 'tristate' ? null :
+                        field.type === 'table' ? [] :
                         field.type === 'dropdown' ? null : null;
     
     schema[field.key] = {
@@ -206,8 +207,29 @@ JSON-FORMAT:
   "appliedCorrections": []
 }
 
-WICHTIG: Für DropDown-Felder IMMER den VALUE verwenden, nicht das LABEL!
-NUR JSON zurückgeben, keine Erklärungen außerhalb!`;
+TABELLEN-DATEN (kilometerstaende, zubehoer):
+- IMMER als Array von Objekten zurückgeben
+- Jedes Objekt MUSS eine "id" haben (generiere UUID-ähnlich)
+- Nutze die exakten Spalten-Keys aus der Konfiguration
+
+Beispiel für kilometerstaende:
+"kilometerstaende": {
+  "value": [
+    {
+      "id": "km_001",
+      "datum": "2024-07-15",
+      "art": "A",
+      "kmstand": 22000
+    }
+  ],
+  "confidence": 0.9,
+  "source": "Text-Bereich"
+}
+
+WICHTIG: 
+- Für DropDown-Felder IMMER den VALUE verwenden, nicht das LABEL!
+- Tabellen-Daten als Array strukturieren
+- NUR JSON zurückgeben, keine Erklärungen außerhalb!`;
 };
 
 // Cached System Prompt für Performance
@@ -247,6 +269,7 @@ export const SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC = (() => {
                         field.type === 'number' ? 0 : 
                         field.type === 'boolean' ? false : 
                         field.type === 'tristate' ? null :
+                        field.type === 'table' ? [] :
                         field.type === 'dropdown' ? null : null;
     
     schema[field.key] = {
@@ -280,8 +303,29 @@ JSON-FORMAT:
   "appliedCorrections": []
 }
 
-WICHTIG: Für DropDown-Felder IMMER den VALUE verwenden, nicht das LABEL!
-NUR JSON zurückgeben, keine Erklärungen außerhalb!`;
+TABELLEN-DATEN (kilometerstaende, zubehoer):
+- IMMER als Array von Objekten zurückgeben
+- Jedes Objekt MUSS eine "id" haben (generiere UUID-ähnlich)
+- Nutze die exakten Spalten-Keys aus der Konfiguration
+
+Beispiel für kilometerstaende:
+"kilometerstaende": {
+  "value": [
+    {
+      "id": "km_001",
+      "datum": "2024-07-15",
+      "art": "A",
+      "kmstand": 22000
+    }
+  ],
+  "confidence": 0.9,
+  "source": "Text-Bereich"
+}
+
+WICHTIG: 
+- Für DropDown-Felder IMMER den VALUE verwenden, nicht das LABEL!
+- Tabellen-Daten als Array strukturieren
+- NUR JSON zurückgeben, keine Erklärungen außerhalb!`;
 })();
 
 // Dynamische Synonyme basierend auf Konfiguration

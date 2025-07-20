@@ -53,6 +53,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
 
     // Sichere Iteration über extractedData
     try {
+      console.log('Processing extracted data fields:', Object.keys(aiData.extractedData));
       Object.entries(aiData.extractedData).forEach(([fieldKey, extractedValue]) => {
         // Null-Check für extractedValue
         if (!extractedValue || typeof extractedValue !== 'object') {
@@ -78,13 +79,27 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         const previousValue = previousValues[fieldKey];
         
         // Wert konvertieren basierend auf Feldtyp
-        let newValue: string;
+        let newValue: any;
         try {
           const convertedValue = convertValueToFieldType(typedExtractedValue.value, fieldConfig.type);
-          newValue = String(convertedValue);
+          
+          // Bei Tabellen-Feldern den Wert direkt übernehmen (Array)
+          if (fieldConfig.type === 'table') {
+            newValue = convertedValue;
+            console.log(`Table data for ${fieldKey}:`, convertedValue);
+          } else {
+            newValue = String(convertedValue);
+          }
         } catch (conversionError) {
           console.error(`Fehler bei Typkonvertierung für ${fieldKey}:`, conversionError);
-          newValue = String(typedExtractedValue.value);
+          
+          // Fallback für Tabellen
+          if (fieldConfig.type === 'table') {
+            newValue = Array.isArray(typedExtractedValue.value) ? typedExtractedValue.value : [];
+            console.log(`Table fallback for ${fieldKey}:`, newValue);
+          } else {
+            newValue = String(typedExtractedValue.value);
+          }
         }
 
         // Validierung
@@ -96,7 +111,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         }
 
         // Nur bei tatsächlicher Änderung zur Anzeige hinzufügen
-        if (previousValue !== newValue) {
+        const hasChanged = fieldConfig.type === 'table' 
+          ? JSON.stringify(previousValue) !== JSON.stringify(newValue)
+          : previousValue !== newValue;
+          
+        if (hasChanged) {
           try {
             // Feld aktualisieren
             fieldConfig.onChange(newValue);
@@ -107,16 +126,16 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
             // Werte für die Antwort speichern (nur die geänderten Werte)
             updatedFieldsWithValues.push({
               label: fieldConfig.label,
-              value: newValue,
+              value: fieldConfig.type === 'table' ? JSON.stringify(newValue) : String(newValue),
               formattedValue: formattedValue
             });
             
-            console.log(`Updated ${fieldKey} from "${previousValue}" to "${newValue}" (formatted: ${formattedValue})`);
+            console.log(`Updated ${fieldKey} from "${JSON.stringify(previousValue)}" to "${JSON.stringify(newValue)}" (formatted: ${formattedValue})`);
           } catch (updateError) {
             console.error(`Fehler beim Aktualisieren von ${fieldKey}:`, updateError);
           }
         } else {
-          console.log(`${fieldKey} unchanged: "${previousValue}"`);
+          console.log(`${fieldKey} unchanged: "${JSON.stringify(previousValue)}"`);
         }
       });
     } catch (iterationError) {

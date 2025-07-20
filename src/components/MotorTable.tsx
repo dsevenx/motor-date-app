@@ -30,6 +30,9 @@ export const MotorTable: React.FC<MotorTableProps> = ({
 }) => {
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
 
+  // Stelle sicher, dass value immer ein Array ist
+  const safeValue = Array.isArray(value) ? value : [];
+
   // Neue Zeile erstellen
   const createNewRow = (): TableRow => {
     const newRow: TableRow = {
@@ -66,19 +69,19 @@ export const MotorTable: React.FC<MotorTableProps> = ({
   const addRow = () => {
     if (disabled) return;
     const newRow = createNewRow();
-    onChange([...value, newRow]);
+    onChange([...safeValue, newRow]);
   };
 
   // Zeile löschen
   const deleteRow = (rowId: string) => {
     if (disabled) return;
-    onChange(value.filter(row => row.id !== rowId));
+    onChange(safeValue.filter(row => row.id !== rowId));
   };
 
   // Zellenwert aktualisieren
   const updateCell = (rowId: string, columnKey: string, newValue: any) => {
     if (disabled) return;
-    const updatedRows = value.map(row => 
+    const updatedRows = safeValue.map(row => 
       row.id === rowId 
         ? { ...row, [columnKey]: newValue }
         : row
@@ -183,13 +186,13 @@ export const MotorTable: React.FC<MotorTableProps> = ({
           {label}
         </label>
         <span className="text-xs text-gray-500 ml-auto">
-          {value.length} {value.length === 1 ? 'Eintrag' : 'Einträge'}
+          {safeValue.length} {safeValue.length === 1 ? 'Eintrag' : 'Einträge'}
         </span>
       </div>
 
       {/* Tabelle */}
       <div className="border border-gray-300 rounded-lg overflow-hidden">
-        {value.length === 0 ? (
+        {safeValue.length === 0 ? (
           // Leere Tabelle
           <div className="p-8 text-center text-gray-500 bg-gray-50">
             <Table className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -219,7 +222,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
 
               {/* Tabellen-Body */}
               <tbody className="bg-white divide-y divide-gray-200">
-                {value.map((row, rowIndex) => (
+                {safeValue.map((row, rowIndex) => (
                   <tr
                     key={row.id}
                     className={`hover:bg-gray-50 transition-colors duration-150 ${
