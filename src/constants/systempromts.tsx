@@ -15,11 +15,17 @@ const todayFormatted = today.toLocaleDateString('de-DE', {
 });
 const currentYear = today.getFullYear();
 
+// Interface für Domain-Option
+interface DomainOption {
+  value: string;
+  label: string;
+}
+
 // Cache für Domain-Daten
-let domainDataCache: Record<string, any[]> = {};
+const domainDataCache: Record<string, DomainOption[]> = {};
 
 // Hilfsfunktion zum Laden aller Domain-Daten
-export const loadAllDomainData = async (): Promise<Record<string, any[]>> => {
+export const loadAllDomainData = async (): Promise<Record<string, DomainOption[]>> => {
   const dropdownFields = getDropdownFields();
   const domainIds = [...new Set(dropdownFields.map(field => field.dropdown?.domainId).filter(Boolean))];
   
@@ -37,113 +43,61 @@ export const loadAllDomainData = async (): Promise<Record<string, any[]>> => {
   return domainDataCache;
 };
 
-// Dynamische Generierung der DropDown-Mappings
-const generateDropdownMappings = async (): Promise<string> => {
-  await loadAllDomainData();
+// Artifact-basierte DropDown-Referenzierung (Token-optimiert)
+const generateArtifactBasedDropdownMappings = (): string => {
+  const tableFields = getFieldsByType('table');
   
-  const dropdownFields = getDropdownFields();
-  let mappingText = '\nDROPDOWN-FELD WERTE (verwende immer die VALUE, nicht das LABEL!):\n';
-  
-  dropdownFields.forEach(field => {
-    if (field.dropdown?.domainId && domainDataCache[field.dropdown.domainId]) {
-      mappingText += `\n${field.key.toUpperCase()} (${field.label}):\n`;
-      
-      const options = domainDataCache[field.dropdown.domainId];
-      options.forEach(option => {
-        if (option.value && option.label) { // Nur nicht-leere Werte
-          mappingText += `  - VALUE: "${option.value}" = LABEL: "${option.label}"\n`;
+  // Nur Tabellen-relevante Domains referenzieren
+  const tableDropdownDomains = new Set<string>();
+  tableFields.forEach(field => {
+    if (field.table?.columns) {
+      field.table.columns.forEach(column => {
+        if (column.dropdown?.domainId) {
+          tableDropdownDomains.add(column.dropdown.domainId);
         }
       });
-      
-      // Zusätzliche intelligente Mapping-Regeln basierend auf Synonymen
-      if (field.synonyms && field.synonyms.length > 0) {
-        mappingText += `\n  SYNONYME für ${field.key}: ${field.synonyms.join(', ')}\n`;
-        
-        // Generiere automatische Mapping-Regeln
-        mappingText += `  MAPPING-REGELN für ${field.key}:\n`;
-        options.forEach(option => {
-          if (option.value && option.label) {
-            // Einfache Keyword-Matching-Regeln
-            const keywords = option.label.toLowerCase().split(/[\s\-\/]+/);
-            const relevantKeywords = keywords.filter((k: string) => k.length > 2);
-            if (relevantKeywords.length > 0) {
-              mappingText += `    - "${relevantKeywords.join('" / "')}" → VALUE: "${option.value}"\n`;
-            }
-          }
-        });
-      }
     }
+  });
+  
+  if (tableDropdownDomains.size === 0) {
+    return '\nKeine Tabellen-DropDown-Domains konfiguriert.\n';
+  }
+  
+  let mappingText = '\nDROPDOWN-DOMAIN-REFERENZ (Token-optimiert via Artifact):\n';
+  mappingText += 'Domain-Daten verfügbar in Artifact "fahrzeug-domains.json"\n\n';
+  
+  Array.from(tableDropdownDomains).forEach(domainId => {
+    mappingText += `DOMAIN: ${domainId}\n`;
+    mappingText += `- Nutze VALUE aus Artifact-Domain "${domainId}"\n`;
+    mappingText += `- Bei Texterkennung: Label→Value-Mapping via Artifact\n`;
+    mappingText += `- Fallback: Intelligente Keyword-Zuordnung\n\n`;
   });
   
   return mappingText;
 };
 
-// Erweiterte intelligente Mapping-Regeln
-const generateIntelligentMappingRules = async (): Promise<string> => {
-  await loadAllDomainData();
+// Artifact-basierte intelligente Mapping-Regeln (Token-optimiert)
+const generateArtifactBasedMappingRules = (): string => {
+  let rulesText = '\nARTIFACT-BASIERTE MAPPING-REGELN:\n';
+  rulesText += 'Nutze Domain-Mapping aus Artifact "fahrzeug-domains.json"\n\n';
   
-  let rulesText = '\nINTELLIGENTE MAPPING-REGELN:\n';
+  // Nur die wichtigsten Tabellen-Domain-Regeln einbinden
+  rulesText += 'KILOMETERSTAND-ART (KraftBoGruppeMoeglKmAngabeGrund):\n';
+  rulesText += '- "bei antragsaufnahme" / "aufnahme" → VALUE: "6"\n';
+  rulesText += '- "zu beginn" / "versicherungsbeginn" → VALUE: "1"\n';
+  rulesText += '- "anfrage" / "km-anfrage" → VALUE: "2"\n';
+  rulesText += '- "bei änderung" → VALUE: "10"\n';
+  rulesText += '- "freiwillig" → VALUE: "8"\n\n';
   
-  const dropdownFields = getDropdownFields();
-  dropdownFields.forEach(field => {
-    if (field.dropdown?.domainId && domainDataCache[field.dropdown.domainId]) {
-      const options = domainDataCache[field.dropdown.domainId];
-      
-      rulesText += `\n${field.label.toUpperCase()}:\n`;
-      
-      // Automatische Regeln basierend auf häufigen Mustern
-      options.forEach(option => {
-        if (option.value && option.label) {
-          const label = option.label.toLowerCase();
-          
-          // Fahrerkreis spezifische Regeln
-          if (field.key === 'fahrerkreis') {
-            if (label.includes('einzel')) {
-              rulesText += `- "allein" / "nur ich" / "einzelfahrer" / "alleiniger fahrer" → VALUE: "${option.value}"\n`;
-            } else if (label.includes('partner')) {
-              rulesText += `- "partner" / "ehepartner" / "mit partner" → VALUE: "${option.value}"\n`;
-            } else if (label.includes('familie')) {
-              rulesText += `- "familie" / "kinder" / "familienfahrer" → VALUE: "${option.value}"\n`;
-            } else if (label.includes('beliebige') || label.includes('mindestalter')) {
-              rulesText += `- "jeder" / "alle" / "beliebige fahrer" → VALUE: "${option.value}"\n`;
-            }
-          }
-          
-          // Wirtschaftszweig spezifische Regeln
-          else if (field.key === 'wirtschaftszweig') {
-            if (label.includes('landwirtschaft')) {
-              rulesText += `- "landwirtschaft" / "bauer" / "landwirt" → VALUE: "${option.value}"\n`;
-            } else if (label.includes('produzierend') || label.includes('unternehmen')) {
-              rulesText += `- "unternehmen" / "firma" / "herstellt" / "produziert" / "möbel" / "tische" / "fabrik" → VALUE: "${option.value}"\n`;
-            } else if (label.includes('finanz') || label.includes('versicherung')) {
-              rulesText += `- "bank" / "versicherung" / "finanz" → VALUE: "${option.value}"\n`;
-            } else if (label.includes('transport') || label.includes('logistik')) {
-              rulesText += `- "transport" / "spedition" / "logistik" / "lkw" → VALUE: "${option.value}"\n`;
-            }
-          }
-          
-          // Inkassoart spezifische Regeln
-          else if (field.key === 'inkassoart') {
-            if (label.includes('lastschrift')) {
-              rulesText += `- "lastschrift" / "einzug" / "sepa" / "abbuchung" → VALUE: "${option.value}"\n`;
-            } else if (label.includes('überweisung')) {
-              rulesText += `- "überweisung" / "selbst zahlen" / "dauerauftrag" → VALUE: "${option.value}"\n`;
-            } else if (label.includes('vermittler')) {
-              rulesText += `- "vermittler" / "makler" / "über makler" → VALUE: "${option.value}"\n`;
-            }
-          }
-          
-          // Allgemeine Regel: Direkte Label-Erkennung
-          else {
-            const keywords = label.split(/[\s\-\/]+/).filter((k: string) => k.length > 2);
-            if (keywords.length > 0) {
-              rulesText += `- "${keywords.join('" / "')}" → VALUE: "${option.value}"\n`;
-            }
-          }
-        }
-      });
-    }
-  });
+  rulesText += 'ZUBEHÖR-ART (KraftBoGruppeMoeglArtZubehoerteil):\n';
+  rulesText += '- "fahrwerk" / "tuning" → VALUE: "ZUB300"\n';
+  rulesText += '- "triebwerk" / "motor" → VALUE: "ZUB301"\n';
+  rulesText += '- "auspuff" → VALUE: "ZUB302"\n';
+  rulesText += '- "innenraum" → VALUE: "ZUB303"\n';
+  rulesText += '- "karosserie" → VALUE: "ZUB304"\n';
+  rulesText += '- "lackierung" → VALUE: "ZUB305"\n\n';
+  
+  rulesText += 'WICHTIG: Bei unklaren Fällen nutze Artifact-Fallback-Mapping!\n';
   
   return rulesText;
 };
@@ -159,12 +113,12 @@ export const generateSystemPrompt = async (): Promise<string> => {
     .flat()
     .join('\n');
 
-  // Lade Domain-Daten dynamisch
-  const dropdownMappingsText = await generateDropdownMappings();
-  const intelligentMappingRules = await generateIntelligentMappingRules();
+  // Artifact-basierte Domain-Referenzierung (Token-optimiert)
+  const dropdownMappingsText = generateArtifactBasedDropdownMappings();
+  const intelligentMappingRules = generateArtifactBasedMappingRules();
 
   // Generiere JSON-Schema dynamisch
-  const jsonSchema = FIELD_DEFINITIONS.reduce((schema, field) => {
+  const jsonSchema: Record<string, unknown> = FIELD_DEFINITIONS.reduce((schema, field) => {
     const defaultValue = field.type === 'date' ? null : 
                         field.type === 'number' ? 0 : 
                         field.type === 'boolean' ? false : 
@@ -180,7 +134,7 @@ export const generateSystemPrompt = async (): Promise<string> => {
       originalValue: null
     };
     return schema;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, unknown>);
 
   return `Du bist ein Experte für deutsche Fahrzeugdaten-Extraktion. Heute ist ${todayFormatted}.
 
@@ -211,6 +165,7 @@ TABELLEN-DATEN (kilometerstaende, zubehoer):
 - IMMER als Array von Objekten zurückgeben
 - Jedes Objekt MUSS eine "id" haben (generiere UUID-ähnlich)
 - Nutze die exakten Spalten-Keys aus der Konfiguration
+- FÜR DROPDOWN-WERTE: Nutze Artifact "fahrzeug-domains.json"
 
 Beispiel für kilometerstaende:
 "kilometerstaende": {
@@ -218,7 +173,7 @@ Beispiel für kilometerstaende:
     {
       "id": "km_001",
       "datum": "2024-07-15",
-      "art": "A",
+      "art": "6",
       "kmstand": 22000
     }
   ],
@@ -226,9 +181,15 @@ Beispiel für kilometerstaende:
   "source": "Text-Bereich"
 }
 
+ARTIFACT-INTEGRATION:
+- Domain-Daten verfügbar in Artifact "fahrzeug-domains.json"
+- Bei DropDown-Werten: Label→Value-Mapping via Artifact
+- Fallback: Verwende Mapping-Regeln aus diesem Prompt
+
 WICHTIG: 
 - Für DropDown-Felder IMMER den VALUE verwenden, nicht das LABEL!
 - Tabellen-Daten als Array strukturieren
+- Artifact-Domains haben Priorität über generische Werte
 - NUR JSON zurückgeben, keine Erklärungen außerhalb!`;
 };
 
@@ -264,7 +225,7 @@ export const SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC = (() => {
     .flat()
     .join('\n');
 
-  const jsonSchema = FIELD_DEFINITIONS.reduce((schema, field) => {
+  const jsonSchema: Record<string, unknown> = FIELD_DEFINITIONS.reduce((schema, field) => {
     const defaultValue = field.type === 'date' ? null : 
                         field.type === 'number' ? 0 : 
                         field.type === 'boolean' ? false : 
@@ -280,7 +241,7 @@ export const SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC = (() => {
       originalValue: null
     };
     return schema;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, unknown>);
 
   return `Du bist ein Experte für deutsche Fahrzeugdaten-Extraktion. Heute ist ${todayFormatted}.
 
@@ -307,6 +268,7 @@ TABELLEN-DATEN (kilometerstaende, zubehoer):
 - IMMER als Array von Objekten zurückgeben
 - Jedes Objekt MUSS eine "id" haben (generiere UUID-ähnlich)
 - Nutze die exakten Spalten-Keys aus der Konfiguration
+- FÜR DROPDOWN-WERTE: Nutze Artifact "fahrzeug-domains.json"
 
 Beispiel für kilometerstaende:
 "kilometerstaende": {
@@ -314,7 +276,7 @@ Beispiel für kilometerstaende:
     {
       "id": "km_001",
       "datum": "2024-07-15",
-      "art": "A",
+      "art": "6",
       "kmstand": 22000
     }
   ],
@@ -322,9 +284,15 @@ Beispiel für kilometerstaende:
   "source": "Text-Bereich"
 }
 
+ARTIFACT-INTEGRATION:
+- Domain-Daten verfügbar in Artifact "fahrzeug-domains.json"
+- Bei DropDown-Werten: Label→Value-Mapping via Artifact
+- Fallback: Verwende Mapping-Regeln aus diesem Prompt
+
 WICHTIG: 
 - Für DropDown-Felder IMMER den VALUE verwenden, nicht das LABEL!
 - Tabellen-Daten als Array strukturieren
+- Artifact-Domains haben Priorität über generische Werte
 - NUR JSON zurückgeben, keine Erklärungen außerhalb!`;
 })();
 
@@ -344,7 +312,7 @@ export const FAHRZEUGDATEN_REGELN = {
 };
 
 // Optimierte Prompt-Erstellung für spezifische Fälle
-export function createContextualPrompt(text: string, currentValues: any): string {
+export function createContextualPrompt(text: string, currentValues: Record<string, unknown>): string {
   const hasStorno = text.includes("musste") || text.includes("aufgrund") || text.includes("wegen") || text.includes("abmelden");
   const hasUrbeginn = text.includes("erstes") || text.includes("vor") || text.includes("Jahren");
   const hasNeuwagen = text.includes("neues") || text.includes("Neuwagen") || text.includes("Lieferung");
@@ -392,7 +360,7 @@ Extrahiere nur neue/geänderte Daten. Wende Korrektur-Regeln an.`;
 }
 
 // Hilfsfunktion für die Validierung der extrahierten Daten
-export function validateExtractedData(extractedData: any): string[] {
+export function validateExtractedData(extractedData: Record<string, { value?: unknown }>): string[] {
   const errors: string[] = [];
   
   FIELD_DEFINITIONS.forEach(field => {
@@ -403,7 +371,7 @@ export function validateExtractedData(extractedData: any): string[] {
     }
     
     if (field.type === 'date' && value) {
-      const date = new Date(value);
+      const date = new Date(value as string | number | Date);
       if (isNaN(date.getTime())) {
         errors.push(`${field.label} enthält ein ungültiges Datum`);
       }
@@ -426,7 +394,7 @@ export function validateExtractedData(extractedData: any): string[] {
     if (field.type === 'dropdown' && value && field.dropdown?.domainId) {
       const domainOptions = domainDataCache[field.dropdown.domainId] || [];
       const validValues = domainOptions.map(option => option.value).filter(Boolean);
-      if (!validValues.includes(value)) {
+      if (!validValues.includes(value as string)) {
         errors.push(`${field.label} enthält einen ungültigen Wert: ${value}. Erlaubte Werte: ${validValues.join(', ')}`);
       }
     }
@@ -436,14 +404,15 @@ export function validateExtractedData(extractedData: any): string[] {
 }
 
 // Hilfsfunktion zur automatischen Konvertierung von Labels zu Values
-export async function convertLabelsToValues(extractedData: any): Promise<any> {
+export async function convertLabelsToValues(extractedData: Record<string, { value?: unknown; [key: string]: unknown }>): Promise<Record<string, { value?: unknown; [key: string]: unknown }>> {
   await loadAllDomainData();
   
   const convertedData = { ...extractedData };
   
   FIELD_DEFINITIONS.forEach(field => {
     if (field.type === 'dropdown' && field.dropdown?.domainId) {
-      const value = extractedData[field.key]?.value;
+      const fieldData = extractedData[field.key];
+      const value = fieldData?.value;
       if (value && typeof value === 'string') {
         const domainOptions = domainDataCache[field.dropdown.domainId] || [];
         
@@ -454,7 +423,7 @@ export async function convertLabelsToValues(extractedData: any): Promise<any> {
         
         if (matchByLabel && matchByLabel.value) {
           convertedData[field.key] = {
-            ...extractedData[field.key],
+            ...fieldData,
             value: matchByLabel.value,
             originalValue: value,
             corrected: true

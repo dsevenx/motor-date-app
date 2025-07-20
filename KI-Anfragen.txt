@@ -149,6 +149,23 @@ enthalten sind.
 Die Optik - bitte wirklich nur das Aussehen aus der angehängten MotorDropDown ableiten.
 Bitte dies 3 MotorDropDown auf page.tsx einbauen.
 
+------------------------------------------------------------------------------------------------------------
+Anfrage 8
+
+Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.
+Dann haben wir gemeinsam ein echtes KI-Modell von claude.ai angebunden. 
+Wir haben in der Page.tsx auf der rechten Seite den KI Chat und in der Mitte die fachlichen Infos.
+Ich möchte gern jetzt auf der linken Seite eine Componente, die aus 2 Teile besteht. Oben soll ein kleiner Tree sein,
+der aus fetchTreeDaten.tsx kommen soll. Der Tree hat ein Kontextmenu Verzweigen, Bearbeiten, Hinzufügen, wo bei Hinzufügen Submenus hat:
+Einzelvertrag,Tarifmodell,Objektklasse,Firmeneinheit.
+Unter dem Tree kommt eine Komponente, die mehrer Textzeilen enthält - hier weden SchnellInfos dargestellt.
+Bitte schreib zum Start mal "Ordnervereinbarung" in die erste Zeile.
+Beide Komponenten sollen sich den  vertikalen Paltz teilen.
+Die neuen page.tsx soll versuchen den ganz BrowserPlatz zu benutzen, wo bei der Mittelteil doppelt soviel haben darf
+ wie Links (Tree und Schnellinfo) und Rechts (KI Chat Komponente).
+
+ Bitte erstell die Links-Komponente und passe Page.tsx an.
+
 
 
 

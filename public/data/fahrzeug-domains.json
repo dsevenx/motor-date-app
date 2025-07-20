@@ -1,0 +1,115 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-01-20",
+  "description": "Domain-Daten für Fahrzeug-Tabellen DropDowns - Token-optimiert für Claude Artifacts",
+  "domains": {
+    "KraftBoGruppeMoeglKmAngabeGrund": [
+      {
+        "value": "99",
+        "label": "Bitte eingeben"
+      },
+      {
+        "value": "1",
+        "label": "Versicherungsbeginn"
+      },
+      {
+        "value": "6",
+        "label": "Antragsaufnahme"
+      },
+      {
+        "value": "2",
+        "label": "km-Anfrage"
+      },
+      {
+        "value": "10",
+        "label": "bei Änderung"
+      },
+      {
+        "value": "8",
+        "label": "freiwillige Meldung VN"
+      },
+      {
+        "value": "KF",
+        "label": "Kilometerstand fehlt"
+      },
+      {
+        "value": "SK",
+        "label": "Kilometerstand zu Schadenereignis"
+      },
+      {
+        "value": "SG",
+        "label": "Kilometerstand aus Gutachten, Werkstatt"
+      }
+    ],
+    "KraftBoGruppeMoeglArtZubehoerteil": [
+      {
+        "value": "ZUB998",
+        "label": "Bitte eingeben"
+      },
+      {
+        "value": "ZUB300",
+        "label": "Fahrwerktuning"
+      },
+      {
+        "value": "ZUB301",
+        "label": "Triebwerktuning"
+      },
+      {
+        "value": "ZUB302",
+        "label": "Auspufftuning"
+      },
+      {
+        "value": "ZUB303",
+        "label": "Innenraumtuning"
+      },
+      {
+        "value": "ZUB304",
+        "label": "Karosserietuning"
+      },
+      {
+        "value": "ZUB305",
+        "label": "Sonderlackierung"
+      },
+      {
+        "value": "ZUB306",
+        "label": "Sonderbeschriftung"
+      },
+      {
+        "value": "ZUB307",
+        "label": "Besondere Oberflächenbehandlung"
+      },
+      {
+        "value": "ZUB350",
+        "label": "Sonstiger Fahrzeugmehrwert"
+      }
+    ]
+  },
+  "mappingRules": {
+    "KraftBoGruppeMoeglKmAngabeGrund": {
+      "bei antragsaufnahme": "6",
+      "zu beginn": "1",
+      "versicherungsbeginn": "1",
+      "bei aufnahme": "6",
+      "anfrage": "2",
+      "bei änderung": "10",
+      "freiwillig": "8",
+      "fehlt": "KF",
+      "schaden": "SK",
+      "gutachten": "SG",
+      "werkstatt": "SG"
+    },
+    "KraftBoGruppeMoeglArtZubehoerteil": {
+      "fahrwerk": "ZUB300",
+      "triebwerk": "ZUB301",
+      "motor": "ZUB301",
+      "auspuff": "ZUB302",
+      "innenraum": "ZUB303",
+      "karosserie": "ZUB304",
+      "lackierung": "ZUB305",
+      "beschriftung": "ZUB306",
+      "oberflächenbehandlung": "ZUB307",
+      "sonstiges": "ZUB350",
+      "tuning": "ZUB300"
+    }
+  }
+}
