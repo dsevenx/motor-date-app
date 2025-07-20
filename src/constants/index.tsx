@@ -39,6 +39,30 @@ export interface Datalist {
   options: DropdownOption[];
 }
 
+// Produkt Service Interfaces
+export interface Produktbaustein {
+  betrag?: string;
+  check: boolean;
+  verhalten: string;
+  knotenId: string;
+  subBausteine: Produktbaustein[];
+  parentKnotenId: string;
+  betragsLabel?: string;
+  beschreibung: string;
+}
+
+export interface Produktsparte {
+  stornogrund: string;
+  check: boolean;
+  bausteine: Produktbaustein[];
+  beitragNetto: string;
+  verhalten: string;
+  beschreibung: string;
+  beitragBrutto: string;
+  zustand: string;
+  sparte: string;
+}
+
 // Erweiterte Field Config für verschiedene Datentypen
 export interface FieldConfig {
   fieldKey: string;        // Eindeutige ID

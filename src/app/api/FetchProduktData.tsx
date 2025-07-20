@@ -1,7 +1,8 @@
 
+import { Produktsparte } from '@/constants';
+
 // Mock Produkt Service Data (simuliert API-Call)
-/*
-const mockProduktData: Produktlist[] =[{
+const mockProduktData: Produktsparte[] = [{
         "stornogrund": "",
         "check": true,
         "bausteine": [{
@@ -1094,9 +1095,41 @@ const mockProduktData: Produktlist[] =[{
 ;
 
 // Simuliert API-Call zum Produkt Service
-export const fetchProduktData = async (ProduktId: string): Promise<DropdownOption[]> => {
-  await new Promise(resolve => setTimeout(resolve, 100));
-  const datalist = mockProduktData.find(d => d.id === ProduktId);
-  return datalist?.options || [];
+export const fetchProduktData = async (produktId?: string): Promise<Produktsparte[]> => {
+  // Simuliere API-Latenz
+  await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+  
+  try {
+    // Wenn produktId angegeben, filtere nach sparte
+    if (produktId) {
+      const filteredData = mockProduktData.filter(sparte => 
+        sparte.sparte === produktId || 
+        sparte.beschreibung.toLowerCase().includes(produktId.toLowerCase())
+      );
+      return filteredData.length > 0 ? filteredData : mockProduktData;
+    }
+    
+    // Andernfalls alle Produktsparten zurückgeben
+    return mockProduktData;
+    
+  } catch (error) {
+    console.error('Fehler beim Laden der Produktdaten:', error);
+    return [];
+  }
 };
-*/
+
+// Hilfsfunktion: Nur Produktbausteine einer bestimmten Sparte
+export const fetchBausteineBySparte = async (sparte: string): Promise<Produktsparte | null> => {
+  const produktData = await fetchProduktData();
+  return produktData.find(p => p.sparte === sparte) || null;
+};
+
+// Hilfsfunktion: Alle verfügbaren Sparten
+export const fetchVerfuegbareSparten = async (): Promise<Array<{sparte: string, beschreibung: string}>> => {
+  const produktData = await fetchProduktData();
+  return produktData.map(p => ({
+    sparte: p.sparte,
+    beschreibung: p.beschreibung
+  }));
+};
+
