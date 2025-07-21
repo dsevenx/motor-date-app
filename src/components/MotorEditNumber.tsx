@@ -15,6 +15,7 @@ export interface MotorEditNumberProps {
   max?: number;
   format?: NumberFormat;
   hideLabel?: boolean;
+  generellNichtEditierbar?: boolean;
 }
 
 export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({ 
@@ -26,7 +27,8 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   min,
   max,
   format = 'decimal',
-  hideLabel = false
+  hideLabel = false,
+  generellNichtEditierbar = false
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -139,7 +141,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   }, [value, format, decimals, isFocused]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (disabled) return;
+    if (disabled || generellNichtEditierbar) return;
     
     const newInputValue = e.target.value;
     setInputValue(newInputValue);
@@ -152,7 +154,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   };
 
   const handleFocus = () => {
-    if (!disabled) {
+    if (!disabled && !generellNichtEditierbar) {
       setIsFocused(true);
       // Zeige Rohwert beim Fokus
       setInputValue(value.toString());
@@ -167,7 +169,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (disabled) return;
+    if (disabled || generellNichtEditierbar) return;
     
     // Erlaube Pfeiltasten für Increment/Decrement
     if (e.key === 'ArrowUp') {
@@ -223,15 +225,24 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={getPlaceholderText()}
           disabled={disabled}
+          readOnly={generellNichtEditierbar}
           className={`
-            w-full px-3 py-2 border border-gray-300 rounded-md 
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-            ${disabled 
-              ? 'text-gray-500' 
+            w-full px-3 py-2 
+            ${generellNichtEditierbar 
+              ? 'border-0 bg-transparent' 
+              : 'border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }
+            ${disabled && !generellNichtEditierbar
+              ? 'bg-gray-100 cursor-not-allowed text-gray-500'
               : 'text-gray-900'
             }
-            ${isFocused ? 'border-blue-500' : 'border-gray-300'}
+            ${generellNichtEditierbar
+              ? 'cursor-default'
+              : disabled 
+                ? 'cursor-not-allowed'
+                : 'cursor-text'
+            }
+            ${!generellNichtEditierbar && isFocused ? 'border-blue-500' : !generellNichtEditierbar ? 'border-gray-300' : ''}
             transition-colors duration-200
           `}
         />

@@ -11,6 +11,7 @@ export interface MotorEditTextProps {
   disabled?: boolean;
   maxLength?: number;
   hideLabel?: boolean;
+  generellNichtEditierbar?: boolean;
 }
 
 export const MotorEditText: React.FC<MotorEditTextProps> = ({ 
@@ -20,12 +21,13 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
   placeholder,
   disabled = false,
   maxLength,
-  hideLabel = false
+  hideLabel = false,
+  generellNichtEditierbar = false
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (disabled) return;
+    if (disabled || generellNichtEditierbar) return;
     
     let newValue = e.target.value;
     
@@ -38,7 +40,7 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
   };
 
   const handleFocus = () => {
-    if (!disabled) setIsFocused(true);
+    if (!disabled && !generellNichtEditierbar) setIsFocused(true);
   };
 
   const handleBlur = () => {
@@ -70,16 +72,25 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
           onBlur={handleBlur}
           placeholder={placeholder}
           disabled={disabled}
+          readOnly={generellNichtEditierbar}
           maxLength={maxLength}
           className={`
-            w-full px-3 py-2 border border-gray-300 rounded-md 
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-            ${disabled 
-              ? 'text-gray-500' 
+            w-full px-3 py-2 
+            ${generellNichtEditierbar 
+              ? 'border-0 bg-transparent' 
+              : 'border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }
+            ${disabled && !generellNichtEditierbar
+              ? 'bg-gray-100 cursor-not-allowed text-gray-500'
               : 'text-gray-900'
             }
-            ${isFocused ? 'border-blue-500' : 'border-gray-300'}
+            ${generellNichtEditierbar
+              ? 'cursor-default'
+              : disabled 
+                ? 'cursor-not-allowed'
+                : 'cursor-text'
+            }
+            ${!generellNichtEditierbar && isFocused ? 'border-blue-500' : !generellNichtEditierbar ? 'border-gray-300' : ''}
             transition-colors duration-200
           `}
         />
