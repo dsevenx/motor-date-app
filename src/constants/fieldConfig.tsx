@@ -442,6 +442,255 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       emptyText: 'Kein Zubehör erfasst',
       relatedFields: ['neuwert']
     }
+  },
+
+  // === PRODUKT-SPARTEN-TABELLEN ===
+  
+  // Spartentabelle (4 Hauptsparten)
+  {
+    key: 'produktSparten',
+    label: 'Produktsparten',
+    type: 'table',
+    defaultValue: [],
+    synonyms: ['produktsparten', 'sparten', 'versicherungssparten'],
+    table: {
+      columns: [
+        {
+          key: 'beschreibung',
+          label: 'Sparte',
+          type: 'text',
+          width: '200px'
+        },
+        {
+          key: 'check',
+          label: 'Aktiv',
+          type: 'boolean',
+          width: '80px'
+        },
+        {
+          key: 'zustand',
+          label: 'Zustand',
+          type: 'dropdown',
+          width: '120px',
+          dropdown: {
+            domainId: 'KraftBoGruppeMoeglStornogruendeSparte'
+          }
+        },
+        {
+          key: 'zustandsdetail',
+          label: 'Zustandsdetail',
+          type: 'dropdown',
+          width: '140px'
+        },
+        {
+          key: 'beitragNetto',
+          label: 'JVB',
+          type: 'number',
+          width: '100px',
+          validation: {
+            numberFormat: 'currency'
+          }
+        },
+        {
+          key: 'beitragBrutto',
+          label: 'JZB',
+          type: 'number',
+          width: '100px',
+          validation: {
+            numberFormat: 'currency'
+          }
+        }
+      ],
+      emptyText: 'Keine Sparten verfügbar'
+    }
+  },
+
+  // Bausteintabelle KH (Kfz-Haftpflicht)
+  {
+    key: 'produktBausteine_KH',
+    label: 'Bausteine Kfz-Haftpflicht',
+    type: 'table',
+    defaultValue: [],
+    synonyms: ['bausteine haftpflicht', 'kh bausteine'],
+    table: {
+      columns: [
+        {
+          key: 'beschreibung',
+          label: 'Baustein',
+          type: 'text',
+          width: '300px'
+        },
+        {
+          key: 'check',
+          label: 'Aktiv',
+          type: 'boolean',
+          width: '80px'
+        },
+        {
+          key: 'betrag',
+          label: 'Betrag',
+          type: 'number',
+          width: '120px',
+          validation: {
+            numberFormat: 'currency'
+          }
+        },
+        {
+          key: 'betragsLabel',
+          label: 'Betrags-Art',
+          type: 'text',
+          width: '120px'
+        },
+        {
+          key: 'knotenId',
+          label: 'Knoten-ID',
+          type: 'text',
+          width: '100px'
+        }
+      ],
+      emptyText: 'Keine Bausteine verfügbar'
+    }
+  },
+
+  // Bausteintabelle KK (Kfz-Vollkasko)
+  {
+    key: 'produktBausteine_KK',
+    label: 'Bausteine Kfz-Vollkasko',
+    type: 'table',
+    defaultValue: [],
+    synonyms: ['bausteine vollkasko', 'kk bausteine'],
+    table: {
+      columns: [
+        {
+          key: 'beschreibung',
+          label: 'Baustein',
+          type: 'text',
+          width: '300px'
+        },
+        {
+          key: 'check',
+          label: 'Aktiv',
+          type: 'boolean',
+          width: '80px'
+        },
+        {
+          key: 'betrag',
+          label: 'Betrag',
+          type: 'number',
+          width: '120px',
+          validation: {
+            numberFormat: 'currency'
+          }
+        },
+        {
+          key: 'betragsLabel',
+          label: 'Betrags-Art',
+          type: 'text',
+          width: '120px'
+        },
+        {
+          key: 'knotenId',
+          label: 'Knoten-ID',
+          type: 'text',
+          width: '100px'
+        }
+      ],
+      emptyText: 'Keine Bausteine verfügbar'
+    }
+  },
+
+  // Bausteintabelle EK (Kfz-Teilkasko)  
+  {
+    key: 'produktBausteine_EK',
+    label: 'Bausteine Kfz-Teilkasko',
+    type: 'table',
+    defaultValue: [],
+    synonyms: ['bausteine teilkasko', 'ek bausteine'],
+    table: {
+      columns: [
+        {
+          key: 'beschreibung',
+          label: 'Baustein',
+          type: 'text',
+          width: '300px'
+        },
+        {
+          key: 'check',
+          label: 'Aktiv',
+          type: 'boolean',
+          width: '80px'
+        },
+        {
+          key: 'betrag',
+          label: 'Betrag',
+          type: 'number',
+          width: '120px',
+          validation: {
+            numberFormat: 'currency'
+          }
+        },
+        {
+          key: 'betragsLabel',
+          label: 'Betrags-Art',
+          type: 'text',
+          width: '120px'
+        },
+        {
+          key: 'knotenId',
+          label: 'Knoten-ID',
+          type: 'text',
+          width: '100px'
+        }
+      ],
+      emptyText: 'Keine Bausteine verfügbar'
+    }
+  },
+
+  // Bausteintabelle KU (weitere Sparte)
+  {
+    key: 'produktBausteine_KU',
+    label: 'Bausteine Unfall Sparte',
+    type: 'table',
+    defaultValue: [],
+    synonyms: ['bausteine Unfall', 'ku bausteine'],
+    table: {
+      columns: [
+        {
+          key: 'beschreibung',
+          label: 'Baustein',
+          type: 'text',
+          width: '300px'
+        },
+        {
+          key: 'check',
+          label: 'Aktiv',
+          type: 'boolean',
+          width: '80px'
+        },
+        {
+          key: 'betrag',
+          label: 'Betrag',
+          type: 'number',
+          width: '120px',
+          validation: {
+            numberFormat: 'currency'
+          }
+        },
+        {
+          key: 'betragsLabel',
+          label: 'Betrags-Art',
+          type: 'text',
+          width: '120px'
+        },
+        {
+          key: 'knotenId',
+          label: 'Knoten-ID',
+          type: 'text',
+          width: '100px'
+        }
+      ],
+      emptyText: 'Keine Bausteine verfügbar'
+    }
   }
 ];
 
@@ -456,6 +705,73 @@ export const getFieldsByType = (type: FieldType): FieldDefinition[] => {
 
 export const getFieldsByGroup = (group: string): FieldDefinition[] => {
   return FIELD_DEFINITIONS.filter(field => field.ui?.group === group);
+};
+
+// Hilfsfunktion: Dynamisch Baustein-Felder für verfügbare Sparten generieren
+export const generateBausteinFieldsForSparten = (sparten: string[]): FieldDefinition[] => {
+  const bausteinFields: FieldDefinition[] = [];
+  
+  sparten.forEach(sparte => {
+    const sparteName = getSparteName(sparte);
+    bausteinFields.push({
+      key: `produktBausteine_${sparte}`,
+      label: `Bausteine ${sparteName}`,
+      type: 'table',
+      defaultValue: [],
+      synonyms: [`bausteine ${sparteName.toLowerCase()}`, `${sparte.toLowerCase()} bausteine`],
+      table: {
+        columns: [
+          {
+            key: 'beschreibung',
+            label: 'Baustein',
+            type: 'text',
+            width: '300px'
+          },
+          {
+            key: 'check',
+            label: 'Aktiv',
+            type: 'boolean',
+            width: '80px'
+          },
+          {
+            key: 'betrag',
+            label: 'Betrag',
+            type: 'number',
+            width: '120px',
+            validation: {
+              numberFormat: 'currency'
+            }
+          },
+          {
+            key: 'betragsLabel',
+            label: 'Betrags-Art',
+            type: 'text',
+            width: '120px'
+          },
+          {
+            key: 'knotenId',
+            label: 'Knoten-ID',
+            type: 'text',
+            width: '100px'
+          }
+        ],
+        emptyText: 'Keine Bausteine verfügbar'
+      }
+    });
+  });
+  
+  return bausteinFields;
+};
+
+// Hilfsfunktion: Sparten-Namen mapping
+const getSparteName = (sparte: string): string => {
+  switch (sparte) {
+    case 'KH': return 'Kfz-Haftpflicht';
+    case 'KK': return 'Kfz-Vollkasko';
+    case 'EK': return 'Kfz-Teilkasko';
+    case 'KU': return 'weitere Sparte';
+    default: return sparte;
+  }
 };
 
 export const getTableFields = (): FieldDefinition[] => {
@@ -487,7 +803,7 @@ export const createEmptyTableRow = (tableField: FieldDefinition): TableRow => {
   if (!tableField.table) throw new Error('Field is not a table');
   
   const row: TableRow = {
-    id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
+    id: Date.now().toString() + Math.random().toString(36).slice(2, 11)
   };
   
   tableField.table.columns.forEach(column => {

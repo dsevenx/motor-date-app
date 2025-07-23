@@ -132,6 +132,10 @@ export interface ClaudeResponse {
   isNewVehicle?: boolean;
 }
 
+// Export der neuen Komponenten
+export { MotorProduktSpartenTree } from '@/components/MotorProduktSpartenTree';
+export { MotorProduktBausteinTree } from '@/components/MotorProduktBausteinTree';
+
 // Hilfsfunktionen für Type Guards
 export const isDateField = (field: FieldConfig): boolean => field.type === 'date';
 export const isTextField = (field: FieldConfig): boolean => field.type === 'text';

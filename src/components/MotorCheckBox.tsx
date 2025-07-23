@@ -26,6 +26,10 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
 
   const isChecked = value === 'J';
 
+  if (isChecked) {
+    console.log('MotorCheckbox is checked' + label);
+  }
+
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (disabled) return;
     onChange(e.target.checked ? 'J' : 'N');
@@ -81,15 +85,17 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
               ${disabled ? 'bg-gray-100 border-gray-300' : ''}
             `}
             style={{
-              backgroundColor: isChecked && !disabled ? '#007AB3' : 'white',
-              borderColor: isChecked && !disabled ? '#007AB3' : '#9CA3AF'
+              backgroundColor: isChecked ? (disabled ? '#93C5FD' : '#007AB3') : 'white', // Helleres Blau für disabled
+              borderColor: isChecked ? (disabled ? '#93C5FD' : '#007AB3') : '#9CA3AF'
             }}
             onClick={() => !disabled && onChange(isChecked ? 'N' : 'J')}
           >
             {/* Checkmark Icon */}
-            {isChecked && !disabled && (
+            {isChecked && (
               <svg 
-                className="w-5 h-5 text-white pointer-events-none"
+                className={`w-5 h-5 pointer-events-none ${
+                  disabled ? 'text-white' : 'text-white'
+                }`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"

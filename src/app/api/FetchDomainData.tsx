@@ -1330,24 +1330,7 @@ const mockDomainData: Datalist[] =[{
     }, {
         "classId": "com.allianz.cisl.base.datalist.Datalist",
         "id": "KraftBoGruppeMoeglWirtschaftszweig",
-        "options": [{
-                "classId": "com.allianz.cisl.base.datalist.Option",
-                "value": "W071",
-                "label": "Landwirtschaft"
-            }, {
-                "classId": "com.allianz.cisl.base.datalist.Option",
-                "value": "W072",
-                "label": "Finandients- und Versicherungsdienstleistungen"
-            }, {
-                "classId": "com.allianz.cisl.base.datalist.Option",
-                "value": "W073",
-                "label": "Spedition, Transport und Logistik"
-            }, {
-                "classId": "com.allianz.cisl.base.datalist.Option",
-                "value": "W074",
-                "label": "produzierende Unternehmen"
-            }
-        ]
+        "options": []
     }, {
         "classId": "com.allianz.cisl.base.datalist.Datalist",
         "id": "KraftBoGruppeMoeglKraftVertragZusVnHalterBez",
@@ -1506,6 +1489,473 @@ const mockDomainData: Datalist[] =[{
                 "classId": "com.allianz.cisl.base.datalist.Option",
                 "value": "ZUB350",
                 "label": "Sonstiger Fahrzeugmehrwert"
+            }
+        ]
+    }, {
+        "classId": "com.allianz.cisl.base.datalist.Datalist",
+        "id": "KraftBoGruppeMoeglStornogruendeSparte",
+        "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SER",
+                "label": "Ersatz"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SVN",
+                "label": "Kündigung VN/Verfall"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SGE",
+                "label": "Kündigung VU"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SVZ",
+                "label": "Rücktritt VU mangels Zahlung der Erstprämie"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SMZ",
+                "label": "Storno mangels Zahlung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SVE",
+                "label": "nach Vereinbarung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SBG",
+                "label": "Widerruf/Aufhebung ab Beginn"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SPK",
+                "label": "VN wg. Prämienanpassung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SSC",
+                "label": "nach Schaden durch VN"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "TST",
+                "label": "Technisches Storno"
+            }
+        ]
+    }, {
+        "classId": "com.allianz.cisl.base.datalist.Datalist",
+        "id": "KraftBoGruppeMoeglVertragZustandKH",
+        "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "A",
+                "label": "Aktiv"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "S",
+                "label": "Storno"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "R",
+                "label": "ruhend"
+            }
+        ]
+    }, {
+        "classId": "com.allianz.cisl.base.datalist.Datalist",
+        "id": "KraftBoGruppeMoeglVertragZustandVK",
+        "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "A",
+                "label": "Aktiv"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "S",
+                "label": "Storno"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "R",
+                "label": "ruhend"
+            }
+        ]
+    }, {
+        "classId": "com.allianz.cisl.base.datalist.Datalist",
+        "id": "KraftBoGruppeMoeglVertragZustandTK",
+        "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "A",
+                "label": "Aktiv"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "S",
+                "label": "Storno"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "R",
+                "label": "ruhend"
+            }
+        ]
+    }, {
+        "classId": "com.allianz.cisl.base.datalist.Datalist",
+        "id": "KraftBoGruppeMoeglVertragZustandKU",
+        "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "A",
+                "label": "Aktiv"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "S",
+                "label": "Storno"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "R",
+                "label": "ruhend"
+            }
+        ]
+    }, {
+        "classId": "com.allianz.cisl.base.datalist.Datalist",
+        "id": "KraftBoGruppeMoeglAbschlagsgruende",
+        "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "2",
+                "label": "Konkurrenzangebot"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KL",
+                "label": "sonstige Gründe"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "6",
+                "label": "Geno-Tarif"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "12",
+                "label": "erhöhte Selbstbeteiligung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KG",
+                "label": "Individuelle Vereinbarung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KH",
+                "label": "KH-Selbstbeteiligung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "K5",
+                "label": "Kleinflotten"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "28",
+                "label": "Direktionsanfrage"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "33",
+                "label": "Sonderanhänger - Arbeitsmaschine"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "36",
+                "label": "Verkehrsrisiko bei Arbeitsmaschinen"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "37",
+                "label": "nichtöffentl. Straßenverk."
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "70",
+                "label": "Treuebonus"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "71",
+                "label": "Technischer Nachlass"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "72",
+                "label": "Fehlerkorrektur"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "73",
+                "label": "Direktionsanfrage"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "74",
+                "label": "Nachlass BÜ Vorsystem"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "76",
+                "label": "Ausgleichnachlass BÜ Vorsystem "
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "88",
+                "label": "Internet KU-Nachlass"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "97",
+                "label": "Bestandskundenbonus"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "B7",
+                "label": "Nachlass Begleitetes Fahren ab 17"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KI",
+                "label": "Wechselkennzeichen"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KJ",
+                "label": "Nachlass aufgrund passiven BF17"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KK",
+                "label": "Nachlass aufgrund aktiven BF17"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KT",
+                "label": "Konzeptrabatt"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KW",
+                "label": "Risikobonus"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "NT",
+                "label": "Nettotarif"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "SR",
+                "label": "Sonstiger Nachlass"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "K8",
+                "label": "PayPerDay"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "RK",
+                "label": "Kündigerrückgewinnung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KM",
+                "label": "Orts- und Korporativclubs"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KS",
+                "label": "Fahrsicherheitstraining"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "US",
+                "label": "Underwriter Sonderrabatt"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KY",
+                "label": "privat genutzt"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "RN",
+                "label": "Risk Adjustment Nachlass"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "MJ",
+                "label": "Market Adjustment"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "FN",
+                "label": "Fuhrparknachlass"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "NF",
+                "label": "Nachlass Fehlerkorrektur"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "NP",
+                "label": "Nachlass adaptives Pricing"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "TU",
+                "label": "TU Gesamtrabatt"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "AS",
+                "label": "Assistenzsystem"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "HN",
+                "label": "Händlernachlass"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "TM",
+                "label": "Telematik"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "VT",
+                "label": "Vertriebsnachlass"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "MW",
+                "label": "Nachlass für E-Fahrzeuge"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "ML",
+                "label": "Nachlass für Maklerpakete"
+            }
+        ]
+    }, {
+        "classId": "com.allianz.cisl.base.datalist.Datalist",
+        "id": "KraftBoGruppeMoeglZuschlagsgruende",
+        "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "3",
+                "label": "sonstige Gründe"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "8",
+                "label": "Gefahrenklasse"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "9",
+                "label": "Gefährliche Stoffe"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KA",
+                "label": "GeK 10.226 EUR"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KB",
+                "label": "GeK 25.565 EUR"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KC",
+                "label": "Variable GeK"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "16",
+                "label": "Höherwertiges Fahrzeug"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "17",
+                "label": "Lasten heben"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "19",
+                "label": "Ausnahmegenehmigung §70 StVO"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "20",
+                "label": "verringerte Selbstbeteiligung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "22",
+                "label": "Vermietung an Selbstfahrer"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "24",
+                "label": "Verwendung auf Flughafenvorfeld"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "25",
+                "label": "Mehrwert"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "K2",
+                "label": "Hakenlastversicherung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "38",
+                "label": "Sanierung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "40",
+                "label": "Zuschl.pflichtiger Neuwert b. Arbeitsma."
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "K3",
+                "label": "Differenzkasko"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "46",
+                "label": "Tuningfahrzeug"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "49",
+                "label": "Abweichende Halterschaft"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "51",
+                "label": "Premiumkasko"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "K4",
+                "label": "Erhöhung DS Arbeitsrisiko auf 50 Mio."
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "64",
+                "label": "Güterfolgeschäden"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "66",
+                "label": "Versicherungskennz. sonst. gewerbl. Risiko"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "67",
+                "label": "Versicherungskennz. gewerbl. Risiko Vermietung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "75",
+                "label": "Zuschlag BÜ Vorsystem"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "77",
+                "label": "Ausgleichzuschlag  BÜ Vorsystem "
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "98",
+                "label": "nicht Online-Nutzung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "99",
+                "label": "bevollmächtigter Underwriter"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "K0",
+                "label": "Brems-/ Betriebs-/ Bruchschäden"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "K1",
+                "label": "Personenbeförderung auf Güterfahrzeugen"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "K6",
+                "label": "Zuschlag Begleitetes Fahren ab 17"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KE",
+                "label": "Erhöhung DS für Arbeitsrisiko"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KF",
+                "label": "aktives BF17"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "KX",
+                "label": "Risikozuschlag"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "AA",
+                "label": "Anfragepflichtige Wirtschaftsbranche"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "K9",
+                "label": "Winterdienst"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "RZ",
+                "label": "Risk Adjustment Zuschlag"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "T3",
+                "label": "Sonstiger Zuschlag"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "ZF",
+                "label": "Zuschlag Fehlerkorrektur"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "ZP",
+                "label": "Zuschlag adaptives Pricing"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "MK",
+                "label": "Zuschlag für Maklerpakete"
             }
         ]
     }

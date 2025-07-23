@@ -9,6 +9,7 @@ import { MotorCheckBox } from '@/components/MotorCheckBox';
 import { MotorDropDown } from '@/components/MotorDropDown';
 import { MotorTable } from '@/components/MotorTable';
 import { ChatComponent } from '@/components/ChatComponent';
+import { MotorProduktSpartenTree } from '@/components/MotorProduktSpartenTree';
 import { 
   FIELD_DEFINITIONS, 
   generateDefaultValues, 
@@ -348,6 +349,23 @@ const Page: React.FC = () => {
                   addButtonText="Hinzufügen (deaktiviert)"
                 />
               </div>
+            </div>
+
+            {/* Produktsparten-Baum Sektion */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                🏗️ Produktsparten-Baum (Demo)
+              </h3>
+              <MotorProduktSpartenTree
+                onSpartenChange={(sparten) => {
+                  console.log('Sparten geändert:', sparten);
+                  handleUpdateVehicleData('produktSparten', sparten);
+                }}
+                onBausteineChange={(sparte, bausteine) => {
+                  console.log(`Bausteine ${sparte} geändert:`, bausteine);
+                  handleUpdateVehicleData(`produktBausteine_${sparte}`, bausteine);
+                }}
+              />
             </div>
           </div>
 

@@ -264,36 +264,36 @@ const mockProduktData: Produktsparte[] = [{
                         "verhalten": "P",
                         "knotenId": "        ",
                         "subBausteine": [],
-                        "parentKnotenId": "KH",
+                        "parentKnotenId": "KBM00195",
                         "betragsLabel": "Summe",
                         "beschreibung": "Eigenschadenschutz"
                     }, {
-                        "betrag": "10.000",
+                        "betrag": "20.000",
+                        "check": false,
+                        "verhalten": "W",
+                        "knotenId": "KBE00002",
+                        "subBausteine": [],
+                        "parentKnotenId": "KBM00195",
+                        "betragsLabel": "Summe",
+                        "beschreibung": "Eigen2schadenschutz"
+                    }, {
+                        "betrag": "30.000",
+                        "check": false,
+                        "verhalten": "W",
+                        "knotenId": "KBE00003",
+                        "subBausteine": [],
+                        "parentKnotenId": "KBM00195",
+                        "betragsLabel": "Summe",
+                        "beschreibung": "Eigens3chadenschutz"
+                    }, {
+                        "betrag": "40.000",
                         "check": true,
                         "verhalten": "P",
                         "knotenId": "        ",
                         "subBausteine": [],
-                        "parentKnotenId": "KH",
+                        "parentKnotenId": "KBM00195",
                         "betragsLabel": "Summe",
-                        "beschreibung": "Eigenschadenschutz"
-                    }, {
-                        "betrag": "10.000",
-                        "check": true,
-                        "verhalten": "P",
-                        "knotenId": "        ",
-                        "subBausteine": [],
-                        "parentKnotenId": "KH",
-                        "betragsLabel": "Summe",
-                        "beschreibung": "Eigenschadenschutz"
-                    }, {
-                        "betrag": "10.000",
-                        "check": true,
-                        "verhalten": "P",
-                        "knotenId": "        ",
-                        "subBausteine": [],
-                        "parentKnotenId": "KH",
-                        "betragsLabel": "Summe",
-                        "beschreibung": "Eigenschadenschutz"
+                        "beschreibung": "Eigen4schadenschutz"
                     }
                 ],
                 "parentKnotenId": "KH",
