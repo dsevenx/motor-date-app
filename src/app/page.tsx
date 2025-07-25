@@ -365,6 +365,11 @@ const Page: React.FC = () => {
                   console.log(`Bausteine ${sparte} geändert:`, bausteine);
                   handleUpdateVehicleData(`produktBausteine_${sparte}`, bausteine);
                 }}
+                fieldDefinitions={fieldValues}
+                onFieldDefinitionsChange={(updates) => {
+                  console.log('🔄 FIELD_DEFINITIONS Update von MotorProduktSpartenTree:', updates);
+                  setFieldValues(prev => ({ ...prev, ...updates }));
+                }}
               />
             </div>
           </div>

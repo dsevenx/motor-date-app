@@ -150,6 +150,35 @@ Die Optik - bitte wirklich nur das Aussehen aus der angehängten MotorDropDown a
 Bitte dies 3 MotorDropDown auf page.tsx einbauen.
 
 ------------------------------------------------------------------------------------------------------------
+Anfrage 7a Tree
+
+Wir haben leider beim MotorProduktSpartenTree und MotorProduktBausteinTree etwas nicht beachtet :
+- der "single point of truth" bzgl. Eingaben ist FIELD_DEFINITIONS, weil 
+    - FIELD_DEFINITIONS persistiert werden kann
+    - von der KI gefülllt bearbeitet werden kann (die KI soll ja nicht mit unseren GUI Elementen reden)
+- langfrstig soll unsere Anwendung auch als MCP Server funktionieren (um z.B. Versicherungspreis oder TYpklassen bereitzustellen)    
+Meine Idee wäre daher:
+- wenn wir "loadProduktData" gemacht haben, tragen wir in FFIELD_DEFINITIONS alle anixbaren Sparten/Bausteine als defaultvalue=true ein
+- unsere MotorProduktBausteinTree/MotorProduktSpartenTree fragen dann wegen ankreuzen nicht mehr Produktbaustein.check sondern ein Funktion
+  isChecked, is isChecked bekommt den KnotenId und die Sparte) und sucht damit in  FFIELD_DEFINITIONS.
+
+Ziele wäre :
+
+Beispiel 1:
+Ein Satz wie
+"Ich höchte Haftpflicht mit Olidtimerversicherung"
+bewirkt ein anixen von Haftpflicht und dem Baustein Oldtimerversicherung.
+
+Beispiel 2:
+Ein Satz wie
+"Ich höchte Haftpflicht ohne Beitragsschutz"
+bewirkt ein anixen von Haftpflicht und ein Abwählenden des Bausteins Beitragsschutz.
+
+Verstehst Du was ich meine ? Hat die Idee Nachteile ?
+
+
+
+------------------------------------------------------------------------------------------------------------
 Anfrage 8
 
 Wir haben gemeinsam eine React-Webanwendung erstellt - siehe Dateien.

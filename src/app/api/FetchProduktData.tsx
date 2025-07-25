@@ -122,7 +122,7 @@ const mockProduktData: Produktsparte[] = [{
                 "parentKnotenId": "KH",
                 "beschreibung": "Übernahme Sondereinstufung Vorversicherer"
             }, {
-                "check": false,
+                "check": true,
                 "verhalten": "W",
                 "knotenId": "KBM00089",
                 "subBausteine": [],
@@ -143,7 +143,7 @@ const mockProduktData: Produktsparte[] = [{
                 "parentKnotenId": "KH",
                 "beschreibung": "Komfort Automotive"
             }, {
-                "check": false,
+                "check": true,
                 "verhalten": "W",
                 "knotenId": "KBH00112",
                 "subBausteine": [],

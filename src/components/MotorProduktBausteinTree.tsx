@@ -6,22 +6,27 @@ import { Produktbaustein } from '@/constants';
 import { MotorEditNumber } from './MotorEditNumber';
 import { MotorEditText } from './MotorEditText';
 import { MotorCheckBox } from './MotorCheckBox';
+import { isChecked, updateCheckStatus } from '@/utils/fieldDefinitionsHelper';
 
 export interface MotorProduktBausteinTreeProps {
   bausteine: Produktbaustein[];
-  onBausteinChange: (bausteinPath: number[], field: string, value: any) => void;
   sparteAktiv: boolean;
   filterText?: string;
+  // FIELD_DEFINITIONS für Single Point of Truth
+  fieldDefinitions: any;
+  onFieldDefinitionsChange: (updates: any) => void;
 }
 
 interface BausteinTreeItemProps {
   baustein: Produktbaustein;
   index: number;
   level: number;
-  parentPath: number[];
-  onBausteinChange: (bausteinPath: number[], field: string, value: any) => void;
+  sparte: string; // Sparten-Code für FIELD_DEFINITIONS Lookup
   sparteAktiv: boolean;
   filterText?: string;
+  // FIELD_DEFINITIONS für Single Point of Truth
+  fieldDefinitions: any;
+  onFieldDefinitionsChange: (updates: any) => void;
 }
 
 // Hilfsfunktion für stabile eindeutige Keys
@@ -41,12 +46,12 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
   baustein,
   index,
   level,
-  parentPath,
-  onBausteinChange,
+  sparte,
   sparteAktiv,
-  filterText
+  filterText,
+  fieldDefinitions,
+  onFieldDefinitionsChange
 }) => {
-  const currentPath = [...parentPath, index];
   const [isExpanded, setIsExpanded] = useState(false);
   
   // Filter-Logik: Zeige Baustein wenn Beschreibung den Filter-Text enthält
@@ -68,41 +73,45 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
   const indentSize = level * 24; // 24px pro Ebene
 
   const handleCheckboxChange = (value: 'J' | 'N') => {
-    // Debug-Ausgaben für Subbausteine
-    if (level > 0) {
-      console.log(`🔧 DEBUG Subbaustein [${baustein.beschreibung}]:`, {
-        level,
-        sparteAktiv,
-        'baustein.check': baustein.check,
-        'baustein.knotenId': baustein.knotenId,
-        'baustein.knotenId.trim()': baustein.knotenId?.trim(),
-        'baustein.verhalten': baustein.verhalten,
-        hasRealKnotenId: baustein.knotenId && baustein.knotenId.trim() !== '',
-        isPflicht: baustein.verhalten === 'P',
-        disabledCheckbox: !sparteAktiv || !baustein.knotenId || baustein.knotenId.trim() === '' || baustein.verhalten === 'P'
-      });
-    }
-    
     // Nur editierbare Bausteine können geändert werden
     const hasRealKnotenId = baustein.knotenId && baustein.knotenId.trim() !== '';
     const isPflicht = baustein.verhalten === 'P';
     
+    console.log(`🔧 handleCheckboxChange [${baustein.beschreibung}]:`, {
+      knotenId: baustein.knotenId,
+      verhalten: baustein.verhalten,
+      hasRealKnotenId,
+      isPflicht,
+      newValue: value
+    });
+    
     if (hasRealKnotenId && !isPflicht) {
-      console.log(`✅ onChange wird aufgerufen für: ${baustein.beschreibung}, Pfad:`, currentPath);
-      onBausteinChange(currentPath, 'check', value === 'J');
+      const checked = value === 'J';
+      console.log(`✅ Direktes FIELD_DEFINITIONS Update: ${baustein.knotenId} = ${checked}`);
+      
+      // Direktes Update in FIELD_DEFINITIONS (Single Point of Truth)
+      updateCheckStatus(baustein.knotenId, sparte, checked, fieldDefinitions, onFieldDefinitionsChange, true);
       
       // Auto-Expand: Wenn Baustein angeixt wird und Subbausteine hat, dann expandieren
-      if (value === 'J' && hasSubBausteine && !isExpanded) {
+      if (checked && hasSubBausteine && !isExpanded) {
         console.log(`🔄 Auto-Expand für: ${baustein.beschreibung}`);
         setIsExpanded(true);
       }
     } else {
-      console.log(`❌ onChange wird NICHT aufgerufen für: ${baustein.beschreibung}`, {hasRealKnotenId, isPflicht});
+      console.log(`❌ Baustein nicht editierbar: ${baustein.beschreibung}`, {hasRealKnotenId, isPflicht});
     }
   };
 
   const handleBetragChange = (value: number) => {
-    onBausteinChange(currentPath, 'betrag', value.toString());
+    console.log(`💰 handleBetragChange [${baustein.beschreibung}]: ${baustein.knotenId} = ${value}`);
+    
+    // TODO: Implementiere Betrag-Update in FIELD_DEFINITIONS
+    // Für jetzt erstmal eine einfache Ausgabe
+    const hasRealKnotenId = baustein.knotenId && baustein.knotenId.trim() !== '';
+    if (hasRealKnotenId) {
+      console.log(`✅ Betrag Update für knotenId: ${baustein.knotenId} = ${value}`);
+      // Hier könnte später eine updateBetragStatus Funktion implementiert werden
+    }
   };
 
   const toggleExpanded = () => {
@@ -121,12 +130,16 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
         {/* Checkbox */}
         <div className="flex items-center mr-3">
           <MotorCheckBox
-            value={baustein.check || 
+            value={
+              // Pflicht-Bausteine sind immer angeixt
+              baustein.verhalten === 'P' || 
+              // Bausteine ohne knotenId sind immer angeixt  
               !baustein.knotenId || 
-              baustein.knotenId.trim() === '' || 
-              baustein.verhalten === 'P' // Pflicht-Bausteine sind nicht editierbar
-              
-              ? 'J' : 'N'}
+              baustein.knotenId.trim() === '' ||
+              // Single Point of Truth: FIELD_DEFINITIONS Lookup
+              isChecked(baustein.knotenId, sparte, fieldDefinitions)
+              ? 'J' : 'N'
+            }
             onChange={handleCheckboxChange}
             label=""
             hideLabel={true}
@@ -200,28 +213,30 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
 
       </div>
 
-      {/* Sub-Bausteine (rekursiv) */}
-      {hasSubBausteine && isExpanded && baustein.check && (
+      {/* Sub-Bausteine (rekursiv) - zeige wenn expandiert und Parent angeixt */}  
+      {hasSubBausteine && isExpanded && (
+        baustein.verhalten === 'P' || 
+        !baustein.knotenId || 
+        baustein.knotenId.trim() === '' ||
+        isChecked(baustein.knotenId, sparte, fieldDefinitions)
+      ) && (
         <div className="border-l border-gray-200 ml-4">
-          {(() => {
-            console.log(`🔧 DEBUG Parent-Baustein [${baustein.beschreibung}]:`, {
-              'parent.check': baustein.check,
-              'parent.sparteAktiv': sparteAktiv,
-              'newSparteAktiv': sparteAktiv && baustein.check,
-              subBausteineCount: baustein.subBausteine.length
-            });
-            return null;
-          })()}
           {baustein.subBausteine.map((subBaustein, subIndex) => (
             <BausteinTreeItem
               key={generateStableKey(subBaustein, subIndex, level + 1, `sub-${index}`)}
               baustein={subBaustein}
               index={subIndex}
               level={level + 1}
-              parentPath={currentPath}
-              onBausteinChange={onBausteinChange}
-              sparteAktiv={sparteAktiv && baustein.check}
+              sparte={sparte}
+              sparteAktiv={sparteAktiv && (
+                baustein.verhalten === 'P' || 
+                !baustein.knotenId || 
+                baustein.knotenId.trim() === '' ||
+                isChecked(baustein.knotenId, sparte, fieldDefinitions)
+              )}
               filterText={filterText}
+              fieldDefinitions={fieldDefinitions}
+              onFieldDefinitionsChange={onFieldDefinitionsChange}
             />
           ))}
         </div>
@@ -232,10 +247,13 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
 
 export const MotorProduktBausteinTree: React.FC<MotorProduktBausteinTreeProps> = ({
   bausteine,
-  onBausteinChange,
   sparteAktiv,
-  filterText
+  filterText,
+  fieldDefinitions,
+  onFieldDefinitionsChange
 }) => {
+  // Extrahiere Sparten-Code aus ersten Baustein für FIELD_DEFINITIONS Lookup
+  const sparte = bausteine.length > 0 ? bausteine[0].parentKnotenId : 'KH';
   if (!bausteine || bausteine.length === 0) {
     return (
       <div className="py-4 text-center text-gray-500 text-sm">
@@ -272,10 +290,11 @@ export const MotorProduktBausteinTree: React.FC<MotorProduktBausteinTreeProps> =
           baustein={baustein}
           index={index}
           level={0}
-          parentPath={[]}
-          onBausteinChange={onBausteinChange}
+          sparte={sparte}
           sparteAktiv={sparteAktiv}
           filterText={filterText}
+          fieldDefinitions={fieldDefinitions}
+          onFieldDefinitionsChange={onFieldDefinitionsChange}
         />
       ))}
     </div>

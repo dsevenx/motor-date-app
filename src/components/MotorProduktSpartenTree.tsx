@@ -9,11 +9,15 @@ import { MotorDropDown } from './MotorDropDown';
 import { MotorEditNumber } from './MotorEditNumber';
 import { MotorEditText } from './MotorEditText';
 import { MotorCheckBox } from './MotorCheckBox';
+import { isChecked, updateCheckStatus, initializeProductFieldDefinitions } from '@/utils/fieldDefinitionsHelper';
 
 export interface MotorProduktSpartenTreeProps {
   // Callbacks für die 5 Tabellen aus fieldConfig (nur bei User-Interaktion)
   onSpartenChange: (sparten: any[]) => void;
   onBausteineChange: (sparte: string, bausteine: any[]) => void;
+  // FIELD_DEFINITIONS für Single Point of Truth
+  fieldDefinitions: any;
+  onFieldDefinitionsChange: (updates: any) => void;
 }
 
 interface SpartenRowState {
@@ -24,7 +28,9 @@ interface SpartenRowState {
 
 export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = ({
   onSpartenChange,
-  onBausteineChange
+  onBausteineChange,
+  fieldDefinitions,
+  onFieldDefinitionsChange
 }) => {
   const [spartenRows, setSpartenRows] = useState<SpartenRowState[]>([]);
   const [filterText, setFilterText] = useState('');
@@ -63,6 +69,12 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
         
         setSpartenRows(initialRows);
         
+        // Initialisiere FIELD_DEFINITIONS mit Produktdaten (Single Point of Truth)
+        console.log(`🚀 Initialisiere FIELD_DEFINITIONS mit loadProduktData`);
+        const fieldDefinitionsUpdates = initializeProductFieldDefinitions(data);
+        onFieldDefinitionsChange(fieldDefinitionsUpdates);
+        console.log(`✅ FIELD_DEFINITIONS initialisiert:`, fieldDefinitionsUpdates);
+        
         // KEINE Initial-Callbacks - nur bei User-Interaktion
         
       } catch (error) {
@@ -84,33 +96,28 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     })));
   }, [spartenRows]);
 
-  // Sparten-Checkbox ändern
+  // Sparten-Checkbox ändern (FIELD_DEFINITIONS Single Point of Truth)
   const handleSparteCheckChange = (sparteIndex: number, value: 'J' | 'N') => {
     const checked = value === 'J';
-    console.log(`🔍 Sparten-Checkbox geändert: Index=${sparteIndex}, Checked=${checked}`);
-    console.log(`🔍 Vorher - spartenRows:`, spartenRows.map(r => ({sparte: r.sparte.sparte, check: r.sparte.check, expanded: r.isExpanded})));
+    const sparteCode = spartenRows[sparteIndex].sparte.sparte;
     
+    console.log(`🔍 Sparten-Checkbox geändert: ${sparteCode} = ${checked}`);
+    
+    // Update FIELD_DEFINITIONS (Single Point of Truth)
+    updateCheckStatus(sparteCode, sparteCode, checked, fieldDefinitions, onFieldDefinitionsChange);
+    
+    // Update lokaler State für Expand-Verhalten
     setSpartenRows(prevRows => {
       const newRows = [...prevRows];
-      // Wichtig: Neue Referenz für nested object erstellen
       newRows[sparteIndex] = {
         ...newRows[sparteIndex],
-        sparte: {
-          ...newRows[sparteIndex].sparte,
-          check: checked
-        },
-        isExpanded: checked
+        isExpanded: checked // Auto-Expand bei Aktivierung
       };
-      
-      console.log(`🔍 Nachher - newRows:`, newRows.map(r => ({sparte: r.sparte.sparte, check: r.sparte.check, expanded: r.isExpanded})));
       return newRows;
     });
     
     // Force re-render and callback
     setForceRender(prev => prev + 1);
-    
-    // Callback für fieldConfig mit Debug
-    console.log(`🔍 Rufe updateSpartenCallback auf...`);
     setTimeout(() => updateSpartenCallback(), 0);
   };
 
@@ -153,51 +160,19 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     setForceRender(prev => prev + 1);
   };
 
-  // Hilfsfunktion zum Finden eines Bausteins über hierarchischen Pfad
-  const findBausteinByPath = (bausteine: any[], path: number[]): any => {
-    let current = bausteine[path[0]];
-    for (let i = 1; i < path.length; i++) {
-      current = current.subBausteine[path[i]];
-    }
-    return current;
-  };
-
-  // Baustein-Änderung mit hierarchischem Pfad
-  const handleBausteinChange = (sparteIndex: number, bausteinPath: number[], field: string, value: any) => {
-    console.log(`🔧 handleBausteinChange: sparteIndex=${sparteIndex}, bausteinPath=[${bausteinPath.join(',')}], field=${field}, value=${value}`);
+  // Legacy-Callback für fieldConfig Updates (wird durch FIELD_DEFINITIONS gesteuert)
+  const updateBausteineCallback = (sparteCode: string) => {
+    console.log(`📤 updateBausteineCallback für Sparte: ${sparteCode}`);
     
-    const newRows = [...spartenRows];
-    const baustein = findBausteinByPath(newRows[sparteIndex].sparte.bausteine, bausteinPath);
+    // Erstelle Bausteine-Array aus FIELD_DEFINITIONS (Single Point of Truth)
+    const tableKey = `produktBausteine_${sparteCode}`;
+    const bausteineData = fieldDefinitions[tableKey]?.value || [];
     
-    console.log(`🔧 Gefundener Baustein:`, baustein.beschreibung, baustein.knotenId);
+    // Filtere nur angeixte Bausteine mit echteEingabe für Legacy-Callback
+    const activeBausteine = bausteineData.filter((b: any) => b.check === true && b.echteEingabe === true);
     
-    if (field === 'check') {
-      baustein.check = value;
-    } else if (field === 'betrag') {
-      baustein.betrag = value;
-    }
-    
-    setSpartenRows(newRows);
-    
-    // Callback für fieldConfig - nur die betroffene Sparte
-    // Nur Bausteine mit fachlichem Schlüssel (knotenId) und echten User-Interaktionen in FIELD_DEFINITIONS aufnehmen
-    const sparte = newRows[sparteIndex].sparte;
-    const bausteineForFieldConfig = sparte.bausteine
-      .filter(b => {
-        // Bausteine mit echtem knotenId (nicht nur Leerzeichen) und die angeixt sind
-        const hasRealKnotenId = b.knotenId && b.knotenId.trim() !== '';
-        const isChecked = b.check === true;
-        return hasRealKnotenId && isChecked;
-      })
-      .map((b) => ({
-        id: `${sparte.sparte}_${b.knotenId}`,
-        beschreibung: b.beschreibung,
-        check: b.check,
-        betrag: parseFloat(b.betrag || '0'),
-        betragsLabel: b.betragsLabel || '',
-        knotenId: b.knotenId
-      }));
-    onBausteineChange(sparte.sparte, bausteineForFieldConfig);
+    console.log(`✅ ${activeBausteine.length} aktive Bausteine für ${sparteCode}:`, activeBausteine);
+    onBausteineChange(sparteCode, activeBausteine);
   };
 
   // Update Sparten-Callback
@@ -273,7 +248,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
                 {/* Checkbox */}
                 <div className="col-span-1 flex justify-center">
                   <MotorCheckBox
-                    value={row.sparte.check ? 'J' : 'N'}
+                    value={isChecked(row.sparte.sparte, row.sparte.sparte, fieldDefinitions) ? 'J' : 'N'}
                     onChange={(value) => handleSparteCheckChange(sparteIndex, value)}
                     label=""
                     hideLabel={true}
@@ -354,15 +329,14 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
             </div>
 
             {/* Baustein-Tree (nur wenn Sparte aktiv UND expandiert) */}
-            {row.sparte.check && row.isExpanded && (
+            {isChecked(row.sparte.sparte, row.sparte.sparte, fieldDefinitions) && row.isExpanded && (
               <div className="bg-gray-50 border-t border-gray-100">
                 <div className="ml-12">
                   <MotorProduktBausteinTree
                     bausteine={row.sparte.bausteine}
-                    onBausteinChange={(bausteinPath, field, value) => 
-                      handleBausteinChange(sparteIndex, bausteinPath, field, value)
-                    }
-                    sparteAktiv={row.sparte.check}
+                    sparteAktiv={isChecked(row.sparte.sparte, row.sparte.sparte, fieldDefinitions)}
+                    fieldDefinitions={fieldDefinitions}
+                    onFieldDefinitionsChange={onFieldDefinitionsChange}
                     filterText={filterText}
                   />
                 </div>
@@ -376,7 +350,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 rounded-b-lg">
         <div className="flex justify-between text-xs text-gray-600">
           <span>
-            {spartenRows.filter(row => row.sparte.check).length} von {spartenRows.length} Sparten aktiv
+            {spartenRows.filter(row => isChecked(row.sparte.sparte, row.sparte.sparte, fieldDefinitions)).length} von {spartenRows.length} Sparten aktiv
           </span>
           <span>
             {spartenRows.reduce((sum, row) => sum + (row.sparte.bausteine?.length || 0), 0)} Bausteine gesamt
