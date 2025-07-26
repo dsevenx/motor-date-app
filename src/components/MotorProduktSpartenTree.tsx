@@ -292,7 +292,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
                     value={getSparteFromFieldDefinitions(row.sparte.sparte)?.zustand || ''}
                     onChange={(value) => handleSparteZustandChange(sparteIndex, value)}
                     label=""
-                    domainId={row.zustandsdetailDomainId}
+                    domainId={row.zustandDomainId}
                     hideLabel={true}
                     disabled={!isChecked(row.sparte.sparte, row.sparte.sparte, fieldDefinitions)}
                   />
