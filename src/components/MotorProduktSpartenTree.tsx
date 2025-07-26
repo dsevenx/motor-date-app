@@ -108,7 +108,8 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
         ...spartenData[sparteFieldIndex], 
         check: checked,
         echteEingabe: true, // Markiere als echte Eingabe
-        zustand: checked ? 'A' : ' ' // Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leerzeichen)
+        zustand: checked ? 'A' : ' ', // Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leerzeichen)
+        zustandsdetail: ' ' // Zustandsdetail immer leer, da weder "A" noch " " = "S" (Storniert)
       };
       
       onFieldDefinitionsChange({
@@ -147,7 +148,9 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     if (sparteFieldIndex >= 0) {
       spartenData[sparteFieldIndex] = { 
         ...spartenData[sparteFieldIndex], 
-        zustand: value 
+        zustand: value,
+        // Zustandsdetail nur bei "S" (Storniert) erlaubt, sonst immer leer
+        zustandsdetail: value === 'S' ? spartenData[sparteFieldIndex].zustandsdetail : ' '
       };
       onFieldDefinitionsChange({
         produktSparten: { value: spartenData }
@@ -165,13 +168,18 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     const sparteFieldIndex = spartenData.findIndex((s: any) => s.id === sparteCode);
     
     if (sparteFieldIndex >= 0) {
-      spartenData[sparteFieldIndex] = { 
-        ...spartenData[sparteFieldIndex], 
-        zustandsdetail: value 
-      };
-      onFieldDefinitionsChange({
-        produktSparten: { value: spartenData }
-      });
+      const currentZustand = spartenData[sparteFieldIndex].zustand;
+      
+      // Zustandsdetail darf nur bei Zustand "S" (Storniert) geändert werden
+      if (currentZustand === 'S') {
+        spartenData[sparteFieldIndex] = { 
+          ...spartenData[sparteFieldIndex], 
+          zustandsdetail: value 
+        };
+        onFieldDefinitionsChange({
+          produktSparten: { value: spartenData }
+        });
+      }
     }
   };
 
@@ -297,12 +305,16 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
                 {/* Zustandsdetail Dropdown */}
                 <div className="col-span-2">
                   <MotorDropDown
-                    value={getSparteFromFieldDefinitions(row.sparte.sparte)?.zustandsdetail || ''}
+                    value={getSparteFromFieldDefinitions(row.sparte.sparte)?.zustandsdetail || ' '}
                     onChange={(value) => handleSparteZustandsdetailChange(sparteIndex, value)}
                     label=""
                     domainId="KraftBoGruppeMoeglStornogruendeSparte"
                     hideLabel={true}
-                    disabled={!isChecked(row.sparte.sparte, row.sparte.sparte, fieldDefinitions)}
+                    disabled={
+                      !isChecked(row.sparte.sparte, row.sparte.sparte, fieldDefinitions) ||
+                      // Nur editierbar wenn Zustand "S" (Storniert) ist
+                      getSparteFromFieldDefinitions(row.sparte.sparte)?.zustand !== 'S'
+                    }
                   />
                 </div>
 
