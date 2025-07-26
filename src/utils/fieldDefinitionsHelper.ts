@@ -148,7 +148,6 @@ export const getBetrag = (knotenId: string, sparte: string, fieldDefinitions: Fi
     const bausteinEntry = bausteineData.find((b: any) => b.knotenId === knotenId);
     const betrag = parseFloat(bausteinEntry?.betrag || '0');
     
-    console.log(`🔍💰 getBetrag [${knotenId}] in [${sparte}]:`, { bausteinEntry, betrag });
     return betrag;
     
   } catch (error) {

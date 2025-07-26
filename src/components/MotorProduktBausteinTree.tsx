@@ -103,22 +103,11 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
   };
 
   const handleBetragChange = (value: number) => {
-    console.log(`🔧💰 handleBetragChange [${baustein.beschreibung}]:`, {
-      knotenId: baustein.knotenId,
-      newValue: value,
-      currentBetrag: baustein.betrag,
-      sparte: sparte
-    });
-    
     const hasRealKnotenId = baustein.knotenId && baustein.knotenId.trim() !== '';
      
-    if (hasRealKnotenId ) {
-      console.log(`✅ Calling updateBetragStatus: ${baustein.knotenId} = ${value}`);
-      
+    if (hasRealKnotenId) {
       // Direktes Update in FIELD_DEFINITIONS (Single Point of Truth)
       updateBetragStatus(baustein.knotenId, sparte, value, fieldDefinitions, onFieldDefinitionsChange);
-    } else {
-      console.log(`❌ Betrag nicht editierbar: ${baustein.beschreibung}`, {hasRealKnotenId, isPflicht});
     }
   };
 
@@ -205,21 +194,12 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
             />
             <div className="w-24">
               <MotorEditNumber
-                value={(() => {
+                value={
                   // Betrag aus FIELD_DEFINITIONS lesen (Single Point of Truth)
-                  const fieldDefinitionsBetrag = baustein.knotenId && baustein.knotenId.trim() !== '' 
+                  baustein.knotenId && baustein.knotenId.trim() !== '' 
                     ? getBetrag(baustein.knotenId, sparte, fieldDefinitions)
-                    : parseFloat(baustein.betrag || '0');
-                  
-                  console.log(`🔍💰 Reading Betrag for [${baustein.beschreibung}]:`, {
-                    knotenId: baustein.knotenId,
-                    fieldDefinitionsBetrag,
-                    originalBaustein_betrag: baustein.betrag,
-                    sparte: sparte
-                  });
-                  
-                  return fieldDefinitionsBetrag;
-                })()}
+                    : parseFloat(baustein.betrag || '0')
+                }
                 onChange={handleBetragChange}
                 label=""
                 hideLabel={true}

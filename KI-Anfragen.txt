@@ -204,7 +204,7 @@ Die beiden Teile diese Komponente teilen sich den vertikaten Platz im Verhätlni
 Beim Tree bitte die fachlichen Daten aus einer FetchContract.tsx simulieren, der Contract-Objekt von FetchContract.tsx hat u.a. als ein Attribut den Tree 
 der oberen Komponente.
 Bitte auch eine Typscript-Type für den Tree erstellen. Im Tree soll eine Kontext-Nenu vorgesehen werden. 
-Die Kontextmenupunkte sind Hinzufügen und Bearbeiten. Bitte auch im Tree bei bei jedem Knoten ein 
+Die Kontextmenupunkte sind Hinzufügen und Bearbeiten. Bitte auch im Tree bei bei jedem Knoten "aktivesObjekt" vorsehen, wenn die bei einem Knoten gesezt ist, dann soll sein Beschreibungstext fettgeschrieben werden. 
 
 
 
