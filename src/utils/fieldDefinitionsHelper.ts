@@ -23,7 +23,15 @@ export const isChecked = (knotenId: string, sparte: string, fieldDefinitions: Fi
       const spartenData = fieldDefinitions.produktSparten?.value || [];
       const sparteEntry = spartenData.find((s: any) => s.id === sparte);
       const result = sparteEntry?.check === true;
-      console.log(`🔍 isChecked Sparte [${sparte}]:`, { sparteEntry, result });
+      
+      // Weniger Debug-Spam, nur bei wichtigen Sparten-Checks
+      if (sparte === 'KH' || sparte === 'KK') {
+        console.log(`🔍 isChecked Sparte [${sparte}]:`, { 
+          'fieldDefinitions.produktSparten': fieldDefinitions.produktSparten,
+          sparteEntry, 
+          result 
+        });
+      }
       return result;
     }
     
@@ -33,7 +41,10 @@ export const isChecked = (knotenId: string, sparte: string, fieldDefinitions: Fi
     const bausteinEntry = bausteineData.find((b: any) => b.knotenId === knotenId);
     const result = bausteinEntry?.check === true;
     
-    console.log(`🔍 isChecked Baustein [${knotenId}] in [${sparte}]:`, { bausteinEntry, result });
+    // Debug nur bei Level 0 für weniger Spam
+    if (knotenId && knotenId.startsWith('KBH')) {
+      console.log(`🔍 isChecked Baustein [${knotenId}] in [${sparte}]:`, { bausteinEntry, result });
+    }
     return result;
     
   } catch (error) {
@@ -65,18 +76,36 @@ export const updateCheckStatus = (
     // 1. Sparten-Update
     if (knotenId === sparte) {
       const spartenData = [...(fieldDefinitions.produktSparten?.value || [])];
+      console.log(`🔍 Sparten-Update Debug:`, {
+        knotenId,
+        sparte, 
+        checked,
+        isUserInput,
+        'fieldDefinitions.produktSparten': fieldDefinitions.produktSparten,
+        'spartenData.length': spartenData.length,
+        'spartenData': spartenData.map(s => ({ id: s.id, check: s.check }))
+      });
+      
       const sparteIndex = spartenData.findIndex((s: any) => s.id === sparte);
+      console.log(`🔍 Gefundener sparteIndex für ${sparte}:`, sparteIndex);
       
       if (sparteIndex >= 0) {
+        const beforeUpdate = { ...spartenData[sparteIndex] };
         spartenData[sparteIndex] = { 
           ...spartenData[sparteIndex], 
           check: checked,
           echteEingabe: isUserInput // Markiere als echte Eingabe
         };
+        const afterUpdate = { ...spartenData[sparteIndex] };
+        
+        console.log(`🔍 Sparte Update:`, { beforeUpdate, afterUpdate });
+        
         updateFieldDefinitions({
           produktSparten: { value: spartenData }
         });
         console.log(`✅ Sparte ${sparte} updated to ${checked} (echteEingabe: ${isUserInput})`);
+      } else {
+        console.log(`❌ Sparte ${sparte} nicht gefunden in spartenData`);
       }
       return;
     }
@@ -125,7 +154,8 @@ export const initializeProductFieldDefinitions = (produktData: any[]): Partial<F
       zustand: sparte.verhalten || '',
       zustandsdetail: '',
       beitragNetto: parseFloat(sparte.beitragNetto || '0'),
-      beitragBrutto: parseFloat(sparte.beitragBrutto || '0')
+      beitragBrutto: parseFloat(sparte.beitragBrutto || '0'),
+      echteEingabe: false // Initial: keine echte User-Eingabe
     }));
   
   updates.produktSparten = { value: spartenEntries };

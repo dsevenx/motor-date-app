@@ -473,14 +473,17 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           type: 'dropdown',
           width: '120px',
           dropdown: {
-            domainId: 'KraftBoGruppeMoeglStornogruendeSparte'
+            domainId: 'KraftBoGruppeMoeglZustand'
           }
         },
         {
           key: 'zustandsdetail',
           label: 'Zustandsdetail',
           type: 'dropdown',
-          width: '140px'
+          width: '140px',
+           dropdown: {
+            domainId: 'KraftBoGruppeMoeglStornogruendeSparte'
+          }
         },
         {
           key: 'beitragNetto',

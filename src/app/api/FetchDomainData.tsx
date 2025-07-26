@@ -1496,6 +1496,10 @@ const mockDomainData: Datalist[] =[{
         "id": "KraftBoGruppeMoeglStornogruendeSparte",
         "options": [{
                 "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "",
+                "label": ""
+            },{
+                "classId": "com.allianz.cisl.base.datalist.Option",
                 "value": "SER",
                 "label": "Ersatz"
             }, {

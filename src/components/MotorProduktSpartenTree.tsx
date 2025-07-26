@@ -21,9 +21,10 @@ export interface MotorProduktSpartenTreeProps {
 }
 
 interface SpartenRowState {
-  sparte: Produktsparte;
-  isExpanded: boolean;
-  zustandsdetailDomainId: string;
+  sparte: Produktsparte; // Nur für Struktur-Daten (beschreibung, bausteine, etc.)
+  isExpanded: boolean; // UI-State für Expand/Collapse
+  zustandDomainId: string; // Domain-Mapping für Dropdowns
+  // check, zustand, zustandsdetail kommen NUR aus FIELD_DEFINITIONS!
 }
 
 export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = ({
@@ -38,13 +39,13 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
   const [forceRender, setForceRender] = useState(0);
   
   // Domain-Mapping für Zustandsdetail pro Sparte
-  const getZustandsdetailDomainId = (sparte: string): string => {
+  const getZustandDomainId = (sparte: string): string => {
     switch (sparte) {
       case 'KH': return 'KraftBoGruppeMoeglVertragZustandKH';
       case 'KK': return 'KraftBoGruppeMoeglVertragZustandVK';
       case 'EK': return 'KraftBoGruppeMoeglVertragZustandTK';
       case 'KU': return 'KraftBoGruppeMoeglVertragZustandKU';
-      default: return 'KraftBoGruppeMoeglStornogruendeSparte';
+      default: return 'KraftBoGruppeMoeglVertragZustandKH';
     }
   };
 
@@ -55,16 +56,15 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
         setIsLoading(true);
         const data = await fetchProduktData();
         
-        // Initialisiere Sparten-Rows mit echten Daten aus fetchProduktData
+        // Initialisiere Sparten-Rows mit Struktur-Daten (OHNE check/zustand - kommt aus FIELD_DEFINITIONS)
         const initialRows: SpartenRowState[] = data.map(sparte => ({
           sparte: {
             ...sparte,
-            // Verwende die echten Werte aus fetchProduktData für Display
-            // Checkbox bleibt erstmal false (wird über FIELD_DEFINITIONS gesteuert)
-            check: false
+            // Entferne check - wird NUR aus FIELD_DEFINITIONS gelesen!
+            // check, zustand, zustandsdetail sind jetzt read-only aus FIELD_DEFINITIONS
           },
           isExpanded: false, // User muss manuell öffnen
-          zustandsdetailDomainId: getZustandsdetailDomainId(sparte.sparte)
+          zustandDomainId: getZustandDomainId(sparte.sparte)
         }));
         
         setSpartenRows(initialRows);
@@ -87,26 +87,27 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     loadProduktData();
   }, []);
 
-  // Debug: Überwache spartenRows State-Änderungen
+  // Debug: Überwache spartenRows State-Änderungen (nur UI-State - check kommt aus FIELD_DEFINITIONS)
   useEffect(() => {
-    console.log(`🔄 spartenRows State geändert:`, spartenRows.map(r => ({
+    console.log(`🔄 spartenRows State geändert (nur UI):`, spartenRows.map(r => ({
       sparte: r.sparte.sparte, 
-      check: r.sparte.check, 
-      expanded: r.isExpanded
+      expanded: r.isExpanded,
+      // check kommt NICHT aus spartenRows - nur aus FIELD_DEFINITIONS!
     })));
   }, [spartenRows]);
 
-  // Sparten-Checkbox ändern (FIELD_DEFINITIONS Single Point of Truth)
+  // Sparten-Checkbox ändern (NUR FIELD_DEFINITIONS - kein lokaler State!)
   const handleSparteCheckChange = (sparteIndex: number, value: 'J' | 'N') => {
     const checked = value === 'J';
     const sparteCode = spartenRows[sparteIndex].sparte.sparte;
     
     console.log(`🔍 Sparten-Checkbox geändert: ${sparteCode} = ${checked}`);
+    console.log(`🎯 UPDATE NUR FIELD_DEFINITIONS - kein lokaler State!`);
     
-    // Update FIELD_DEFINITIONS (Single Point of Truth)
-    updateCheckStatus(sparteCode, sparteCode, checked, fieldDefinitions, onFieldDefinitionsChange);
+    // Update FIELD_DEFINITIONS (Single Point of Truth) - EINZIGE Quelle!
+    updateCheckStatus(sparteCode, sparteCode, checked, fieldDefinitions, onFieldDefinitionsChange, true);
     
-    // Update lokaler State für Expand-Verhalten
+    // Update NUR UI-State für Expand-Verhalten (nicht check!)
     setSpartenRows(prevRows => {
       const newRows = [...prevRows];
       newRows[sparteIndex] = {
@@ -116,27 +117,52 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
       return newRows;
     });
     
-    // Force re-render and callback
-    setForceRender(prev => prev + 1);
-    setTimeout(() => updateSpartenCallback(), 0);
+    };
+
+  // Helper-Funktionen für FIELD_DEFINITIONS Lookups
+  const getSparteFromFieldDefinitions = (sparteCode: string) => {
+    const spartenData = fieldDefinitions.produktSparten?.value || [];
+    return spartenData.find((s: any) => s.id === sparteCode);
   };
 
-  // Sparten-Zustand Dropdown ändern
+  // Sparten-Zustand Dropdown ändern (FIELD_DEFINITIONS Update)
   const handleSparteZustandChange = (sparteIndex: number, value: string) => {
-    const newRows = [...spartenRows];
-    newRows[sparteIndex].sparte.zustand = value;
-    setSpartenRows(newRows);
-    updateSpartenCallback();
+    const sparteCode = spartenRows[sparteIndex].sparte.sparte;
+    console.log(`🔍 Zustand Update: ${sparteCode} = ${value}`);
+    
+    // Update FIELD_DEFINITIONS
+    const spartenData = [...(fieldDefinitions.produktSparten?.value || [])];
+    const sparteFieldIndex = spartenData.findIndex((s: any) => s.id === sparteCode);
+    
+    if (sparteFieldIndex >= 0) {
+      spartenData[sparteFieldIndex] = { 
+        ...spartenData[sparteFieldIndex], 
+        zustand: value 
+      };
+      onFieldDefinitionsChange({
+        produktSparten: { value: spartenData }
+      });
+    }
   };
 
-  // Sparten-Zustandsdetail Dropdown ändern  
+  // Sparten-Zustandsdetail Dropdown ändern (FIELD_DEFINITIONS Update)
   const handleSparteZustandsdetailChange = (sparteIndex: number, value: string) => {
-    const newRows = [...spartenRows];
-    // Zustandsdetail müsste in der Produktsparte gespeichert werden
-    // Für jetzt als temporäre Lösung in einem zusätzlichen Feld
-    (newRows[sparteIndex].sparte as any).zustandsdetail = value;
-    setSpartenRows(newRows);
-    updateSpartenCallback();
+    const sparteCode = spartenRows[sparteIndex].sparte.sparte;
+    console.log(`🔍 Zustandsdetail Update: ${sparteCode} = ${value}`);
+    
+    // Update FIELD_DEFINITIONS
+    const spartenData = [...(fieldDefinitions.produktSparten?.value || [])];
+    const sparteFieldIndex = spartenData.findIndex((s: any) => s.id === sparteCode);
+    
+    if (sparteFieldIndex >= 0) {
+      spartenData[sparteFieldIndex] = { 
+        ...spartenData[sparteFieldIndex], 
+        zustandsdetail: value 
+      };
+      onFieldDefinitionsChange({
+        produktSparten: { value: spartenData }
+      });
+    }
   };
 
   // Expand/Collapse Toggle
@@ -173,24 +199,6 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     
     console.log(`✅ ${activeBausteine.length} aktive Bausteine für ${sparteCode}:`, activeBausteine);
     onBausteineChange(sparteCode, activeBausteine);
-  };
-
-  // Update Sparten-Callback
-  const updateSpartenCallback = () => {
-    console.log(`📤 updateSpartenCallback aufgerufen - spartenRows.length: ${spartenRows.length}`);
-    
-    const spartenForFieldConfig = spartenRows.map(row => ({
-      id: row.sparte.sparte,
-      beschreibung: row.sparte.beschreibung,
-      check: row.sparte.check,
-      zustand: row.sparte.verhalten,
-      zustandsdetail: (row.sparte as any).zustandsdetail || '',
-      beitragNetto: parseFloat(row.sparte.beitragNetto || '0'),
-      beitragBrutto: parseFloat(row.sparte.beitragBrutto || '0')
-    }));
-    
-    console.log(`📤 FIELD_DEFINITIONS Update - spartenForFieldConfig:`, spartenForFieldConfig);
-    onSpartenChange(spartenForFieldConfig);
   };
 
   if (isLoading) {
@@ -281,24 +289,24 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
                 {/* Zustand Dropdown */}
                 <div className="col-span-2">
                   <MotorDropDown
-                    value={row.sparte.verhalten}
+                    value={getSparteFromFieldDefinitions(row.sparte.sparte)?.zustand || ''}
                     onChange={(value) => handleSparteZustandChange(sparteIndex, value)}
                     label=""
-                    domainId="KraftBoGruppeMoeglStornogruendeSparte"
+                    domainId={row.zustandsdetailDomainId}
                     hideLabel={true}
-                    disabled={!row.sparte.check}
+                    disabled={!isChecked(row.sparte.sparte, row.sparte.sparte, fieldDefinitions)}
                   />
                 </div>
 
                 {/* Zustandsdetail Dropdown */}
                 <div className="col-span-2">
                   <MotorDropDown
-                    value={(row.sparte as any).zustandsdetail || ''}
+                    value={getSparteFromFieldDefinitions(row.sparte.sparte)?.zustandsdetail || ''}
                     onChange={(value) => handleSparteZustandsdetailChange(sparteIndex, value)}
                     label=""
-                    domainId={row.zustandsdetailDomainId}
+                    domainId="KraftBoGruppeMoeglStornogruendeSparte"
                     hideLabel={true}
-                    disabled={!row.sparte.check}
+                    disabled={!isChecked(row.sparte.sparte, row.sparte.sparte, fieldDefinitions)}
                   />
                 </div>
 
