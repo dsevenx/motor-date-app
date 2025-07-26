@@ -6,7 +6,7 @@ import { Produktbaustein } from '@/constants';
 import { MotorEditNumber } from './MotorEditNumber';
 import { MotorEditText } from './MotorEditText';
 import { MotorCheckBox } from './MotorCheckBox';
-import { isChecked, updateCheckStatus, updateBetragStatus } from '@/utils/fieldDefinitionsHelper';
+import { isChecked, updateCheckStatus, updateBetragStatus, getBetrag } from '@/utils/fieldDefinitionsHelper';
 
 export interface MotorProduktBausteinTreeProps {
   bausteine: Produktbaustein[];
@@ -103,13 +103,17 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
   };
 
   const handleBetragChange = (value: number) => {
-    console.log(`💰 handleBetragChange [${baustein.beschreibung}]: ${baustein.knotenId} = ${value}`);
+    console.log(`🔧💰 handleBetragChange [${baustein.beschreibung}]:`, {
+      knotenId: baustein.knotenId,
+      newValue: value,
+      currentBetrag: baustein.betrag,
+      sparte: sparte
+    });
     
     const hasRealKnotenId = baustein.knotenId && baustein.knotenId.trim() !== '';
-    const isPflicht = baustein.verhalten === 'P';
-    
-    if (hasRealKnotenId && !isPflicht) {
-      console.log(`✅ FIELD_DEFINITIONS Betrag Update: ${baustein.knotenId} = ${value}`);
+     
+    if (hasRealKnotenId ) {
+      console.log(`✅ Calling updateBetragStatus: ${baustein.knotenId} = ${value}`);
       
       // Direktes Update in FIELD_DEFINITIONS (Single Point of Truth)
       updateBetragStatus(baustein.knotenId, sparte, value, fieldDefinitions, onFieldDefinitionsChange);
@@ -201,7 +205,21 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
             />
             <div className="w-24">
               <MotorEditNumber
-                value={parseFloat(baustein.betrag || '0')}
+                value={(() => {
+                  // Betrag aus FIELD_DEFINITIONS lesen (Single Point of Truth)
+                  const fieldDefinitionsBetrag = baustein.knotenId && baustein.knotenId.trim() !== '' 
+                    ? getBetrag(baustein.knotenId, sparte, fieldDefinitions)
+                    : parseFloat(baustein.betrag || '0');
+                  
+                  console.log(`🔍💰 Reading Betrag for [${baustein.beschreibung}]:`, {
+                    knotenId: baustein.knotenId,
+                    fieldDefinitionsBetrag,
+                    originalBaustein_betrag: baustein.betrag,
+                    sparte: sparte
+                  });
+                  
+                  return fieldDefinitionsBetrag;
+                })()}
                 onChange={handleBetragChange}
                 label=""
                 hideLabel={true}

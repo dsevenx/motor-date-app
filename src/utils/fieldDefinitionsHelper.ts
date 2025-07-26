@@ -135,6 +135,29 @@ export const updateCheckStatus = (
 };
 
 /**
+ * Liest den Betrag eines Bausteins aus FIELD_DEFINITIONS
+ * @param knotenId - Die knotenId des Bausteins
+ * @param sparte - Der Sparten-Code
+ * @param fieldDefinitions - Die aktuellen FIELD_DEFINITIONS
+ * @returns number - Der Betrag aus FIELD_DEFINITIONS oder 0 als Fallback
+ */
+export const getBetrag = (knotenId: string, sparte: string, fieldDefinitions: FieldDefinitions): number => {
+  try {
+    const tableKey = `produktBausteine_${sparte}`;
+    const bausteineData = fieldDefinitions[tableKey]?.value || [];
+    const bausteinEntry = bausteineData.find((b: any) => b.knotenId === knotenId);
+    const betrag = parseFloat(bausteinEntry?.betrag || '0');
+    
+    console.log(`🔍💰 getBetrag [${knotenId}] in [${sparte}]:`, { bausteinEntry, betrag });
+    return betrag;
+    
+  } catch (error) {
+    console.error(`❌ Fehler in getBetrag(${knotenId}, ${sparte}):`, error);
+    return 0;
+  }
+};
+
+/**
  * Aktualisiert den Betrag eines Bausteins in FIELD_DEFINITIONS
  * @param knotenId - Die knotenId des Bausteins
  * @param sparte - Der Sparten-Code
