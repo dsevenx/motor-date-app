@@ -1545,6 +1545,10 @@ const mockDomainData: Datalist[] =[{
         "id": "KraftBoGruppeMoeglVertragZustandKH",
         "options": [{
                 "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": " ",
+                "label": " "
+            },{
+                "classId": "com.allianz.cisl.base.datalist.Option",
                 "value": "A",
                 "label": "Aktiv"
             }, {
@@ -1561,6 +1565,10 @@ const mockDomainData: Datalist[] =[{
         "classId": "com.allianz.cisl.base.datalist.Datalist",
         "id": "KraftBoGruppeMoeglVertragZustandVK",
         "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": " ",
+                "label": " "
+            },{
                 "classId": "com.allianz.cisl.base.datalist.Option",
                 "value": "A",
                 "label": "Aktiv"
@@ -1579,6 +1587,10 @@ const mockDomainData: Datalist[] =[{
         "id": "KraftBoGruppeMoeglVertragZustandTK",
         "options": [{
                 "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": " ",
+                "label": " "
+            },{
+                "classId": "com.allianz.cisl.base.datalist.Option",
                 "value": "A",
                 "label": "Aktiv"
             }, {
@@ -1595,6 +1607,10 @@ const mockDomainData: Datalist[] =[{
         "classId": "com.allianz.cisl.base.datalist.Datalist",
         "id": "KraftBoGruppeMoeglVertragZustandKU",
         "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": " ",
+                "label": " "
+            },{
                 "classId": "com.allianz.cisl.base.datalist.Option",
                 "value": "A",
                 "label": "Aktiv"

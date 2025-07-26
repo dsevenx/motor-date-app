@@ -20,7 +20,7 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
   label = '',
   disabled = false,
   domainId,
-  placeholder = 'Type to search',
+  placeholder = '',
   hideLabel = false
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);

@@ -9,7 +9,7 @@ import { MotorDropDown } from './MotorDropDown';
 import { MotorEditNumber } from './MotorEditNumber';
 import { MotorEditText } from './MotorEditText';
 import { MotorCheckBox } from './MotorCheckBox';
-import { isChecked, updateCheckStatus, initializeProductFieldDefinitions } from '@/utils/fieldDefinitionsHelper';
+import { isChecked, initializeProductFieldDefinitions } from '@/utils/fieldDefinitionsHelper';
 
 export interface MotorProduktSpartenTreeProps {
   // FIELD_DEFINITIONS für Single Point of Truth (neue Architektur)
@@ -102,8 +102,32 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     console.log(`🔍 Sparten-Checkbox geändert: ${sparteCode} = ${checked}`);
     console.log(`🎯 UPDATE NUR FIELD_DEFINITIONS - kein lokaler State!`);
     
-    // Update FIELD_DEFINITIONS (Single Point of Truth) - EINZIGE Quelle!
-    updateCheckStatus(sparteCode, sparteCode, checked, fieldDefinitions, onFieldDefinitionsChange, true);
+    // Update FIELD_DEFINITIONS (Single Point of Truth) - Check UND Zustand in einem Aufruf
+    const spartenData = [...(fieldDefinitions.produktSparten?.value || [])];
+    const sparteFieldIndex = spartenData.findIndex((s: any) => s.id === sparteCode);
+    
+    if (sparteFieldIndex >= 0) {
+      const newZustand = checked ? 'A' : ' ';
+      console.log(`🔧 Setting zustand for ${sparteCode}:`, {
+        checked,
+        newZustand,
+        oldEntry: spartenData[sparteFieldIndex]
+      });
+      
+      spartenData[sparteFieldIndex] = { 
+        ...spartenData[sparteFieldIndex], 
+        check: checked,
+        echteEingabe: true, // Markiere als echte Eingabe
+        zustand: newZustand // Bei Aktivierung "Aktiv", bei Deaktivierung leer
+      };
+      
+      console.log(`🔧 After update:`, spartenData[sparteFieldIndex]);
+      
+      onFieldDefinitionsChange({
+        produktSparten: { value: spartenData }
+      });
+    }
+    
     
     // Update NUR UI-State für Expand-Verhalten (nicht check!)
     setSpartenRows(prevRows => {
@@ -298,7 +322,15 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
                 {/* Zustand Dropdown */}
                 <div className="col-span-2">
                   <MotorDropDown
-                    value={getSparteFromFieldDefinitions(row.sparte.sparte)?.zustand || ''}
+                    value={(() => {
+                      const sparteData = getSparteFromFieldDefinitions(row.sparte.sparte);
+                      const zustandValue = sparteData?.zustand || '';
+                      console.log(`🔍 Reading Zustand for ${row.sparte.sparte}:`, {
+                        sparteData,
+                        zustandValue
+                      });
+                      return zustandValue;
+                    })()}
                     onChange={(value) => handleSparteZustandChange(sparteIndex, value)}
                     label=""
                     domainId={row.zustandDomainId}
