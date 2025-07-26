@@ -12,11 +12,9 @@ import { MotorCheckBox } from './MotorCheckBox';
 import { isChecked, initializeProductFieldDefinitions } from '@/utils/fieldDefinitionsHelper';
 
 export interface MotorProduktSpartenTreeProps {
-  // FIELD_DEFINITIONS für Single Point of Truth (neue Architektur)
+  // FIELD_DEFINITIONS für Single Point of Truth
   fieldDefinitions: any;
   onFieldDefinitionsChange: (updates: any) => void;
-  // Legacy-Callbacks (deprecated - werden durch FIELD_DEFINITIONS ersetzt)
-  onSpartenChange?: (sparten: any[]) => void;
 }
 
 interface SpartenRowState {
@@ -28,8 +26,7 @@ interface SpartenRowState {
 
 export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = ({
   fieldDefinitions,
-  onFieldDefinitionsChange,
-  onSpartenChange // Legacy (optional)
+  onFieldDefinitionsChange
 }) => {
   const [spartenRows, setSpartenRows] = useState<SpartenRowState[]>([]);
   const [filterText, setFilterText] = useState('');
@@ -155,11 +152,6 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
       onFieldDefinitionsChange({
         produktSparten: { value: spartenData }
       });
-      
-      // Legacy-Callback (optional)
-      if (onSpartenChange) {
-        setTimeout(() => updateSpartenCallback(), 0);
-      }
     }
   };
 
@@ -180,11 +172,6 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
       onFieldDefinitionsChange({
         produktSparten: { value: spartenData }
       });
-      
-      // Legacy-Callback (optional)
-      if (onSpartenChange) {
-        setTimeout(() => updateSpartenCallback(), 0);
-      }
     }
   };
 
@@ -208,21 +195,6 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     // Force re-render nicht mehr nötig - FIELD_DEFINITIONS triggert automatisch
   };
 
-  // Legacy-Callbacks für fieldConfig Updates (optional - wird durch FIELD_DEFINITIONS gesteuert)
-  const updateSpartenCallback = () => {
-    if (!onSpartenChange) return; // Skip wenn kein Legacy-Callback
-    
-    console.log(`📤 Legacy updateSpartenCallback aufgerufen`);
-    
-    // Erstelle Sparten-Array aus FIELD_DEFINITIONS (Single Point of Truth)
-    const spartenData = fieldDefinitions.produktSparten?.value || [];
-    
-    // Filtere nur angeixte Sparten mit echteEingabe für Legacy-Callback
-    const activeSparten = spartenData.filter((s: any) => s.check === true && s.echteEingabe === true);
-    
-    console.log(`✅ ${activeSparten.length} aktive Sparten:`, activeSparten);
-    onSpartenChange(activeSparten);
-  };
 
 
   if (isLoading) {
