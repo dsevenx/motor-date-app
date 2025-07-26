@@ -207,14 +207,14 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
                 hideLabel={true}
                 disabled={
                   !sparteAktiv || 
+                  !baustein.knotenId || 
+                  baustein.knotenId.trim() === '' ||
+                  // Betrag ist editierbar wenn Baustein angeixt ist (auch bei Pflicht-Bausteinen)
                   !(baustein.verhalten === 'P' || 
                     !baustein.knotenId || 
                     baustein.knotenId.trim() === '' ||
                     isChecked(baustein.knotenId, sparte, fieldDefinitions)
-                  ) || 
-                  !baustein.knotenId || 
-                  baustein.knotenId.trim() === '' || 
-                  baustein.verhalten === 'P' // Pflicht-Bausteine sind nicht editierbar
+                  )
                 }
                 format="currency"
                 min={0}
