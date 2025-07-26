@@ -12,12 +12,11 @@ import { MotorCheckBox } from './MotorCheckBox';
 import { isChecked, updateCheckStatus, initializeProductFieldDefinitions } from '@/utils/fieldDefinitionsHelper';
 
 export interface MotorProduktSpartenTreeProps {
-  // Callbacks für die 5 Tabellen aus fieldConfig (nur bei User-Interaktion)
-  onSpartenChange: (sparten: any[]) => void;
-  onBausteineChange: (sparte: string, bausteine: any[]) => void;
-  // FIELD_DEFINITIONS für Single Point of Truth
+  // FIELD_DEFINITIONS für Single Point of Truth (neue Architektur)
   fieldDefinitions: any;
   onFieldDefinitionsChange: (updates: any) => void;
+  // Legacy-Callbacks (deprecated - werden durch FIELD_DEFINITIONS ersetzt)
+  onSpartenChange?: (sparten: any[]) => void;
 }
 
 interface SpartenRowState {
@@ -28,15 +27,14 @@ interface SpartenRowState {
 }
 
 export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = ({
-  onSpartenChange,
-  onBausteineChange,
   fieldDefinitions,
-  onFieldDefinitionsChange
+  onFieldDefinitionsChange,
+  onSpartenChange // Legacy (optional)
 }) => {
   const [spartenRows, setSpartenRows] = useState<SpartenRowState[]>([]);
   const [filterText, setFilterText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [forceRender, setForceRender] = useState(0);
+  // forceRender nicht mehr nötig - FIELD_DEFINITIONS Updates automatisch
   
   // Domain-Mapping für Zustandsdetail pro Sparte
   const getZustandDomainId = (sparte: string): string => {
@@ -142,6 +140,11 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
       onFieldDefinitionsChange({
         produktSparten: { value: spartenData }
       });
+      
+      // Legacy-Callback (optional)
+      if (onSpartenChange) {
+        setTimeout(() => updateSpartenCallback(), 0);
+      }
     }
   };
 
@@ -162,6 +165,11 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
       onFieldDefinitionsChange({
         produktSparten: { value: spartenData }
       });
+      
+      // Legacy-Callback (optional)
+      if (onSpartenChange) {
+        setTimeout(() => updateSpartenCallback(), 0);
+      }
     }
   };
 
@@ -182,24 +190,25 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
       return newRows;
     });
     
-    // Force re-render
-    setForceRender(prev => prev + 1);
+    // Force re-render nicht mehr nötig - FIELD_DEFINITIONS triggert automatisch
   };
 
-  // Legacy-Callback für fieldConfig Updates (wird durch FIELD_DEFINITIONS gesteuert)
-  const updateBausteineCallback = (sparteCode: string) => {
-    console.log(`📤 updateBausteineCallback für Sparte: ${sparteCode}`);
+  // Legacy-Callbacks für fieldConfig Updates (optional - wird durch FIELD_DEFINITIONS gesteuert)
+  const updateSpartenCallback = () => {
+    if (!onSpartenChange) return; // Skip wenn kein Legacy-Callback
     
-    // Erstelle Bausteine-Array aus FIELD_DEFINITIONS (Single Point of Truth)
-    const tableKey = `produktBausteine_${sparteCode}`;
-    const bausteineData = fieldDefinitions[tableKey]?.value || [];
+    console.log(`📤 Legacy updateSpartenCallback aufgerufen`);
     
-    // Filtere nur angeixte Bausteine mit echteEingabe für Legacy-Callback
-    const activeBausteine = bausteineData.filter((b: any) => b.check === true && b.echteEingabe === true);
+    // Erstelle Sparten-Array aus FIELD_DEFINITIONS (Single Point of Truth)
+    const spartenData = fieldDefinitions.produktSparten?.value || [];
     
-    console.log(`✅ ${activeBausteine.length} aktive Bausteine für ${sparteCode}:`, activeBausteine);
-    onBausteineChange(sparteCode, activeBausteine);
+    // Filtere nur angeixte Sparten mit echteEingabe für Legacy-Callback
+    const activeSparten = spartenData.filter((s: any) => s.check === true && s.echteEingabe === true);
+    
+    console.log(`✅ ${activeSparten.length} aktive Sparten:`, activeSparten);
+    onSpartenChange(activeSparten);
   };
+
 
   if (isLoading) {
     return (
@@ -211,7 +220,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
   }
 
   // Debug Render-Info
-  console.log(`🖼️ Component Render - forceRender: ${forceRender}, spartenRows.length: ${spartenRows.length}`);
+  console.log(`🖼️ Component Render - spartenRows.length: ${spartenRows.length}`);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">

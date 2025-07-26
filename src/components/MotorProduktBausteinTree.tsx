@@ -6,7 +6,7 @@ import { Produktbaustein } from '@/constants';
 import { MotorEditNumber } from './MotorEditNumber';
 import { MotorEditText } from './MotorEditText';
 import { MotorCheckBox } from './MotorCheckBox';
-import { isChecked, updateCheckStatus } from '@/utils/fieldDefinitionsHelper';
+import { isChecked, updateCheckStatus, updateBetragStatus } from '@/utils/fieldDefinitionsHelper';
 
 export interface MotorProduktBausteinTreeProps {
   bausteine: Produktbaustein[];
@@ -105,12 +105,16 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
   const handleBetragChange = (value: number) => {
     console.log(`💰 handleBetragChange [${baustein.beschreibung}]: ${baustein.knotenId} = ${value}`);
     
-    // TODO: Implementiere Betrag-Update in FIELD_DEFINITIONS
-    // Für jetzt erstmal eine einfache Ausgabe
     const hasRealKnotenId = baustein.knotenId && baustein.knotenId.trim() !== '';
-    if (hasRealKnotenId) {
-      console.log(`✅ Betrag Update für knotenId: ${baustein.knotenId} = ${value}`);
-      // Hier könnte später eine updateBetragStatus Funktion implementiert werden
+    const isPflicht = baustein.verhalten === 'P';
+    
+    if (hasRealKnotenId && !isPflicht) {
+      console.log(`✅ FIELD_DEFINITIONS Betrag Update: ${baustein.knotenId} = ${value}`);
+      
+      // Direktes Update in FIELD_DEFINITIONS (Single Point of Truth)
+      updateBetragStatus(baustein.knotenId, sparte, value, fieldDefinitions, onFieldDefinitionsChange);
+    } else {
+      console.log(`❌ Betrag nicht editierbar: ${baustein.beschreibung}`, {hasRealKnotenId, isPflicht});
     }
   };
 
@@ -158,7 +162,12 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
             <button
               onClick={toggleExpanded}
               className="p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
-              disabled={!sparteAktiv || !baustein.check}
+              disabled={!sparteAktiv || !(
+                baustein.verhalten === 'P' || 
+                !baustein.knotenId || 
+                baustein.knotenId.trim() === '' ||
+                isChecked(baustein.knotenId, sparte, fieldDefinitions)
+              )}
             >
               {isExpanded ? (
                 <ChevronDown className="w-3 h-3 text-gray-600" />
@@ -198,7 +207,11 @@ const BausteinTreeItem: React.FC<BausteinTreeItemProps> = ({
                 hideLabel={true}
                 disabled={
                   !sparteAktiv || 
-                  !baustein.check || 
+                  !(baustein.verhalten === 'P' || 
+                    !baustein.knotenId || 
+                    baustein.knotenId.trim() === '' ||
+                    isChecked(baustein.knotenId, sparte, fieldDefinitions)
+                  ) || 
                   !baustein.knotenId || 
                   baustein.knotenId.trim() === '' || 
                   baustein.verhalten === 'P' // Pflicht-Bausteine sind nicht editierbar
@@ -277,7 +290,7 @@ export const MotorProduktBausteinTree: React.FC<MotorProduktBausteinTreeProps> =
   if (filterText && visibleBausteine.length === 0) {
     return (
       <div className="py-4 text-center text-gray-500 text-sm">
-        Keine Bausteine gefunden für "{filterText}"
+        Keine Bausteine gefunden für &ldquo;{filterText}&rdquo;
       </div>
     );
   }

@@ -135,6 +135,47 @@ export const updateCheckStatus = (
 };
 
 /**
+ * Aktualisiert den Betrag eines Bausteins in FIELD_DEFINITIONS
+ * @param knotenId - Die knotenId des Bausteins
+ * @param sparte - Der Sparten-Code
+ * @param betrag - Der neue Betrag
+ * @param fieldDefinitions - Die aktuellen FIELD_DEFINITIONS
+ * @param updateFieldDefinitions - Callback zum Aktualisieren der FIELD_DEFINITIONS
+ */
+export const updateBetragStatus = (
+  knotenId: string,
+  sparte: string,
+  betrag: number,
+  fieldDefinitions: FieldDefinitions,
+  updateFieldDefinitions: (updates: Partial<FieldDefinitions>) => void
+): void => {
+  try {
+    console.log(`💰 updateBetragStatus: ${knotenId} in ${sparte} = ${betrag}`);
+    
+    const tableKey = `produktBausteine_${sparte}`;
+    const bausteineData = [...(fieldDefinitions[tableKey]?.value || [])];
+    const bausteinIndex = bausteineData.findIndex((b: any) => b.knotenId === knotenId);
+    
+    if (bausteinIndex >= 0) {
+      bausteineData[bausteinIndex] = { 
+        ...bausteineData[bausteinIndex], 
+        betrag: betrag,
+        echteEingabe: true // Markiere als echte Eingabe
+      };
+      updateFieldDefinitions({
+        [tableKey]: { value: bausteineData }
+      });
+      console.log(`✅ Betrag ${knotenId} in ${sparte} updated to ${betrag}`);
+    } else {
+      console.log(`⚠️ Baustein ${knotenId} nicht gefunden in ${tableKey}`);
+    }
+    
+  } catch (error) {
+    console.error(`❌ Fehler in updateBetragStatus(${knotenId}, ${sparte}, ${betrag}):`, error);
+  }
+};
+
+/**
  * Initialisiert FIELD_DEFINITIONS mit Produkt-Daten
  * @param produktData - Die Daten aus fetchProduktData()
  * @returns Partial<FieldDefinitions> - Die initialisierten FIELD_DEFINITIONS

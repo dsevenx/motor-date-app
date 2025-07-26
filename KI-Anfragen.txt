@@ -196,6 +196,14 @@ Die neuen page.tsx soll versuchen den ganz BrowserPlatz zu benutzen, wo bei der 
  Bitte erstell die Links-Komponente und passe Page.tsx an.
 
 
+Anfrage 9
+
+Wir haben gemeinsam eine React-Next.js-Webanwendung erstellt. Hier soll jetzt auf der linke Seite eine weitere Komponete hinzukommen.
+Im Oberen Teil wird ein Tree dargestellt, im unteren Teil Ordnervereinbarungen. Bitte orientiere Dich an dem angehängten Screenshot.
+Die beiden Teile diese Komponente teilen sich den vertikaten Platz im Verhätlnis 2/3 Tree und 1/3 Ordernervereinbarung. 
+Beim Tree bitte die fachlichen Daten aus einer FetchContract.tsx simulieren, der Contract dort hat als ein Attribut den Tree der oberen Anzeige.
+Bitte auch eine Typscript-Typ für den Tree erstellen. Im Tree sol eine Kontext-Nenu
+
 
 
 
