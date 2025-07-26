@@ -210,16 +210,19 @@ export const initializeProductFieldDefinitions = (produktData: any[]): Partial<F
   // 1. Initialisiere Sparten-Tabelle
   const spartenEntries = produktData
     .filter(sparte => sparte.sparte && sparte.beschreibung)
-    .map(sparte => ({
-      id: sparte.sparte,
-      beschreibung: sparte.beschreibung,
-      check: sparte.check || false, // Verwende vorhandenen check-Status oder false
-      zustand: sparte.verhalten || '',
-      zustandsdetail: '',
-      beitragNetto: parseFloat(sparte.beitragNetto || '0'),
-      beitragBrutto: parseFloat(sparte.beitragBrutto || '0'),
-      echteEingabe: false // Initial: keine echte User-Eingabe
-    }));
+    .map(sparte => {
+      const isChecked = sparte.check || false;
+      return {
+        id: sparte.sparte,
+        beschreibung: sparte.beschreibung,
+        check: isChecked,
+        zustand: isChecked ? 'A' : ' ', // Bei angeixten Sparten "A" (Aktiv), sonst " " (Leerzeichen)
+        zustandsdetail: ' ', // Immer Leerzeichen als Standard
+        beitragNetto: parseFloat(sparte.beitragNetto || '0'),
+        beitragBrutto: parseFloat(sparte.beitragBrutto || '0'),
+        echteEingabe: false // Initial: keine echte User-Eingabe
+      };
+    });
   
   updates.produktSparten = { value: spartenEntries };
   console.log(`✅ ${spartenEntries.length} Sparten initialisiert`);

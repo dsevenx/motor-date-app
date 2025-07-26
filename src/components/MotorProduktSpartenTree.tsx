@@ -107,21 +107,12 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     const sparteFieldIndex = spartenData.findIndex((s: any) => s.id === sparteCode);
     
     if (sparteFieldIndex >= 0) {
-      const newZustand = checked ? 'A' : ' ';
-      console.log(`🔧 Setting zustand for ${sparteCode}:`, {
-        checked,
-        newZustand,
-        oldEntry: spartenData[sparteFieldIndex]
-      });
-      
       spartenData[sparteFieldIndex] = { 
         ...spartenData[sparteFieldIndex], 
         check: checked,
         echteEingabe: true, // Markiere als echte Eingabe
-        zustand: newZustand // Bei Aktivierung "Aktiv", bei Deaktivierung leer
+        zustand: checked ? 'A' : ' ' // Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leerzeichen)
       };
-      
-      console.log(`🔧 After update:`, spartenData[sparteFieldIndex]);
       
       onFieldDefinitionsChange({
         produktSparten: { value: spartenData }
@@ -322,15 +313,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
                 {/* Zustand Dropdown */}
                 <div className="col-span-2">
                   <MotorDropDown
-                    value={(() => {
-                      const sparteData = getSparteFromFieldDefinitions(row.sparte.sparte);
-                      const zustandValue = sparteData?.zustand || '';
-                      console.log(`🔍 Reading Zustand for ${row.sparte.sparte}:`, {
-                        sparteData,
-                        zustandValue
-                      });
-                      return zustandValue;
-                    })()}
+                    value={getSparteFromFieldDefinitions(row.sparte.sparte)?.zustand || ' '}
                     onChange={(value) => handleSparteZustandChange(sparteIndex, value)}
                     label=""
                     domainId={row.zustandDomainId}
