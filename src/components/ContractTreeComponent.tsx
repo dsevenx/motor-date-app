@@ -172,7 +172,7 @@ export const ContractTreeComponent: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-w-fit">
       {/* Header */}
       <div className="flex-shrink-0 bg-blue-50 border-b border-blue-200 p-3">
         <h3 className="font-semibold text-gray-800 flex items-center gap-2">
@@ -183,7 +183,7 @@ export const ContractTreeComponent: React.FC = () => {
 
       {/* Anzeigeoptionen */}
       <div className="flex-shrink-0 bg-gray-50 border-b border-gray-200 p-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between min-w-fit">
           <div className="flex items-center gap-4 text-sm">
             <MotorCheckBox
               value={showApplications}
@@ -202,7 +202,7 @@ export const ContractTreeComponent: React.FC = () => {
             onClick={loadContractData}
             variant="primary"
             size="small"
-            icon={<RefreshCw className="h-3 w-3" />}
+           
           >
             Aktualisieren
           </MotorButton>

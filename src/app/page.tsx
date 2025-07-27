@@ -116,22 +116,22 @@ const Page: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-      <div className="max-w-[1800px] mx-auto">
-        {/* Three Column Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2.5">
+      <div className="max-w-[1900px] mx-auto">
+        {/* Three Column Layout: 3/12 + 6/12 + 3/12 = 12/12 */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-2.5">
 
-          {/* Far Left Column - Contract Tree and Ordnervereinbarung */}
-          <div className="xl:col-span-1">
+          {/* Far Left Column - Contract Tree and Ordnervereinbarung (3/12) */}
+          <div className="xl:col-span-3">
             <div className="h-[800px] bg-white rounded-lg shadow-lg overflow-hidden">
               <ContractSidePanel />
             </div>
           </div>
 
-          {/* Middle Column - Fahrzeug Datenverwaltung */}
-          <div className="xl:col-span-1 space-y-6">
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <div className="text-center mb-8">
+          {/* Middle Column - Fahrzeug Datenverwaltung (6/12) */}
+          <div className="xl:col-span-6 space-y-2.5">
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <div className="text-center mb-4">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <Car className="w-8 h-8 text-blue-600" />
                   <h1 className="text-3xl font-bold text-gray-800">
@@ -144,7 +144,7 @@ const Page: React.FC = () => {
               </div>
 
               {/* Basis-Felder in Grid-Layout */}
-              <div className="space-y-8">
+              <div className="space-y-4">
                 {/* Datums-Felder */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
@@ -242,13 +242,13 @@ const Page: React.FC = () => {
 
               {/* Tabellen-Sektion */}
               {tableFields.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-2">
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
                     📊 Detaildaten
                   </h3>
-                  <div className="space-y-8">
+                  <div className="space-y-4">
                     {tableFields.map(field => (
-                      <div key={field.key} className="bg-gray-50 rounded-lg p-6">
+                      <div key={field.key} className="bg-gray-50 rounded-lg p-4">
                         <MotorTable
                           value={fieldValues[field.key] as any[]}
                           onChange={(value) => handleUpdateVehicleData(field.key, value)}
@@ -265,7 +265,7 @@ const Page: React.FC = () => {
               )}
 
               {/* Aktuelle Werte Übersicht */}
-              <div className="border-t pt-6 mt-8">
+              <div className="border-t pt-4 mt-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-800">
                     📈 Aktuelle Werte:
@@ -324,7 +324,7 @@ const Page: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4 mt-6">
+              <div className="flex gap-4 mt-4">
                 <button
                   onClick={handleReset}
                   className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 font-medium"
@@ -341,7 +341,7 @@ const Page: React.FC = () => {
             </div>
 
             {/* Beispiel-Sektion mit deaktivierten Feldern */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white rounded-lg shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 🔒 Beispiel: Deaktivierte Felder & MotorButton
               </h3>
@@ -422,7 +422,7 @@ const Page: React.FC = () => {
             </div>
 
             {/* Produktsparten-Baum Sektion */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white rounded-lg shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 🏗️ Produktsparten-Baum (Demo)
               </h3>
@@ -436,8 +436,8 @@ const Page: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column - Chat Component */}
-          <div className="xl:col-span-1">
+          {/* Right Column - Chat Component (3/12) */}
+          <div className="xl:col-span-3">
             <div className="h-full min-h-[700px]">
               <ChatComponent
                 fieldConfigs={fieldConfigs}
