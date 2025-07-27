@@ -7,6 +7,7 @@ import { MotorEditText } from '@/components/MotorEditText';
 import { MotorEditNumber } from '@/components/MotorEditNumber';
 import { MotorCheckBox } from '@/components/MotorCheckBox';
 import { MotorButton } from '@/components/MotorButton';
+import { MotorHeader } from '@/components/MotorHeader';
 import { MotorDropDown } from '@/components/MotorDropDown';
 import { MotorTable } from '@/components/MotorTable';
 import { ChatComponent } from '@/components/ChatComponent';
@@ -128,8 +129,10 @@ const Page: React.FC = () => {
             </div>
           </div>
 
-          {/* Middle Column - Fahrzeug Datenverwaltung (6/12) */}
+          {/* Middle Column - Header + Fahrzeug Datenverwaltung (6/12) */}
           <div className="xl:col-span-6 space-y-2.5">
+            {/* Header nur über der mittleren Spalte */}
+            <MotorHeader />
             <div className="bg-white rounded-lg shadow-lg p-4">
               <div className="text-center mb-4">
                 <div className="flex items-center justify-center gap-3 mb-4">

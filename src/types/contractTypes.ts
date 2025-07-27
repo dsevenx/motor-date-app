@@ -25,9 +25,31 @@ export interface Ordnervereinbarung {
   category: string;
 }
 
+export interface ContractHeader {
+  companyName: string;
+  address: {
+    street: string;
+    city: string;
+    zipCode: string;
+  };
+  contractNumber: string;
+  validFrom: string;
+  status: string;
+  maz: string;
+  internet: string;
+  telBusiness: string;
+  telMobile: string;
+  email: string;
+  responsible: string;
+  referenceNumber: string;
+  type: string;
+  fax: string;
+}
+
 export interface Contract {
   id: string;
   name: string;
+  header: ContractHeader;
   tree: ContractTree;
   ordnervereinbarungen: Ordnervereinbarung[];
   createdAt: Date;

@@ -1,6 +1,6 @@
 // FetchContract.tsx - Simuliert Contract-Daten basierend auf dem Screenshot
 
-import { Contract, TreeNode, ContractTree, Ordnervereinbarung } from '@/types/contractTypes';
+import { Contract, TreeNode, ContractTree, Ordnervereinbarung, ContractHeader } from '@/types/contractTypes';
 
 // Mock-Daten basierend auf dem Screenshot
 const createMockTreeData = (): ContractTree => {
@@ -127,6 +127,29 @@ const createMockTreeData = (): ContractTree => {
   };
 };
 
+const createMockHeaderData = (): ContractHeader => {
+  return {
+    companyName: 'Rokoschütte AG und Co. KGaA',
+    address: {
+      street: 'Potsdamer Platz',
+      city: 'München',
+      zipCode: 'DE-81677'
+    },
+    contractNumber: 'AS-5850902489',
+    validFrom: '21.07.2025',
+    status: 'Kollektivgeschäft, Antrag, Aktiv; in Arbeit',
+    maz: 'Nicht vorh.',
+    internet: 'Allianz Beratungs-und Vertriebs AG VT-Allgemein',
+    telBusiness: 'Theodor-Stern-Kai 1',
+    telMobile: '+49 (0170) 233456789',
+    email: 'testmail@test.de',
+    responsible: '',
+    referenceNumber: '9/001/0002',
+    type: 'SW',
+    fax: '+49 (069) 712684455'
+  };
+};
+
 const createMockOrdnervereinbarungen = (): Ordnervereinbarung[] => {
   return [
     {
@@ -159,6 +182,7 @@ export const fetchContractData = async (): Promise<Contract> => {
   return {
     id: 'contract_001',
     name: 'Rokoschütte AG Kollektivstruktur',
+    header: createMockHeaderData(),
     tree: createMockTreeData(),
     ordnervereinbarungen: createMockOrdnervereinbarungen(),
     createdAt: new Date('2024-01-01'),
