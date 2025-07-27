@@ -866,8 +866,19 @@ export type ExtractedData = {
   [K in typeof FIELD_DEFINITIONS[number]['key']]: ExtractedFieldValue;
 };
 
+export interface SpartenAction {
+  active: boolean;
+  reason: string;
+}
+
 export interface ClaudeResponse {
   extractedData: ExtractedData;
+  spartenActions?: {
+    KH: SpartenAction;
+    KK: SpartenAction;
+    EK: SpartenAction;
+    KU: SpartenAction;
+  };
   overallConfidence: number;
   validationErrors: string[];
   suggestions: string[];

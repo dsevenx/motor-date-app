@@ -195,7 +195,24 @@ Die neuen page.tsx soll versuchen den ganz BrowserPlatz zu benutzen, wo bei der 
 
  Bitte erstell die Links-Komponente und passe Page.tsx an.
 
+------------------------------------------------------------------------------------------------------------
+Anfrage 8a
 
+Ich habe die Lösung nochmal verworfen - es waren viele Compilefehler und Realisierung und Test waren zu sepziell. 
+Bitte lass uns erst mal nur eine Spartenerkennung angehen. Ich habe gerade mal im claude.ai direkt getestet :
+"Wenn ich nur Kasko mit 150 SB sage, was ist es dann für eine Kasko ?"
+-> er würde Teilkasko mit Selbstbeteiligung 150 Euro
+erkennen. Auch ein Satz wie 
+"Wenn ich nur Kasko mit 300/150 SB sage, was ist es dann für eine Kasko ?"
+-> er würde Vollkasko mit Selbstbeteiligung 300/150 Euro
+erkennen. Auch ein Satz wie
+"Wenn ich sage,  Ich nur die Pflichtversicherung für ein Auto, welche Sparte ist da gemeint ?"
+-> er würde Kfz-Haftpflicht erkennen
+Genau diese Leistung möchten wir für uns nutzen, d.h. Claude soll im Json antworten, ob es KH,VK,TK oder KU "raushört" und dann ixen wir genau die "rausgehörten Sparten" an.
+Wir müssten Claude auch sagen, das wir auch wissen wollen, wenn jemand eine Sparte explizit nicht will - nur dann können wir ja abwählen.
+Bitte in diese Richtung codieren erstmal nur die KI-programmieren - ich würde gern erstmal sehen wollen, das unser KI-Modell die relevanten SprtenInfos erkennt.
+
+------------------------------------------------------------------------------------------------------------
 Anfrage 9
 
 Wir haben gemeinsam eine React-Next.js-Webanwendung erstellt. Hier soll jetzt auf der linke Seite eine weitere Komponete hinzukommen.

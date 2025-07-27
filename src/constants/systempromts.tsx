@@ -140,6 +140,21 @@ export const generateSystemPrompt = async (): Promise<string> => {
 
 FELDER: ${fieldKeys}
 
+SPARTEN-ERKENNUNG:
+Du erkennst aus dem Text auch, welche Versicherungssparten der Nutzer möchte:
+- KH = Kfz-Haftpflicht (Pflichtversicherung, "Haftpflicht", "Pflichtversicherung")
+- KK = Kfz-Vollkasko ("Vollkasko", "Kasko mit zwei SB-Zahlen wie 300/150")
+- EK = Kfz-Teilkasko ("Teilkasko", "Kasko mit einer SB-Zahl wie 150")
+- KU = Unfall-Sparte (selten erwähnt)
+
+SPARTEN-REGELN:
+- "Kasko 150 SB" = EK (Teilkasko)
+- "Kasko 300/150 SB" = KK (Vollkasko) 
+- "nur Pflichtversicherung" = KH (und andere deaktivieren)
+- "Haftpflicht und Vollkasko" = KH + KK
+- "keine Kasko" = EK und KK deaktivieren
+- Beachte "nur", "ohne", "kein" für Ausschlüsse
+
 ${dropdownMappingsText}
 
 ${intelligentMappingRules}
@@ -152,6 +167,12 @@ ${correctionRulesText}
 JSON-FORMAT:
 {
   "extractedData": ${JSON.stringify(jsonSchema, null, 2)},
+  "spartenActions": {
+    "KH": { "active": false, "reason": "" },
+    "KK": { "active": false, "reason": "" },
+    "EK": { "active": false, "reason": "" },
+    "KU": { "active": false, "reason": "" }
+  },
   "overallConfidence": 0.85,
   "validationErrors": [],
   "suggestions": [],
@@ -243,7 +264,7 @@ export const SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC = (() => {
     return schema;
   }, {} as Record<string, unknown>);
 
-  return `Du bist ein Experte für deutsche Fahrzeugdaten-Extraktion. Heute ist ${todayFormatted}.
+  return `Du bist ein Experte für deutsche Fahrzeugversicherungsdaten-Extraktion. Heute ist ${todayFormatted}.
 
 FELDER: ${fieldKeys}
 

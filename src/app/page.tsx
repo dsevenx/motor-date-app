@@ -217,9 +217,11 @@ const Page: React.FC = () => {
 
               {/* Aktuelle Werte Übersicht */}
               <div className="border-t pt-6 mt-8">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  📈 Aktuelle Werte:
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    📈 Aktuelle Werte:
+                  </h3>
+                </div>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm max-h-64 overflow-y-auto">
                   {FIELD_DEFINITIONS.map(field => {
                     let displayValue = 'Nicht gesetzt';
@@ -357,14 +359,6 @@ const Page: React.FC = () => {
                 🏗️ Produktsparten-Baum (Demo)
               </h3>
               <MotorProduktSpartenTree
-                onSpartenChange={(sparten) => {
-                  console.log('Sparten geändert:', sparten);
-                  handleUpdateVehicleData('produktSparten', sparten);
-                }}
-                onBausteineChange={(sparte, bausteine) => {
-                  console.log(`Bausteine ${sparte} geändert:`, bausteine);
-                  handleUpdateVehicleData(`produktBausteine_${sparte}`, bausteine);
-                }}
                 fieldDefinitions={fieldValues}
                 onFieldDefinitionsChange={(updates) => {
                   console.log('🔄 FIELD_DEFINITIONS Update von MotorProduktSpartenTree:', updates);

@@ -117,6 +117,57 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
         extractedData.validationErrors = [...(extractedData.validationErrors || []), ...validationErrors];
       }
 
+      // Verarbeite Sparten-Aktionen falls vorhanden
+      if (extractedData.spartenActions) {
+        console.log('🔄 Verarbeite Sparten-Aktionen:', extractedData.spartenActions);
+        
+        // Verarbeite jede Sparte
+        Object.entries(extractedData.spartenActions).forEach(([sparteKey, action]) => {
+          if (action.active) {
+            console.log(`✅ Aktiviere Sparte ${sparteKey}: ${action.reason}`);
+            
+            // Füge Sparten-Update zu extractedData hinzu
+            const spartenField = `produktSparten`;
+            if (!extractedData.extractedData[spartenField]) {
+              extractedData.extractedData[spartenField] = {
+                value: [],
+                confidence: 0.9,
+                source: 'Sparten-Erkennung',
+                corrected: false,
+                originalValue: null
+              };
+            }
+            
+            // Stelle sicher, dass der Wert ein Array ist
+            const currentSparten = Array.isArray(extractedData.extractedData[spartenField].value) 
+              ? extractedData.extractedData[spartenField].value 
+              : [];
+            
+            // Füge die aktivierte Sparte hinzu, falls nicht bereits vorhanden
+            const existingSparteIndex = currentSparten.findIndex((s: { sparte: string }) => s.sparte === sparteKey);
+            if (existingSparteIndex === -1) {
+              currentSparten.push({
+                id: `sparte_${sparteKey}_${Date.now()}`,
+                sparte: sparteKey,
+                zustand: 'A',
+                zustandsdetail: ' '
+              });
+              
+              extractedData.extractedData[spartenField].value = currentSparten;
+              extractedData.extractedData[spartenField].confidence = Math.max(
+                extractedData.extractedData[spartenField].confidence || 0,
+                0.9
+              );
+              
+              // Füge Erklärung hinzu
+              if (!extractedData.recognizedPhrases.includes(action.reason)) {
+                extractedData.recognizedPhrases.push(action.reason);
+              }
+            }
+          }
+        });
+      }
+
       // Explanation aus dem JSON ins Objekt integrieren, falls nicht schon vorhanden
       if (explanation && !extractedData.explanation) {
         extractedData.explanation = explanation;
