@@ -9,6 +9,16 @@ interface SpartenAction {
   reason: string;
 }
 
+// Interface für Baustein-Aktion von Claude AI
+interface BausteinAction {
+  sparte: string;
+  knotenId: string;
+  beschreibung: string;
+  active: boolean;
+  betrag?: number;
+  reason: string;
+}
+
 export interface FieldDefinitions {
   [key: string]: {
     value: any[];
@@ -341,6 +351,255 @@ export const processSpartenActions = (
     return updates;
   } else {
     console.log('ℹ️ Keine Sparten-Änderungen notwendig');
+    return {};
+  }
+};
+
+/**
+ * Intelligente Baustein-Matching-Logik für Claude AI knotenId → reale KnotenId
+ * 
+ * LANGFRISTIGE ERWEITERUNG: Der Produktservice könnte um ein "synonyme" Feld erweitert werden:
+ * {
+ *   knotenId: "KBV00002",
+ *   beschreibung: "Selbstbeteiligung Vollkasko", 
+ *   synonyme: ["vollkasko_sb", "vk_sb", "selbstbeteiligung_vollkasko"]
+ * }
+ * 
+ * @param claudeKnotenId - Die von Claude AI gelieferte semantische knotenId (z.B. "teilkasko_sb")
+ * @param claudeBeschreibung - Die von Claude AI gelieferte Beschreibung 
+ * @param sparte - Der Sparten-Code (KH, KK, EK, KU)
+ * @param bausteineData - Die verfügbaren Bausteine für diese Sparte
+ * @returns Gefundenen Baustein oder null
+ */
+const findBausteinByIntelligentMatching = (
+  claudeKnotenId: string,
+  claudeBeschreibung: string,
+  sparte: string,
+  bausteineData: any[]
+): any | null => {
+  console.log(`🧠 Intelligente Suche: claudeKnotenId="${claudeKnotenId}", beschreibung="${claudeBeschreibung}", sparte="${sparte}"`);
+  
+  // 1. Exakte KnotenId-Übereinstimmung (falls Claude zufällig die echte ID hat)
+  let match = bausteineData.find((b: any) => b.knotenId === claudeKnotenId);
+  if (match) {
+    console.log(`✅ Exakte KnotenId-Übereinstimmung gefunden: ${match.knotenId}`);
+    return match;
+  }
+  
+  // 1.5. Zukünftige Synonyme-Unterstützung (wenn Produktservice erweitert wird)
+  match = bausteineData.find((b: any) => 
+    b.synonyme && Array.isArray(b.synonyme) && 
+    b.synonyme.includes(claudeKnotenId)
+  );
+  if (match) {
+    console.log(`✅ Synonyme-Übereinstimmung gefunden: ${match.knotenId} (Synonym: ${claudeKnotenId})`);
+    return match;
+  }
+  
+  // 2. Keyword-basierte Matching-Regeln
+  const matchingRules: Record<string, { keywords: string[]; betragsLabel?: string; sparten?: string[] }> = {
+    // Selbstbeteiligung Patterns
+    "teilkasko_sb": { 
+      keywords: ["teilkasko", "selbstbeteiligung"], 
+      betragsLabel: "Selbstbeteiligung",
+      sparten: ["EK", "KK"] // Teilkasko kann auch in Vollkasko-Sparte sein
+    },
+    "vollkasko_sb": { 
+      keywords: ["vollkasko", "selbstbeteiligung"], 
+      betragsLabel: "Selbstbeteiligung",
+      sparten: ["KK"]
+    },
+    "vk_sb": { 
+      keywords: ["vollkasko", "selbstbeteiligung"], 
+      betragsLabel: "Selbstbeteiligung",
+      sparten: ["KK"]
+    },
+    "tk_sb": { 
+      keywords: ["teilkasko", "selbstbeteiligung"], 
+      betragsLabel: "Selbstbeteiligung",
+      sparten: ["EK", "KK"]
+    },
+    // Schutzbrief Patterns
+    "schutzbrief": { 
+      keywords: ["schutzbrief", "premium"], 
+      sparten: ["KH", "KK", "EK", "KU"]
+    },
+    "premium_schutzbrief": { 
+      keywords: ["premium", "schutzbrief"], 
+      sparten: ["KH", "KK", "EK", "KU"]
+    },
+    // Weitere häufige Patterns
+    "neuwert": { 
+      keywords: ["neupreis", "neuwert", "entschädigung"], 
+      sparten: ["KK"]
+    },
+    "werkstatt": { 
+      keywords: ["werkstatt", "reparatur", "partner"], 
+      sparten: ["KK", "EK"]
+    }
+  };
+  
+  // 3. Anwendung der Matching-Regeln
+  const rule = matchingRules[claudeKnotenId.toLowerCase()];
+  if (rule) {
+    console.log(`🔍 Anwendung Regel für "${claudeKnotenId}":`, rule);
+    
+    // Sparten-Check (falls Regel sparten-spezifisch ist)
+    if (rule.sparten && !rule.sparten.includes(sparte)) {
+      console.log(`⚠️ Sparte ${sparte} nicht in erlaubten Sparten ${rule.sparten.join(', ')}`);
+      return null;
+    }
+    
+    // Suche nach Keywords in Beschreibung
+    match = bausteineData.find((b: any) => {
+      const beschreibung = (b.beschreibung || '').toLowerCase();
+      const betragsLabel = (b.betragsLabel || '').toLowerCase();
+      
+      // Prüfe ob alle Keywords vorkommen
+      const keywordMatch = rule.keywords.every(keyword => 
+        beschreibung.includes(keyword.toLowerCase()) || 
+        betragsLabel.includes(keyword.toLowerCase())
+      );
+      
+      // Zusätzlicher Check auf BetragsLabel falls definiert
+      const betragsLabelMatch = !rule.betragsLabel || 
+        betragsLabel.includes(rule.betragsLabel.toLowerCase());
+      
+      return keywordMatch && betragsLabelMatch;
+    });
+    
+    if (match) {
+      console.log(`✅ Keyword-Match gefunden: ${match.knotenId} - ${match.beschreibung}`);
+      return match;
+    }
+  }
+  
+  // 4. Fallback: Fuzzy-Matching auf Claude-Beschreibung
+  if (claudeBeschreibung) {
+    console.log(`🔍 Fallback: Fuzzy-Matching auf Beschreibung "${claudeBeschreibung}"`);
+    
+    const beschreibungWords = claudeBeschreibung.toLowerCase().split(/\s+/);
+    
+    // Suche nach Baustein mit höchster Übereinstimmung
+    let bestMatch: any = null;
+    let bestScore = 0;
+    
+    bausteineData.forEach((b: any) => {
+      const bausteinBeschreibung = (b.beschreibung || '').toLowerCase();
+      const bausteinBetragsLabel = (b.betragsLabel || '').toLowerCase();
+      const combinedText = `${bausteinBeschreibung} ${bausteinBetragsLabel}`;
+      
+      // Score basierend auf gemeinsamen Wörtern
+      let score = 0;
+      beschreibungWords.forEach(word => {
+        if (word.length > 2 && combinedText.includes(word)) {
+          score += word.length; // Längere Wörter bekommen höhere Gewichtung
+        }
+      });
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = b;
+      }
+    });
+    
+    if (bestMatch && bestScore > 3) { // Mindest-Score für Relevanz
+      console.log(`✅ Fuzzy-Match gefunden: ${bestMatch.knotenId} - ${bestMatch.beschreibung} (Score: ${bestScore})`);
+      return bestMatch;
+    }
+  }
+  
+  console.log(`❌ Kein Match gefunden für "${claudeKnotenId}" in Sparte ${sparte}`);
+  return null;
+};
+
+/**
+ * Verarbeitet bausteinActions von Claude AI und aktualisiert FIELD_DEFINITIONS
+ * Nutzt intelligente Matching-Logik um Claude's semantische knotenIds auf echte Bausteine zu mappen.
+ * @param bausteinActions - Die bausteinActions von Claude AI
+ * @param fieldDefinitions - Die aktuellen FIELD_DEFINITIONS
+ * @returns Updates für FIELD_DEFINITIONS (alle Änderungen in einem Update)
+ */
+export const processBausteinActions = (
+  bausteinActions: BausteinAction[],
+  fieldDefinitions: FieldDefinitions
+): Record<string, any> => {
+  console.log('🤖 Verarbeite bausteinActions von Claude AI:', bausteinActions);
+  
+  const allUpdates: Record<string, any> = {};
+  let hasChanges = false;
+  
+  // Gruppiere Bausteine nach Sparten für effiziente Verarbeitung
+  const bausteineBySpart: Record<string, BausteinAction[]> = {};
+  bausteinActions.forEach(action => {
+    if (!bausteineBySpart[action.sparte]) {
+      bausteineBySpart[action.sparte] = [];
+    }
+    bausteineBySpart[action.sparte].push(action);
+  });
+  
+  // Verarbeite jede Sparte
+  Object.entries(bausteineBySpart).forEach(([sparteCode, sparteActions]) => {
+    const tableKey = `produktBausteine_${sparteCode}`;
+    console.log(`🔧 Verarbeite Bausteine für Sparte ${sparteCode}:`, sparteActions);
+    
+    // Arbeite mit einer lokalen Kopie der Baustein-Daten
+    const bausteineData = [...(fieldDefinitions[tableKey]?.value || [])];
+    
+    sparteActions.forEach(action => {
+      console.log(`🤖 Baustein-Update: ${action.knotenId} = ${action.active ? 'aktivieren' : 'deaktivieren'} (${action.reason})`);
+      
+      // Ignoriere "nicht explizit erwähnt" Fälle
+      if (!action.active && action.reason.toLowerCase().includes('nicht explizit erwähnt')) {
+        console.log(`⏭️ Baustein ${action.knotenId} übersprungen: nicht explizit erwähnt (keine Änderung)`);
+        return;
+      }
+      
+      // Finde den Baustein mit intelligenter Matching-Logik
+      const matchedBaustein = findBausteinByIntelligentMatching(
+        action.knotenId,
+        action.beschreibung,
+        sparteCode,
+        bausteineData
+      );
+      
+      if (matchedBaustein) {
+        const bausteinIndex = bausteineData.findIndex((b: any) => b.knotenId === matchedBaustein.knotenId);
+        const oldCheck = bausteineData[bausteinIndex].check;
+        const oldBetrag = bausteineData[bausteinIndex].betrag;
+        const newCheck = action.active;
+        const newBetrag = action.betrag !== undefined ? action.betrag : oldBetrag;
+        
+        // Prüfe ob sich etwas ändert
+        if (oldCheck !== newCheck || oldBetrag !== newBetrag) {
+          bausteineData[bausteinIndex] = {
+            ...bausteineData[bausteinIndex],
+            check: newCheck,
+            betrag: newBetrag,
+            echteEingabe: true // Markiere als echte Eingabe (von KI)
+          };
+          
+          console.log(`✅ Baustein ${matchedBaustein.knotenId} (Claude: ${action.knotenId}) aktualisiert: check ${oldCheck}→${newCheck}, betrag ${oldBetrag}→${newBetrag}`);
+          hasChanges = true;
+        } else {
+          console.log(`ℹ️ Baustein ${matchedBaustein.knotenId} (Claude: ${action.knotenId}) bereits im gewünschten Zustand`);
+        }
+      } else {
+        console.warn(`⚠️ Intelligente Suche für Claude-Baustein "${action.knotenId}" in ${tableKey} erfolglos`);
+      }
+    });
+    
+    // Speichere Updates für diese Sparte
+    if (bausteineData.length > 0) {
+      allUpdates[tableKey] = { value: bausteineData };
+    }
+  });
+  
+  if (hasChanges) {
+    console.log('🔄 Finale Baustein-Updates für FIELD_DEFINITIONS:', allUpdates);
+    return allUpdates;
+  } else {
+    console.log('ℹ️ Keine Baustein-Änderungen notwendig');
     return {};
   }
 };

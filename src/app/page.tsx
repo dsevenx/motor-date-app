@@ -16,7 +16,7 @@ import {
   generateFieldConfigs,
   getFieldsByType 
 } from '@/constants/fieldConfig';
-import { processSpartenActions } from '@/utils/fieldDefinitionsHelper';
+import { processSpartenActions, processBausteinActions } from '@/utils/fieldDefinitionsHelper';
 
 // Main Page Component
 const Page: React.FC = () => {
@@ -52,19 +52,30 @@ const Page: React.FC = () => {
   const handleFieldDefinitionsChange = useCallback((updates: Record<string, any>) => {
     console.log('🔄 Empfange Updates in page.tsx:', updates);
     
-    // Verarbeite spartenActions spezifisch
+    let allUpdates: Record<string, any> = {};
+    
+    // Verarbeite spartenActions
     if (updates.spartenActions) {
       console.log('🔄 Verarbeite spartenActions mit fieldDefinitionsHelper');
-      
-      // Nutze die spezialisierte Funktion aus fieldDefinitionsHelper
       const spartenUpdates = processSpartenActions(updates.spartenActions, fieldValues);
-      
-      if (Object.keys(spartenUpdates).length > 0) {
-        setFieldValues(prev => ({ ...prev, ...spartenUpdates }));
-      }
-    } else {
-      // Normale Updates
-      setFieldValues(prev => ({ ...prev, ...updates }));
+      Object.assign(allUpdates, spartenUpdates);
+    }
+    
+    // Verarbeite bausteinActions
+    if (updates.bausteinActions) {
+      console.log('🔄 Verarbeite bausteinActions mit fieldDefinitionsHelper');
+      const bausteinUpdates = processBausteinActions(updates.bausteinActions, fieldValues);
+      Object.assign(allUpdates, bausteinUpdates);
+    }
+    
+    // Verarbeite normale Updates
+    if (!updates.spartenActions && !updates.bausteinActions) {
+      allUpdates = updates;
+    }
+    
+    // Alle Updates anwenden
+    if (Object.keys(allUpdates).length > 0) {
+      setFieldValues(prev => ({ ...prev, ...allUpdates }));
     }
   }, [fieldValues]);
 

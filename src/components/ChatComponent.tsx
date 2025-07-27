@@ -5,12 +5,12 @@ import {
   ApiResponse, 
   ChatComponentProps, 
   ChatMessage, 
-  ClaudeResponse,
   ExtractedFieldValue,
   validateFieldValue,
   formatValueForDisplay,
   convertValueToFieldType
 } from '@/constants';
+import { ClaudeResponse } from '@/constants/fieldConfig';
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -163,33 +163,56 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       console.error('Fehler beim Iterieren über extractedData:', iterationError);
     }
 
-    // Verarbeite Sparten-Aktionen separat über onFieldDefinitionsChange
-    if (aiData.spartenActions) {
-      console.log('🔄 Verarbeite spartenActions im ChatComponent:', aiData.spartenActions);
+    // Verarbeite Sparten- und Baustein-Aktionen separat über onFieldDefinitionsChange
+    if (aiData.spartenActions || aiData.bausteinActions) {
+      console.log('🔄 Verarbeite spartenActions/bausteinActions im ChatComponent:', {
+        spartenActions: aiData.spartenActions,
+        bausteinActions: aiData.bausteinActions
+      });
       
       try {
         // Finde die onFieldDefinitionsChange Funktion
         const produktSpartenField = fieldConfigs.find(config => config.fieldKey === 'produktSparten');
         if (produktSpartenField && produktSpartenField.onFieldDefinitionsChange) {
-          // Einfach die spartenActions direkt weiterleiten
-          console.log('🔄 Sende spartenActions an MotorProduktSpartenTree:', aiData.spartenActions);
-          produktSpartenField.onFieldDefinitionsChange({ spartenActions: aiData.spartenActions });
+          // Beide Actions weiterleiten
+          const updateData: Record<string, any> = {};
+          if (aiData.spartenActions) updateData.spartenActions = aiData.spartenActions;
+          if (aiData.bausteinActions) updateData.bausteinActions = aiData.bausteinActions;
+          
+          console.log('🔄 Sende Actions an MotorProduktSpartenTree:', updateData);
+          produktSpartenField.onFieldDefinitionsChange(updateData);
           
           // Sparten-Aktivierungen zu den angezeigten Updates hinzufügen
-          Object.entries(aiData.spartenActions).forEach(([sparteKey, action]) => {
-            if (action.active) {
-              updatedFieldsWithValues.push({
-                label: `Sparte ${sparteKey}`,
-                value: 'aktiviert',
-                formattedValue: `${sparteKey} aktiviert: ${action.reason}`
-              });
-            }
-          });
+          if (aiData.spartenActions) {
+            Object.entries(aiData.spartenActions).forEach(([sparteKey, action]) => {
+              if (action.active) {
+                updatedFieldsWithValues.push({
+                  label: `Sparte ${sparteKey}`,
+                  value: 'aktiviert',
+                  formattedValue: `${sparteKey} aktiviert: ${action.reason}`
+                });
+              }
+            });
+          }
+          
+          // Baustein-Aktivierungen zu den angezeigten Updates hinzufügen
+          if (aiData.bausteinActions) {
+            aiData.bausteinActions.forEach(action => {
+              if (action.active) {
+                const betragText = action.betrag ? ` (${action.betrag}€)` : '';
+                updatedFieldsWithValues.push({
+                  label: `Baustein ${action.sparte}`,
+                  value: action.beschreibung,
+                  formattedValue: `${action.beschreibung}${betragText}: ${action.reason}`
+                });
+              }
+            });
+          }
         } else {
           console.warn('onFieldDefinitionsChange nicht gefunden für produktSparten');
         }
-      } catch (spartenError) {
-        console.error('Fehler beim Verarbeiten der spartenActions:', spartenError);
+      } catch (error) {
+        console.error('Fehler beim Verarbeiten der spartenActions/bausteinActions:', error);
       }
     }
 

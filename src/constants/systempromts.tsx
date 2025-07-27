@@ -161,6 +161,27 @@ WICHTIG für spartenActions:
 - Für explizit ausgeschlossene Sparten: active: false, reason: "explizit ausgeschlossen"
 - NIEMALS bestehende Sparten deaktivieren, wenn sie nur nicht erwähnt werden!
 
+BAUSTEIN-ERKENNUNG:
+Du erkennst aus dem Text auch, welche Bausteine aktiviert werden sollen:
+- Selbstbeteiligung: "VK 5000/2500" = Vollkasko-SB: 5000€, Teilkasko-SB: 2500€
+- Schutzbrief: "mit Schutzbrief" = Premium Schutzbrief aktivieren
+- Werkstattbindung: "freie Werkstatt" oder "Vertragswerkstatt"
+- Neuwertentschädigung: "Neuwert" aktivieren
+- Suche Bausteine in ALLEN Sparten, nicht nur in der aktuell aktiven
+
+BAUSTEIN-REGELN:
+- Bei "VK 5000/2500": Erste Zahl = Vollkasko-SB, Zweite Zahl = Teilkasko-SB
+- Bei "Schutzbrief": Suche "Schutzbrief" Baustein in allen Sparten (KH, KK, EK, KU)
+- Bei Beträgen: Erkenne semantische knotenId und setze betrag-Wert
+- Bei einfachen Bausteinen: Setze check: true für den gefundenen Baustein
+
+WICHTIG: Verwende semantische knotenIds für bessere Zuordnung:
+- "vollkasko_sb" für Vollkasko Selbstbeteiligung
+- "teilkasko_sb" für Teilkasko Selbstbeteiligung  
+- "schutzbrief" oder "premium_schutzbrief" für Schutzbrief-Bausteine
+- "neuwert" für Neuwertentschädigung
+- "werkstatt" für Werkstattbindung
+
 ${dropdownMappingsText}
 
 ${intelligentMappingRules}
@@ -179,6 +200,16 @@ JSON-FORMAT:
     "EK": { "active": false, "reason": "" },
     "KU": { "active": false, "reason": "" }
   },
+  "bausteinActions": [
+    {
+      "sparte": "KK",
+      "knotenId": "vollkasko_sb",
+      "beschreibung": "Vollkasko Selbstbeteiligung",
+      "active": true,
+      "betrag": 5000,
+      "reason": "VK 5000 erkannt"
+    }
+  ],
   "overallConfidence": 0.85,
   "validationErrors": [],
   "suggestions": [],

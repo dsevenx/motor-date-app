@@ -871,6 +871,15 @@ export interface SpartenAction {
   reason: string;
 }
 
+export interface BausteinAction {
+  sparte: string;
+  knotenId: string;
+  beschreibung: string;
+  active: boolean;
+  betrag?: number;
+  reason: string;
+}
+
 export interface ClaudeResponse {
   extractedData: ExtractedData;
   spartenActions?: {
@@ -879,6 +888,7 @@ export interface ClaudeResponse {
     EK: SpartenAction;
     KU: SpartenAction;
   };
+  bausteinActions?: BausteinAction[];
   overallConfidence: number;
   validationErrors: string[];
   suggestions: string[];
