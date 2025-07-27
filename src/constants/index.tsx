@@ -138,6 +138,7 @@ export interface ClaudeResponse {
 // Use direct imports from @/components instead:
 // import { MotorProduktSpartenTree } from '@/components/MotorProduktSpartenTree';
 // import { MotorProduktBausteinTree } from '@/components/MotorProduktBausteinTree';
+// import { ContractSidePanel } from '@/components/ContractSidePanel';
 
 // Hilfsfunktionen für Type Guards
 export const isDateField = (field: FieldConfig): boolean => field.type === 'date';

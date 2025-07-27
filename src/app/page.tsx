@@ -10,6 +10,7 @@ import { MotorDropDown } from '@/components/MotorDropDown';
 import { MotorTable } from '@/components/MotorTable';
 import { ChatComponent } from '@/components/ChatComponent';
 import { MotorProduktSpartenTree } from '@/components/MotorProduktSpartenTree';
+import { ContractSidePanel } from '@/components/ContractSidePanel';
 import { 
   FIELD_DEFINITIONS, 
   generateDefaultValues, 
@@ -115,12 +116,19 @@ const Page: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="max-w-[1800px] mx-auto">
+        {/* Three Column Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-          {/* Left Column - Fahrzeug Datenverwaltung */}
-          <div className="space-y-6">
+          {/* Far Left Column - Contract Tree and Ordnervereinbarung */}
+          <div className="xl:col-span-1">
+            <div className="h-[800px] bg-white rounded-lg shadow-lg overflow-hidden">
+              <ContractSidePanel />
+            </div>
+          </div>
+
+          {/* Middle Column - Fahrzeug Datenverwaltung */}
+          <div className="xl:col-span-1 space-y-6">
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="text-center mb-8">
                 <div className="flex items-center justify-center gap-3 mb-4">
@@ -409,7 +417,7 @@ const Page: React.FC = () => {
           </div>
 
           {/* Right Column - Chat Component */}
-          <div className="lg:col-span-1">
+          <div className="xl:col-span-1">
             <div className="h-full min-h-[700px]">
               <ChatComponent
                 fieldConfigs={fieldConfigs}
