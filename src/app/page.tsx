@@ -6,6 +6,7 @@ import { MotorDate } from '@/components/MotorDate';
 import { MotorEditText } from '@/components/MotorEditText';
 import { MotorEditNumber } from '@/components/MotorEditNumber';
 import { MotorCheckBox } from '@/components/MotorCheckBox';
+import { MotorButton } from '@/components/MotorButton';
 import { MotorDropDown } from '@/components/MotorDropDown';
 import { MotorTable } from '@/components/MotorTable';
 import { ChatComponent } from '@/components/ChatComponent';
@@ -342,8 +343,27 @@ const Page: React.FC = () => {
             {/* Beispiel-Sektion mit deaktivierten Feldern */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                🔒 Beispiel: Deaktivierte Felder
+                🔒 Beispiel: Deaktivierte Felder & MotorButton
               </h3>
+              
+              {/* MotorButton Beispiele */}
+              <div className="mb-6">
+                <h4 className="text-md font-medium text-gray-700 mb-3">MotorButton (basierend auf Screenshots):</h4>
+                <div className="flex flex-wrap gap-3">
+                  <MotorButton onClick={() => alert('Normal Primary')} variant="primary" size="medium">
+                    PRIMARY
+                  </MotorButton>
+                  <MotorButton onClick={() => {}} variant="primary" disabled>
+                    DISABLED
+                  </MotorButton>
+                  <MotorButton onClick={() => alert('Secondary Button')} variant="secondary" size="medium">
+                    Secondary
+                  </MotorButton>
+                  <MotorButton onClick={() => alert('Mit Icon')} variant="primary" size="small">
+                    Mit Icon
+                  </MotorButton>
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <MotorDate
                   value="2020-01-01"

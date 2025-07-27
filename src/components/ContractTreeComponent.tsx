@@ -5,6 +5,7 @@ import { TreeNode, Contract, ContextMenuAction } from '@/types/contractTypes';
 import { TreeNodeComponent } from './TreeNodeComponent';
 import { TreeContextMenu } from './TreeContextMenu';
 import { MotorCheckBox } from './MotorCheckBox';
+import { MotorButton } from './MotorButton';
 import { fetchContractData, updateTreeNode, addTreeNode } from '@/app/api/FetchContract';
 import { RefreshCw, Folder } from 'lucide-react';
 
@@ -198,13 +199,14 @@ export const ContractTreeComponent: React.FC = () => {
               hideLabel={false}
             />
           </div>
-          <button 
+          <MotorButton
             onClick={loadContractData}
-            className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded flex items-center gap-1"
+            variant="primary"
+            size="small"
+            icon={<RefreshCw className="h-3 w-3" />}
           >
-            <RefreshCw className="h-3 w-3" />
             Aktualisieren
-          </button>
+          </MotorButton>
         </div>
       </div>
 
