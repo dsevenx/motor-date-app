@@ -35,7 +35,7 @@ export const MotorButton: React.FC<MotorButtonProps> = ({
   const variantStyles = {
     primary: disabled 
       ? 'bg-blue-300 text-white cursor-not-allowed' // Hellblau für disabled wie im Screenshot
-      : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 active:bg-blue-800', // Dunkelblau normal/hover
+      : 'text-white focus:ring-blue-500 active:bg-blue-800', // Verwende MotorCheckBox Farbe
     secondary: disabled
       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
       : 'bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-500 active:bg-gray-400',
@@ -50,6 +50,26 @@ export const MotorButton: React.FC<MotorButtonProps> = ({
     }
   };
 
+  // Spezifische Hintergrundfarbe für Primary Button (gleich wie MotorCheckBox)
+  const getBackgroundStyle = () => {
+    if (variant === 'primary' && !disabled) {
+      return {
+        backgroundColor: '#007AB3', // Gleiche Farbe wie MotorCheckBox
+      };
+    }
+    return {};
+  };
+
+  // Hover-Farbe für Primary Button (etwas dunkler)
+  const getHoverStyle = () => {
+    if (variant === 'primary' && !disabled) {
+      return {
+        '--hover-bg': '#006799', // Etwas dunkler als #007AB3
+      } as React.CSSProperties;
+    }
+    return {};
+  };
+
   return (
     <button
       onClick={handleClick}
@@ -58,8 +78,13 @@ export const MotorButton: React.FC<MotorButtonProps> = ({
         ${baseStyles}
         ${sizeStyles[size]}
         ${variantStyles[variant]}
+        ${variant === 'primary' && !disabled ? 'hover:brightness-90' : ''}
         ${className}
       `.replace(/\s+/g, ' ').trim()}
+      style={{
+        ...getBackgroundStyle(),
+        ...getHoverStyle(),
+      }}
     >
       {icon && (
         <span className="flex-shrink-0">
