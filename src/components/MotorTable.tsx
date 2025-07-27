@@ -32,6 +32,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
 
   // Stelle sicher, dass value immer ein Array ist
   const safeValue = Array.isArray(value) ? value : [];
+  
 
   // Neue Zeile erstellen
   const createNewRow = (): TableRow => {
@@ -222,18 +223,22 @@ export const MotorTable: React.FC<MotorTableProps> = ({
 
               {/* Tabellen-Body */}
               <tbody className="bg-white divide-y divide-gray-200">
-                {safeValue.map((row, rowIndex) => (
-                  <tr
-                    key={row.id}
-                    className={`hover:bg-gray-50 transition-colors duration-150 ${
-                      rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-25'
-                    }`}
-                    onMouseEnter={() => setHoveredRowId(row.id)}
-                    onMouseLeave={() => setHoveredRowId(null)}
-                  >
+                {safeValue.map((row, rowIndex) => {
+                  // Fallback für fehlende IDs
+                  const rowKey = row.id || `row_${rowIndex}_${Date.now()}`;
+                  
+                  return (
+                    <tr
+                      key={rowKey}
+                      className={`hover:bg-gray-50 transition-colors duration-150 ${
+                        rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-25'
+                      }`}
+                      onMouseEnter={() => setHoveredRowId(row.id)}
+                      onMouseLeave={() => setHoveredRowId(null)}
+                    >
                     {columns.map((column) => (
                       <td
-                        key={`${row.id}-${column.key}`}
+                        key={`${rowKey}-${column.key}`}
                         className="px-4 py-3"
                         style={{ width: column.width || 'auto' }}
                       >
@@ -263,7 +268,8 @@ export const MotorTable: React.FC<MotorTableProps> = ({
                       </button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -163,6 +163,36 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       console.error('Fehler beim Iterieren über extractedData:', iterationError);
     }
 
+    // Verarbeite Sparten-Aktionen separat über onFieldDefinitionsChange
+    if (aiData.spartenActions) {
+      console.log('🔄 Verarbeite spartenActions im ChatComponent:', aiData.spartenActions);
+      
+      try {
+        // Finde die onFieldDefinitionsChange Funktion
+        const produktSpartenField = fieldConfigs.find(config => config.fieldKey === 'produktSparten');
+        if (produktSpartenField && produktSpartenField.onFieldDefinitionsChange) {
+          // Einfach die spartenActions direkt weiterleiten
+          console.log('🔄 Sende spartenActions an MotorProduktSpartenTree:', aiData.spartenActions);
+          produktSpartenField.onFieldDefinitionsChange({ spartenActions: aiData.spartenActions });
+          
+          // Sparten-Aktivierungen zu den angezeigten Updates hinzufügen
+          Object.entries(aiData.spartenActions).forEach(([sparteKey, action]) => {
+            if (action.active) {
+              updatedFieldsWithValues.push({
+                label: `Sparte ${sparteKey}`,
+                value: 'aktiviert',
+                formattedValue: `${sparteKey} aktiviert: ${action.reason}`
+              });
+            }
+          });
+        } else {
+          console.warn('onFieldDefinitionsChange nicht gefunden für produktSparten');
+        }
+      } catch (spartenError) {
+        console.error('Fehler beim Verarbeiten der spartenActions:', spartenError);
+      }
+    }
+
     return updatedFieldsWithValues;
   };
 

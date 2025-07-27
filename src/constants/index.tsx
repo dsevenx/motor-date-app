@@ -93,6 +93,8 @@ export interface FieldConfig {
     emptyText?: string;
     relatedFields?: string[];
   };
+  // Ergänzung für Sparten-Verarbeitung
+  onFieldDefinitionsChange?: (updates: Record<string, any>) => void;
 }
 
 // Chat Component

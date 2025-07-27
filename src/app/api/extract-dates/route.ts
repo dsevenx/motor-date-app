@@ -111,61 +111,41 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
         throw new Error('Fehlende extractedData in Claude Response');
       }
 
+      // Stelle sicher, dass alle Tabellen-Daten eindeutige IDs haben (außer Sparten/Bausteine)
+      Object.keys(extractedData.extractedData).forEach(fieldKey => {
+        // Skip Sparten- und Baustein-Tabellen, da diese über MotorProduktSpartenTree verwaltet werden
+        if (fieldKey === 'produktSparten' || fieldKey.startsWith('produktBausteine_')) {
+          return;
+        }
+        
+        const fieldData = extractedData.extractedData[fieldKey];
+        if (fieldData && Array.isArray(fieldData.value) && fieldData.value.length > 0) {
+          console.log(`🔍 Prüfe Tabelle ${fieldKey}:`, fieldData.value);
+          
+          fieldData.value = fieldData.value.map((item, index) => {
+            if (typeof item === 'object' && item !== null) {
+              // Füge ID hinzu, falls nicht vorhanden
+              if (!item.id) {
+                const newId = `${fieldKey}_${Date.now()}_${index}`;
+                console.log(`➕ Füge ID hinzu für ${fieldKey}[${index}]:`, newId);
+                return { ...item, id: newId };
+              }
+            }
+            return item;
+          });
+        }
+      });
+
       // Validierung der extrahierten Daten
       const validationErrors = validateExtractedData(extractedData.extractedData);
       if (validationErrors.length > 0) {
         extractedData.validationErrors = [...(extractedData.validationErrors || []), ...validationErrors];
       }
 
-      // Verarbeite Sparten-Aktionen falls vorhanden
+      // Sparten-Aktionen werden an das Frontend weitergereicht, aber nicht direkt verarbeitet
+      // Das ChatComponent wird diese über onFieldDefinitionsChange an MotorProduktSpartenTree weiterleiten
       if (extractedData.spartenActions) {
-        console.log('🔄 Verarbeite Sparten-Aktionen:', extractedData.spartenActions);
-        
-        // Verarbeite jede Sparte
-        Object.entries(extractedData.spartenActions).forEach(([sparteKey, action]) => {
-          if (action.active) {
-            console.log(`✅ Aktiviere Sparte ${sparteKey}: ${action.reason}`);
-            
-            // Füge Sparten-Update zu extractedData hinzu
-            const spartenField = `produktSparten`;
-            if (!extractedData.extractedData[spartenField]) {
-              extractedData.extractedData[spartenField] = {
-                value: [],
-                confidence: 0.9,
-                source: 'Sparten-Erkennung',
-                corrected: false,
-                originalValue: null
-              };
-            }
-            
-            // Stelle sicher, dass der Wert ein Array ist
-            const currentSparten = Array.isArray(extractedData.extractedData[spartenField].value) 
-              ? extractedData.extractedData[spartenField].value 
-              : [];
-            
-            // Füge die aktivierte Sparte hinzu, falls nicht bereits vorhanden
-            const existingSparteIndex = currentSparten.findIndex((s: { sparte: string }) => s.sparte === sparteKey);
-            if (existingSparteIndex === -1) {
-              currentSparten.push({
-                id: `sparte_${sparteKey}_${Date.now()}`,
-                sparte: sparteKey,
-                zustand: 'A',
-                zustandsdetail: ' '
-              });
-              
-              extractedData.extractedData[spartenField].value = currentSparten;
-              extractedData.extractedData[spartenField].confidence = Math.max(
-                extractedData.extractedData[spartenField].confidence || 0,
-                0.9
-              );
-              
-              // Füge Erklärung hinzu
-              if (!extractedData.recognizedPhrases.includes(action.reason)) {
-                extractedData.recognizedPhrases.push(action.reason);
-              }
-            }
-          }
-        });
+        console.log('🔄 Sparten-Aktionen erkannt (werden an Frontend weitergeleitet):', extractedData.spartenActions);
       }
 
       // Explanation aus dem JSON ins Objekt integrieren, falls nicht schon vorhanden

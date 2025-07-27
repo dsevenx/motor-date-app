@@ -155,6 +155,12 @@ SPARTEN-REGELN:
 - "keine Kasko" = EK und KK deaktivieren
 - Beachte "nur", "ohne", "kein" für Ausschlüsse
 
+WICHTIG für spartenActions:
+- Nur Sparten aktivieren (active: true), die EXPLIZIT gewünscht sind
+- Für nicht erwähnte Sparten: active: false, reason: "nicht explizit erwähnt"
+- Für explizit ausgeschlossene Sparten: active: false, reason: "explizit ausgeschlossen"
+- NIEMALS bestehende Sparten deaktivieren, wenn sie nur nicht erwähnt werden!
+
 ${dropdownMappingsText}
 
 ${intelligentMappingRules}

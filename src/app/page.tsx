@@ -1,7 +1,7 @@
 "use client"
 
 import { Car } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { MotorDate } from '@/components/MotorDate';
 import { MotorEditText } from '@/components/MotorEditText';
 import { MotorEditNumber } from '@/components/MotorEditNumber';
@@ -16,6 +16,7 @@ import {
   generateFieldConfigs,
   getFieldsByType 
 } from '@/constants/fieldConfig';
+import { processSpartenActions } from '@/utils/fieldDefinitionsHelper';
 
 // Main Page Component
 const Page: React.FC = () => {
@@ -47,10 +48,30 @@ const Page: React.FC = () => {
     }));
   };
 
+  // Handler für Sparten-Updates
+  const handleFieldDefinitionsChange = useCallback((updates: Record<string, any>) => {
+    console.log('🔄 Empfange Updates in page.tsx:', updates);
+    
+    // Verarbeite spartenActions spezifisch
+    if (updates.spartenActions) {
+      console.log('🔄 Verarbeite spartenActions mit fieldDefinitionsHelper');
+      
+      // Nutze die spezialisierte Funktion aus fieldDefinitionsHelper
+      const spartenUpdates = processSpartenActions(updates.spartenActions, fieldValues);
+      
+      if (Object.keys(spartenUpdates).length > 0) {
+        setFieldValues(prev => ({ ...prev, ...spartenUpdates }));
+      }
+    } else {
+      // Normale Updates
+      setFieldValues(prev => ({ ...prev, ...updates }));
+    }
+  }, [fieldValues]);
+
   // Field Configs für Chat-Komponente (dynamisch generiert)
   const fieldConfigs = useMemo(() => 
-    generateFieldConfigs(fieldValues, setters), 
-    [fieldValues, setters]
+    generateFieldConfigs(fieldValues, setters, handleFieldDefinitionsChange), 
+    [fieldValues, setters, handleFieldDefinitionsChange]
   );
 
   const handleSetToday = () => {
@@ -71,7 +92,12 @@ const Page: React.FC = () => {
   const numberFields = FIELD_DEFINITIONS.filter(field => field.type === 'number');
   const tristateFields = FIELD_DEFINITIONS.filter(field => field.type === 'tristate');
   const dropdownFields = FIELD_DEFINITIONS.filter(field => field.type === 'dropdown');
-  const tableFields = FIELD_DEFINITIONS.filter(field => field.type === 'table');
+  // Filtere Sparten- und Baustein-Tabellen aus, da diese über MotorProduktSpartenTree verwaltet werden
+  const tableFields = FIELD_DEFINITIONS.filter(field => 
+    field.type === 'table' && 
+    field.key !== 'produktSparten' && 
+    !field.key.startsWith('produktBausteine_')
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">

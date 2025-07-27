@@ -901,7 +901,8 @@ export const generateDefaultValues = (): Record<string, any> => {
 // Generiere Field Configs für die Chat-Komponente
 export const generateFieldConfigs = (
   values: Record<string, any>,
-  setters: Record<string, (value: any) => void>
+  setters: Record<string, (value: any) => void>,
+  onFieldDefinitionsChange?: (updates: Record<string, any>) => void
 ) => {
   return FIELD_DEFINITIONS.map(field => ({
     fieldKey: field.key,
@@ -911,6 +912,7 @@ export const generateFieldConfigs = (
     onChange: setters[field.key],
     type: field.type,
     table: field.table,
-    dropdown: field.dropdown
+    dropdown: field.dropdown,
+    onFieldDefinitionsChange: field.key === 'produktSparten' ? onFieldDefinitionsChange : undefined
   }));
 };

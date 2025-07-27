@@ -3,6 +3,12 @@
  * Zentrale Logik für Sparten/Baustein State Management
  */
 
+// Interface für Sparten-Aktion von Claude AI
+interface SpartenAction {
+  active: boolean;
+  reason: string;
+}
+
 export interface FieldDefinitions {
   [key: string]: {
     value: any[];
@@ -269,4 +275,72 @@ export const initializeProductFieldDefinitions = (produktData: any[]): Partial<F
   });
   
   return updates;
+};
+
+
+/**
+ * Verarbeitet spartenActions von Claude AI und aktualisiert FIELD_DEFINITIONS
+ * Nutzt dieselbe Logik wie handleSparteCheckChange aus MotorProduktSpartenTree,
+ * aber verarbeitet mehrere Sparten in einem Batch-Update.
+ * @param spartenActions - Die spartenActions von Claude AI
+ * @param fieldDefinitions - Die aktuellen FIELD_DEFINITIONS
+ * @returns Updates für FIELD_DEFINITIONS (alle Änderungen in einem Update)
+ */
+export const processSpartenActions = (
+  spartenActions: Record<string, SpartenAction>,
+  fieldDefinitions: FieldDefinitions
+): Record<string, any> => {
+  console.log('🤖 Verarbeite spartenActions von Claude AI:', spartenActions);
+  
+  // Arbeite mit einer lokalen Kopie der spartenData, um alle Änderungen zu sammeln
+  const spartenData = [...(fieldDefinitions.produktSparten?.value || [])];
+  let hasChanges = false;
+  
+  // Verarbeite alle spartenActions auf der lokalen Kopie
+  Object.entries(spartenActions).forEach(([sparteCode, action]) => {
+    console.log(`🤖 KI-Update: Sparte ${sparteCode} = ${action.active ? 'aktivieren' : 'deaktivieren'} (${action.reason})`);
+    
+    // Ignoriere "nicht explizit erwähnt" Fälle - keine Änderung an bestehenden Sparten
+    if (!action.active && action.reason.toLowerCase().includes('nicht explizit erwähnt')) {
+      console.log(`⏭️ Sparte ${sparteCode} übersprungen: nicht explizit erwähnt (keine Änderung)`);
+      return;
+    }
+    
+    const sparteFieldIndex = spartenData.findIndex((s: any) => s.id === sparteCode);
+    
+    if (sparteFieldIndex >= 0) {
+      const oldCheck = spartenData[sparteFieldIndex].check;
+      const newCheck = action.active;
+      
+      // Nur updaten wenn sich der Zustand ändert
+      if (oldCheck !== newCheck) {
+        spartenData[sparteFieldIndex] = { 
+          ...spartenData[sparteFieldIndex], 
+          check: newCheck,
+          echteEingabe: true, // Markiere als echte Eingabe (von KI)
+          zustand: newCheck ? 'A' : ' ', // Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leerzeichen)
+          zustandsdetail: ' ' // Zustandsdetail immer leer, da weder "A" noch " " = "S" (Storniert)
+        };
+        
+        console.log(`✅ Sparte ${sparteCode} aktualisiert: ${oldCheck} → ${newCheck}`, spartenData[sparteFieldIndex]);
+        hasChanges = true;
+      } else {
+        console.log(`ℹ️ Sparte ${sparteCode} bereits im gewünschten Zustand: ${newCheck}`);
+      }
+    } else {
+      console.warn(`⚠️ Sparte ${sparteCode} nicht in FIELD_DEFINITIONS gefunden`);
+    }
+  });
+  
+  // Nur zurückgeben wenn es Änderungen gab
+  if (hasChanges) {
+    const updates = {
+      produktSparten: { value: spartenData }
+    };
+    console.log('🔄 Finale Sparten-Updates für FIELD_DEFINITIONS:', updates);
+    return updates;
+  } else {
+    console.log('ℹ️ Keine Sparten-Änderungen notwendig');
+    return {};
+  }
 };
