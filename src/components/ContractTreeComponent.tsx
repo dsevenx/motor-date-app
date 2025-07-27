@@ -177,10 +177,9 @@ export const ContractTreeComponent: React.FC = () => {
       <div className="flex-shrink-0 bg-blue-50 border-b border-blue-200 p-3">
         <h3 className="font-semibold text-gray-800 flex items-center gap-2">
           <Folder className="h-5 w-5 text-blue-600" />
-          Kollektivstruktur
+         {contract.name}
         </h3>
-        <p className="text-sm text-gray-600 mt-1">{contract.name}</p>
-      </div>
+       </div>
 
       {/* Anzeigeoptionen */}
       <div className="flex-shrink-0 bg-gray-50 border-b border-gray-200 p-2">
