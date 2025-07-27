@@ -204,15 +204,17 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
       }
     }
 
-    // Set cursor position after state update
-    setTimeout(() => {
-      if (inputRef.current) {
-        let newCursorPos = numberPos + 1;
-        if (newCursorPos > 2 && newCursorPos <= 4) newCursorPos += 1;
-        else if (newCursorPos > 4) newCursorPos += 2;
-        inputRef.current.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 0);
+    // Set cursor position after state update (SSR-safe)
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        if (inputRef.current) {
+          let newCursorPos = numberPos + 1;
+          if (newCursorPos > 2 && newCursorPos <= 4) newCursorPos += 1;
+          else if (newCursorPos > 4) newCursorPos += 2;
+          inputRef.current.setSelectionRange(newCursorPos, newCursorPos);
+        }
+      }, 0);
+    }
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -247,8 +249,11 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    // SSR-safe: Only add event listeners in browser environment
+    if (typeof window !== 'undefined') {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
   }, []);
 
   const calendarDays: Date[] = generateCalendarDays();

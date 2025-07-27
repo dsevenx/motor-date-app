@@ -2,14 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { ClaudeResponse,FIELD_DEFINITIONS } from '@/constants/fieldConfig';
 import { 
-  SYSTEM_PROMPT_FAHRZEUGDATEN, 
+  SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC, 
   validateExtractedData 
 } from '@/constants/systempromts';
 
-// Claude Client initialisieren
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
+// Claude Client initialisieren (lazy initialization)
+let anthropic: Anthropic | null = null;
+
+const getAnthropicClient = (): Anthropic => {
+  if (!anthropic) {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error('ANTHROPIC_API_KEY environment variable is required for the API to function');
+    }
+    anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+  }
+  return anthropic;
+};
 
 // Hilfsfunktion zum Extrahieren von JSON aus Text
 function extractJsonFromText(text: string): { json: string; explanation?: string } {
@@ -42,7 +55,7 @@ export async function POST(request: NextRequest) {
     console.log('Empfangene Daten:', { text, currentValues });
 
     // WICHTIG: System Prompt asynchron laden!
-    const SYSTEM_PROMPT = await SYSTEM_PROMPT_FAHRZEUGDATEN();
+    const SYSTEM_PROMPT = SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC;
 
     // Dynamisches User-Prompt basierend auf konfigurierten Feldern
     const fieldList = FIELD_DEFINITIONS.map(field => 
@@ -73,7 +86,8 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
     console.log('Sende Request an Claude...');
     console.log('System Prompt Length:', SYSTEM_PROMPT.length);
 
-    const response = await anthropic.messages.create({
+    const client = getAnthropicClient();
+    const response = await client.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userPrompt }],
@@ -181,7 +195,7 @@ KRITISCH: Du MUSST mit einem gültigen JSON-Objekt antworten! Hier ist ein Beisp
 
 Antworte AUSSCHLIESSLICH mit JSON!`;
 
-        const retryResponse = await anthropic.messages.create({
+        const retryResponse = await client.messages.create({
           model: 'claude-3-5-sonnet-20241022',
           system: SYSTEM_PROMPT,
           messages: [{ role: 'user', content: retryPrompt }],
@@ -239,7 +253,7 @@ export async function GET() {
   
   try {
     // Teste den System Prompt
-    const systemPrompt = await SYSTEM_PROMPT_FAHRZEUGDATEN();
+    const systemPrompt = SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC;
     const promptLength = systemPrompt.length;
     const hasDropdownMappings = systemPrompt.includes('DROPDOWN-FELD WERTE');
     

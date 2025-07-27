@@ -18,6 +18,9 @@ import {
 } from '@/constants/fieldConfig';
 import { processSpartenActions, processBausteinActions } from '@/utils/fieldDefinitionsHelper';
 
+// Force dynamic rendering to avoid SSR issues
+export const dynamic = 'force-dynamic';
+
 // Main Page Component
 const Page: React.FC = () => {
   // Generiere State und Setter basierend auf der Konfiguration

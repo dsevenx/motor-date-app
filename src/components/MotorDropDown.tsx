@@ -100,8 +100,11 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    // SSR-safe: Only add event listeners in browser environment
+    if (typeof window !== 'undefined') {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
   }, []);
 
   const getDisplayValue = (): string => {
