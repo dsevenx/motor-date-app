@@ -1,10 +1,11 @@
 "use client"
 
-import React, { useState, useMemo, ReactNode } from 'react';
+import React, { useState, useMemo, useEffect, ReactNode } from 'react';
 import { MotorHeader } from '@/components/MotorHeader';
 import { ContractSidePanel } from '@/components/ContractSidePanel';
 import { ChatComponent } from '@/components/ChatComponent';
 import { useGlobalChatConfig } from '@/hooks/useGlobalChatConfig';
+import { setGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
 import { 
   FIELD_DEFINITIONS, 
   generateDefaultValues, 
@@ -47,6 +48,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   // Verwende globale Chat-Config wenn verfügbar (GUI-Test), sonst Standard
   const activeFieldConfigs = globalChatConfig || standardFieldConfigs;
+
+  // Stelle fieldValues global für andere Komponenten zur Verfügung
+  useEffect(() => {
+    if (!globalChatConfig) {
+      // Nur wenn nicht GUI-Test aktiv ist, verwende Standard fieldValues
+      setGlobalFieldDefinitions(fieldValues);
+    }
+  }, [fieldValues, globalChatConfig]);
 
   const renderContent = () => {
     // Alle Seiten bekommen den MotorHeader vom AppLayout

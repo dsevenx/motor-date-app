@@ -9,7 +9,6 @@ import { MotorCheckBox } from '@/components/MotorCheckBox';
 import { MotorButton } from '@/components/MotorButton';
 import { MotorDropDown } from '@/components/MotorDropDown';
 import { MotorTable } from '@/components/MotorTable';
-import { MotorProduktSpartenTree } from '@/components/MotorProduktSpartenTree';
 import { setGlobalChatConfig } from '@/hooks/useGlobalChatConfig';
 import { 
   FIELD_DEFINITIONS, 
@@ -415,20 +414,6 @@ const GuiTestPage: React.FC = () => {
                   addButtonText="Hinzufügen (deaktiviert)"
                 />
               </div>
-            </div>
-
-            {/* Produktsparten-Baum Sektion */}
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                🏗️ Produktsparten-Baum (Demo)
-              </h3>
-              <MotorProduktSpartenTree
-                fieldDefinitions={fieldValues}
-                onFieldDefinitionsChange={(updates) => {
-                  console.log('🔄 FIELD_DEFINITIONS Update von MotorProduktSpartenTree:', updates);
-                  setFieldValues(prev => ({ ...prev, ...updates }));
-                }}
-              />
             </div>
     </>
   );

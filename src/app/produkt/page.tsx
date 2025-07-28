@@ -2,18 +2,29 @@
 
 import React from 'react';
 import { PageTemplate } from '@/components/PageTemplate';
+import { MotorProduktSpartenTree } from '@/components/MotorProduktSpartenTree';
+import { useGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
 
 // Force dynamic rendering to avoid SSR issues
 export const dynamic = 'force-dynamic';
 
 export default function ProduktPage() {
+  const { fieldDefinitions, updateFieldDefinitions } = useGlobalFieldDefinitions();
 
   return (
     <PageTemplate title="Produkt" enableSectionNavigation>
       <div className="space-y-8">
         <section id="liste">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Liste</h2>
-          <p className="text-gray-600">Produktliste wird hier angezeigt.</p>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <MotorProduktSpartenTree
+              fieldDefinitions={fieldDefinitions}
+              onFieldDefinitionsChange={(updates) => {
+                console.log('🔄 FIELD_DEFINITIONS Update in Produkt Liste:', updates);
+                updateFieldDefinitions(updates);
+              }}
+            />
+          </div>
         </section>
 
         <hr className="border-gray-200" />
