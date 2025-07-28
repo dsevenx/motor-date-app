@@ -224,6 +224,26 @@ der oberen Komponente.
 Bitte auch eine Typscript-Type für den Tree erstellen. Im Tree soll eine Kontext-Nenu vorgesehen werden. 
 Die Kontextmenupunkte sind Hinzufügen und Bearbeiten. Bitte auch im Tree bei bei jedem Knoten "aktivesObjekt" vorsehen, wenn die bei einem Knoten gesezt ist, dann soll sein Beschreibungstext fettgeschrieben werden. 
 
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 10
+
+Am unteren Ende des neue MotorHeader soll ein Menu zum Aufruf der verschieden Pages kommen.
+Die Pages nehmen nur jeweils den Platz von der "Fahrzeug Datenverwaltung" ein.
+Die Menunpunkte sind folgende : von links nach rechts Stand,Objekt,Zusatz,Flotte,Produkt,Vertrag,GUI-Test.
+Beim MouseOver über die Menupunkte erscheinen die SubMenupunkte : 
+Stand hat keine SubMenupunkte.
+Objekt hat Stamm und Detail, 
+Zusatz hat Allgemein,IVF und Automotive
+Flotte hat Allgemein und Handel/Handwerk
+Produkt hat Liste,Nachlässe/Zuschläge,Fahrer,Merkmale,Tarifangaben
+Vertrag hat Aktivitätensteuerung,Grundlagen
+GUI-Test hat keine SubMenupunkte.
+Unter GUI-Test kommt die jetzige FahrzeugDatenverwaltung.
+Die anderen Pages dürfen erstmal leer sein. Die Hauptmenupunkte sollen aber schon als echte next-js Pages vorbereitet werden.
+Damit sie separat angesteuert werden können.
+Die Submenupunkte führen zu einzelnen Sectionen bitte hier schon die Sectionen in den Pages vorsehen (Überschrift reicht)
+
 
 
 

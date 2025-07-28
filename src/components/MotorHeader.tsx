@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Contract } from '@/types/contractTypes';
 import { fetchContractData } from '@/app/api/FetchContract';
+import { NavigationMenu } from './NavigationMenu';
 
 interface MotorHeaderProps {
   contract?: Contract;
@@ -123,6 +124,9 @@ export const MotorHeader: React.FC<MotorHeaderProps> = ({ contract: propContract
           </div>
         </div>
       </div>
+
+      {/* Hauptmenü Navigation */}
+      <NavigationMenu />
     </div>
   );
 };
