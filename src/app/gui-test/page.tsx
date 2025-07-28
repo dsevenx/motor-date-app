@@ -1,18 +1,16 @@
 "use client"
 
 import { Car } from 'lucide-react';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { MotorDate } from '@/components/MotorDate';
 import { MotorEditText } from '@/components/MotorEditText';
 import { MotorEditNumber } from '@/components/MotorEditNumber';
 import { MotorCheckBox } from '@/components/MotorCheckBox';
 import { MotorButton } from '@/components/MotorButton';
-import { MotorHeader } from '@/components/MotorHeader';
 import { MotorDropDown } from '@/components/MotorDropDown';
 import { MotorTable } from '@/components/MotorTable';
-import { ChatComponent } from '@/components/ChatComponent';
 import { MotorProduktSpartenTree } from '@/components/MotorProduktSpartenTree';
-import { ContractSidePanel } from '@/components/ContractSidePanel';
+import { setGlobalChatConfig } from '@/hooks/useGlobalChatConfig';
 import { 
   FIELD_DEFINITIONS, 
   generateDefaultValues, 
@@ -91,6 +89,16 @@ const GuiTestPage: React.FC = () => {
     [fieldValues, setters, handleFieldDefinitionsChange]
   );
 
+  // Setze die GUI-Test fieldConfigs als globale Chat-Konfiguration
+  useEffect(() => {
+    setGlobalChatConfig(fieldConfigs);
+    
+    // Cleanup: Entferne globale Config wenn Komponente unmounted wird
+    return () => {
+      setGlobalChatConfig(null);
+    };
+  }, [fieldConfigs]);
+
   const handleSetToday = () => {
     const today = new Date().toISOString().split('T')[0];
     const todayValues = { ...fieldValues };
@@ -117,23 +125,8 @@ const GuiTestPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2.5">
-      <div className="max-w-[1900px] mx-auto">
-        {/* Three Column Layout: 3/12 + 6/12 + 3/12 = 12/12 */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-2.5">
-
-          {/* Far Left Column - Contract Tree and Ordnervereinbarung (3/12) */}
-          <div className="xl:col-span-3">
-            <div className="h-[800px] bg-white rounded-lg shadow-lg overflow-hidden">
-              <ContractSidePanel />
-            </div>
-          </div>
-
-          {/* Middle Column - Header + Fahrzeug Datenverwaltung (6/12) */}
-          <div className="xl:col-span-6 space-y-2.5">
-            {/* Header nur über der mittleren Spalte */}
-            <MotorHeader />
-            <div className="bg-white rounded-lg shadow-lg p-4">
+    <>
+      <div className="bg-white rounded-lg shadow-lg p-4">
               <div className="text-center mb-4">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <Car className="w-8 h-8 text-blue-600" />
@@ -437,19 +430,7 @@ const GuiTestPage: React.FC = () => {
                 }}
               />
             </div>
-          </div>
-
-          {/* Right Column - Chat Component (3/12) */}
-          <div className="xl:col-span-3">
-            <div className="h-full min-h-[700px]">
-              <ChatComponent
-                fieldConfigs={fieldConfigs}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 

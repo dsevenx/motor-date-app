@@ -1,10 +1,10 @@
 "use client"
 
 import React, { useState, useMemo, ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
 import { MotorHeader } from '@/components/MotorHeader';
 import { ContractSidePanel } from '@/components/ContractSidePanel';
 import { ChatComponent } from '@/components/ChatComponent';
+import { useGlobalChatConfig } from '@/hooks/useGlobalChatConfig';
 import { 
   FIELD_DEFINITIONS, 
   generateDefaultValues, 
@@ -16,9 +16,9 @@ interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  const pathname = usePathname();
+  const globalChatConfig = useGlobalChatConfig();
   
-  // Globaler State für Chat-Integration - wird nur einmal erstellt
+  // Standard State für normale Seiten
   const defaultValues = useMemo(() => generateDefaultValues(), []);
   const [fieldValues, setFieldValues] = useState(defaultValues);
 
@@ -39,16 +39,33 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     setFieldValues(prev => ({ ...prev, ...updates }));
   };
 
-  // Field Configs für Chat-Komponente
-  const fieldConfigs = useMemo(() => 
+  // Standard Field Configs für normale Seiten
+  const standardFieldConfigs = useMemo(() => 
     generateFieldConfigs(fieldValues, setters, handleFieldDefinitionsChange), 
     [fieldValues, setters]
   );
 
-  // GUI-Test Seite hat ihr eigenes Layout
-  if (pathname === '/gui-test') {
-    return <>{children}</>;
-  }
+  // Verwende globale Chat-Config wenn verfügbar (GUI-Test), sonst Standard
+  const activeFieldConfigs = globalChatConfig || standardFieldConfigs;
+
+  const renderContent = () => {
+    // Alle Seiten bekommen den MotorHeader vom AppLayout
+    return (
+      <>
+        <MotorHeader />
+        {children}  
+      </>
+    );
+  };
+
+  const renderChat = () => {
+    // Immer ChatComponent anzeigen, aber mit unterschiedlichen fieldConfigs
+    return (
+      <ChatComponent
+        fieldConfigs={activeFieldConfigs}
+      />
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2.5">
@@ -65,16 +82,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
           {/* Middle Column - Header + Dynamic Content (6/12) */}
           <div className="xl:col-span-6 space-y-2.5">
-            <MotorHeader />
-            {children}
+            {renderContent()}
           </div>
 
           {/* Right Column - Chat Component (3/12) - Persistent */}
           <div className="xl:col-span-3">
             <div className="h-full min-h-[700px]">
-              <ChatComponent
-                fieldConfigs={fieldConfigs}
-              />
+              {renderChat()}
             </div>
           </div>
         </div>
