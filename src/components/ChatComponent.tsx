@@ -443,7 +443,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-96">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}

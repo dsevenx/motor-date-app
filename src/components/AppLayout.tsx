@@ -59,13 +59,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }, [fieldValues, globalChatConfig]);
 
   const renderContent = () => {
-    // Alle Seiten bekommen den MotorHeader vom AppLayout
-    return (
-      <>
-        <MotorHeader />
-        {children}  
-      </>
-    );
+    // Nur der Seiteninhalt, da MotorHeader jetzt separat gerendert wird
+    return children;
   };
 
   const renderChat = () => {
@@ -88,21 +83,30 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         {/* Three Column Layout: 3/12 + 6/12 + 3/12 = 12/12 */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-2.5">
 
-          {/* Far Left Column - Contract Tree (3/12) - Persistent */}
+          {/* Far Left Column - Contract Tree (3/12) - Original Size */}
           <div className="xl:col-span-3">
-            <div className="h-[800px] bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="h-[800px] bg-white rounded-lg shadow-lg overflow-y-auto overflow-x-hidden">
               <ContractSidePanel />
             </div>
           </div>
 
-          {/* Middle Column - Header + Dynamic Content (6/12) */}
-          <div className="xl:col-span-6 space-y-2.5">
-            {renderContent()}
+          {/* Middle Column - Header + Dynamic Content (6/12) - Header Fixed, Content Scrollable */}
+          <div className="xl:col-span-6">
+            <div className="space-y-2.5">
+              {/* Header - Fixed Position */}
+              <MotorHeader />
+              {/* Content - Scrollable */}
+              <div className="h-[800px] overflow-y-auto overflow-x-hidden bg-white rounded-lg shadow-lg">
+                <div className="p-4">
+                  {renderContent()}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Right Column - Chat Component (3/12) - Persistent */}
+          {/* Right Column - Chat Component (3/12) - Original Size */}
           <div className="xl:col-span-3">
-            <div className="h-full min-h-[700px]">
+            <div className="h-[700px]">
               {renderChat()}
             </div>
           </div>
