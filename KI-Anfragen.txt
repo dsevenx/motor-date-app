@@ -244,6 +244,26 @@ Die anderen Pages dürfen erstmal leer sein. Die Hauptmenupunkte sollen aber sch
 Damit sie separat angesteuert werden können.
 Die Submenupunkte führen zu einzelnen Sectionen bitte hier schon die Sectionen in den Pages vorsehen (Überschrift reicht)
 
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 11
+ 
+Wir haben gemeinsam eine React-Next.js-Webanwendung erstellt.
+Wir wollen jetzt eine Menukomponente hinzufügen.
+Auf der rechten Seite ist die Symbolleiste im Edit Modus (siehe SymbolEditModus.png)
+bzw. AnteigeModus (siehe SymbolNichtEditModus), dann dahinter eine ModusFeld wo Anzeige oder Edit steht,
+je nachdem, wer aktiv ist. Danach komme die Menupunkte von links nach rechts:
+"Akte" - siehe MENU-01-Akte.png
+"Bearbeiten" - siehe MENU-02-Bearbeiten.png
+"Historie" - siehe MENU-03-Historie.png
+"Verzweigen" - siehe MENU-04-Verzweigen.png
+"Extras" - siehe MENU-03-Extras.png
+"Fenster" - siehe MENU-06-Fenster.png
+"Hilfe" - siehe MENU-07-Hilfe.png
+Dann auf der ganz linken Seite kommen 4 Historienbuttons wobei zwischen Ihren ein Label steht, welche Aktuell oder ein Datum enthät.
+(siehe HistBlaettern.png)
+Bitte erstell diese Componente MotorAktenMenuleiste.tsx.
+
 
 
 

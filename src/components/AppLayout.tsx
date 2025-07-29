@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect, ReactNode } from 'react';
 import { MotorHeader } from '@/components/MotorHeader';
 import { ContractSidePanel } from '@/components/ContractSidePanel';
 import { ChatComponent } from '@/components/ChatComponent';
+import MotorAktenMenueleiste from '@/components/MotorAktenMenueleiste';
 import { useGlobalChatConfig } from '@/hooks/useGlobalChatConfig';
 import { setGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
 import { 
@@ -78,7 +79,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2.5">
-      <div className="max-w-[1900px] mx-auto">
+      <div className="max-w-[1900px] mx-auto space-y-2.5">
+        {/* Top Menu Bar - Full Width */}
+        <div className="w-full">
+          <MotorAktenMenueleiste />
+        </div>
+
         {/* Three Column Layout: 3/12 + 6/12 + 3/12 = 12/12 */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-2.5">
 
