@@ -29,7 +29,7 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
 
   // Wrapper für onChange mit echteEingabe tracking
   const handleValueChange = (newValue: 'J' | 'N') => {
-    handleValueChange(newValue);
+    onChange(newValue);
     if (fieldKey) {
       updateEchteEingabe(fieldKey, newValue);
     }

@@ -37,7 +37,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
 
   // Wrapper für onChange mit echteEingabe tracking
   const handleValueChange = (newValue: number, isUserInput: boolean = true) => {
-    handleValueChange(newValue);
+    onChange(newValue);
     if (fieldKey && isUserInput) {
       updateEchteEingabe(fieldKey, newValue);
     }
