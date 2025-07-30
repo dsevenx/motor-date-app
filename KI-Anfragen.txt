@@ -277,6 +277,16 @@ Um das etwas zu siumlieren - dachte ich an folgendes : In der TardisCallVorTardi
 - also aus "Potzdamer Platz" wird "Potzdamer Platz vorbereitet" und im fetchContractTardis hängen wird dann nochmal ein "für Tardis" dran - also sehen wir dann
 "Potzdamer Platz vorbereitet für Tardis". Wenn ich den EditModus wireder rausnehme, dann steht wieder nur "Potzdamer Platz" da. Kannst Du dies nachvollziehen =  
 
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 13
+
+Wir haben ja gerde die BusinessLayerLogic "fetchContractDataBL" eingeführt. Ich würde gern für eine verbesserte Performance - folgendes ausnutzen:
+Die Vorbereitungslogik und die TardisLogk können den ContractTree beim Editwechsel nicht ändern, aber allerdings die Ordnervereinbarungen.
+D.h. wir können uns bei EditSwitch den Contract-Treeneuaufbau sparen.
+Ich hatte gedeacht ContractTreeComponent muss dafür nicht den ganzen Contract bekommen, sondern vielleicht nur den Tree. Was meinst Du ?
+
+
 
 
 

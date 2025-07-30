@@ -1,19 +1,22 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { TreeNode, Contract, ContextMenuAction } from '@/types/contractTypes';
+import { TreeNode, ContractTree, ContextMenuAction } from '@/types/contractTypes';
 import { TreeNodeComponent } from './TreeNodeComponent';
 import { TreeContextMenu } from './TreeContextMenu';
 import { MotorCheckBox } from './MotorCheckBox';
 import { MotorButton } from './MotorButton';
-import { fetchContractDataBL } from '@/app/api/FetchContractBL';
+import { fetchContractTreeBL } from '@/app/api/FetchContractBL';
 import { updateTreeNode, addTreeNode } from '@/app/api/FetchContractDB';
-import { useEditMode } from '@/contexts/EditModeContext';
 import { RefreshCw, Folder } from 'lucide-react';
 
-export const ContractTreeComponent: React.FC = () => {
-  const { isEditMode } = useEditMode();
-  const [contract, setContract] = useState<Contract | null>(null);
+interface ContractTreeComponentProps {
+  contractName?: string;
+}
+
+export const ContractTreeComponent: React.FC<ContractTreeComponentProps> = ({ contractName }) => {
+  // Kein EditMode mehr benötigt - ContractTree ist EditMode-unabhängig!
+  const [contractTree, setContractTree] = useState<ContractTree | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
   const [showApplications, setShowApplications] = useState<'J' | 'N' | ' '>('J');
@@ -25,24 +28,22 @@ export const ContractTreeComponent: React.FC = () => {
     visible: false
   });
 
-  // Lade Contract-Daten
+  // Lade ContractTree-Daten (nur einmal, da EditMode-unabhängig)
   useEffect(() => {
-    loadContractData();
+    loadContractTreeData();
   }, []);
 
-  // Reload wenn EditMode sich ändert
-  useEffect(() => {
-    loadContractData();
-  }, [isEditMode]);
+  // KEINE Reload bei EditMode-Änderung - ContractTree bleibt gleich!
 
-  const loadContractData = async () => {
+  const loadContractTreeData = async () => {
     setLoading(true);
     try {
-      const contractData = await fetchContractDataBL(isEditMode);
-      setContract(contractData);
-      setSelectedNodeId(contractData.tree.activeNodeId);
+      const treeData = await fetchContractTreeBL();
+      console.log('🌳 ContractTreeComponent: Lade nur Tree-Daten (Performance-optimiert)');
+      setContractTree(treeData);
+      setSelectedNodeId(treeData.activeNodeId);
     } catch (error) {
-      console.error('Fehler beim Laden der Contract-Daten:', error);
+      console.error('Fehler beim Laden der ContractTree-Daten:', error);
     } finally {
       setLoading(false);
     }
@@ -50,7 +51,7 @@ export const ContractTreeComponent: React.FC = () => {
 
   // Tree-Knoten expandieren/kollabieren
   const handleToggleNode = (nodeId: string) => {
-    if (!contract) return;
+    if (!contractTree) return;
 
     const updateNodeInTree = (nodes: TreeNode[]): TreeNode[] => {
       return nodes.map(node => {
@@ -65,18 +66,18 @@ export const ContractTreeComponent: React.FC = () => {
     };
 
     const updatedTree = {
-      ...contract.tree,
-      rootNodes: updateNodeInTree(contract.tree.rootNodes)
+      ...contractTree,
+      rootNodes: updateNodeInTree(contractTree.rootNodes)
     };
 
-    setContract({ ...contract, tree: updatedTree });
+    setContractTree(updatedTree);
   };
 
   // Knoten auswählen
   const handleSelectNode = (nodeId: string) => {
     setSelectedNodeId(nodeId);
     
-    if (!contract) return;
+    if (!contractTree) return;
 
     // Markiere den ausgewählten Knoten als aktives Objekt
     const updateActiveNode = (nodes: TreeNode[]): TreeNode[] => {
@@ -93,12 +94,12 @@ export const ContractTreeComponent: React.FC = () => {
     };
 
     const updatedTree = {
-      ...contract.tree,
-      rootNodes: updateActiveNode(contract.tree.rootNodes),
+      ...contractTree,
+      rootNodes: updateActiveNode(contractTree.rootNodes),
       activeNodeId: nodeId
     };
 
-    setContract({ ...contract, tree: updatedTree });
+    setContractTree(updatedTree);
   };
 
   // Kontextmenü anzeigen
@@ -135,7 +136,7 @@ export const ContractTreeComponent: React.FC = () => {
       
       console.log('Neuer Knoten erstellt:', newNode);
       // TODO: Tree aktualisieren
-      await loadContractData(); // Reload für Demo
+      await loadContractTreeData(); // Reload für Demo
     } catch (error) {
       console.error('Fehler beim Hinzufügen:', error);
     }
@@ -154,7 +155,7 @@ export const ContractTreeComponent: React.FC = () => {
       
       console.log('Knoten aktualisiert');
       // TODO: Tree aktualisieren
-      await loadContractData(); // Reload für Demo
+      await loadContractTreeData(); // Reload für Demo
     } catch (error) {
       console.error('Fehler beim Bearbeiten:', error);
     }
@@ -170,11 +171,11 @@ export const ContractTreeComponent: React.FC = () => {
     );
   }
 
-  if (!contract) {
+  if (!contractTree) {
     return (
       <div className="h-full flex items-center justify-center text-gray-500">
         <Folder className="h-6 w-6 mr-2" />
-        Keine Contract-Daten verfügbar
+        Keine ContractTree-Daten verfügbar
       </div>
     );
   }
@@ -185,7 +186,7 @@ export const ContractTreeComponent: React.FC = () => {
       <div className="flex-shrink-0 bg-blue-50 border-b border-blue-200 p-3">
         <h3 className="font-semibold text-gray-800 flex items-center gap-2">
           <Folder className="h-5 w-5 text-blue-600" />
-         {contract.name}
+         {contractName || 'Kollektivstruktur'}
         </h3>
        </div>
 
@@ -209,7 +210,7 @@ export const ContractTreeComponent: React.FC = () => {
             />
           </div>
           <MotorButton
-            onClick={loadContractData}
+            onClick={loadContractTreeData}
             variant="primary"
             size="small"
            
@@ -222,7 +223,7 @@ export const ContractTreeComponent: React.FC = () => {
       {/* Tree Content */}
       <div className="flex-1 overflow-y-auto bg-white">
         <div className="p-2">
-          {contract.tree.rootNodes.map((node) => (
+          {contractTree.rootNodes.map((node) => (
             <TreeNodeComponent
               key={node.id}
               node={node}

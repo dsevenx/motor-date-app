@@ -122,3 +122,112 @@ The application uses sophisticated system prompts (`src/constants/systempromts.t
 - **Leverage fieldDefinitionsHelper functions** for consistent state management
 - **Test AI responses** with various German insurance terminology
 - **Maintain synchronization** between UI state and FIELD_DEFINITIONS data
+
+## Advanced Architecture Patterns
+
+### EditMode Context System
+
+The application uses a global EditMode context (`src/contexts/EditModeContext.tsx`) that fundamentally changes application behavior:
+
+- **Edit Mode (green)**: Full functionality with Business Logic Layer integration
+- **Display Mode (red)**: Read-only interface with direct database access
+- **Component Integration**: All Motor components respect EditMode via `useEditMode()` hook
+- **Exception Handling**: Some components (Chat, ContractTree checkboxes) use `allowInViewMode={true}` to remain functional in Display Mode
+
+### Business Logic Layer Pattern
+
+Three-tier data flow architecture (`src/app/api/FetchContractBL.ts`):
+
+1. **Display Mode Flow**: `fetchContractDataBL → fetchContractDataDB`
+2. **Edit Mode Flow**: `fetchContractDataBL → TardisCallVorbereiten → fetchContractTardis`  
+3. **Integration Points**: All Contract consumers (ContractSidePanel, ContractTreeComponent, MotorHeader) use BL layer
+4. **FIELD_DEFINITIONS Integration**: Edit mode combines user field data with database contracts
+
+### Global State Management
+
+Custom hooks pattern without external state libraries:
+
+- **useGlobalChatConfig**: Manages chat configuration sharing between GUI-Test and standard pages
+- **useGlobalFieldDefinitions**: Synchronizes field definitions across components (enables MotorProduktSpartenTree in Produkt page)
+- **Pattern**: Module-level variables with listener arrays for React integration
+
+### Motor Component System
+
+Unified component architecture with standardized patterns:
+
+- **echteEingabe Tracking**: All components track real user input vs. defaults via `fieldKey` prop
+- **EditMode Awareness**: Components use `isEffectivelyDisabled = !isEditMode || disabled` pattern
+- **Consistent Props**: All Motor components follow similar prop patterns (value, onChange, label, fieldKey, disabled)
+- **Real Input Tracking**: `updateEchteEingabe()` function tracks actual user modifications
+
+### KB-TH Real Input Analysis
+
+Debugging/admin interface (`src/app/kb-th/page.tsx`):
+
+- **Purpose**: Displays which fields contain real user input vs. system defaults
+- **Visual Indicators**: Icons show input source (User input, No input yet, AI input)
+- **Table Expansion**: Tables display row-wise data for detailed analysis
+- **Field Grouping**: Organized by field types (dates, text, numbers, etc.)
+
+### Layout Architecture
+
+Sophisticated three-column layout system:
+
+- **AppLayout**: EditModeProvider wrapper with 3/12 + 6/12 + 3/12 grid
+- **Persistent Components**: ContractSidePanel, MotorHeader, ChatComponent remain on all pages
+- **Independent Scrolling**: Each column scrolls independently without affecting others
+- **MotorAktenMenueleiste**: Full-width menu bar at top with EditMode toggle
+
+### Navigation System
+
+Multi-level navigation with state management:
+
+- **MotorAktenMenueleiste**: Complex dropdown menus with keyboard shortcuts and history navigation
+- **NavigationMenu**: Hover-based submenus with active state detection
+- **Page Templates**: Reusable PageTemplate for section-based navigation
+
+### Contract Data Integration
+
+Hierarchical contract system:
+
+- **Tree Structure**: Expandable contract hierarchy with context menus
+- **EditMode Integration**: Data loading behavior changes based on current mode
+- **Business Logic Layer**: All contract data flows through BL layer
+- **Visual State Management**: Active nodes, expansion states, filtering options
+
+## Important Development Patterns
+
+### Field Configuration System
+
+All form fields derive from `FIELD_DEFINITIONS` array:
+
+- **Single Source of Truth**: Field definitions drive UI generation, validation, and AI integration
+- **echteEingabe Pattern**: Track real user input separately from display values
+- **Dynamic Generation**: `generateDefaultValues()`, `generateFieldConfigs()`, `generateEchteEingabeValues()`
+- **AI Integration**: Synonyms and validation rules support natural language processing
+
+### EditMode Component Behavior
+
+Components must handle EditMode appropriately:
+
+- **Standard Behavior**: Disabled in Display Mode, enabled in Edit Mode
+- **View Mode Exceptions**: Use `allowInViewMode={true}` for navigation/analysis components
+- **Effective Disabled Pattern**: `const isEffectivelyDisabled = (!isEditMode && !allowInViewMode) || disabled`
+
+### State Synchronization
+
+Global state coordination without external libraries:
+
+- **Global Variables**: Module-level state with listener arrays
+- **React Integration**: Custom hooks provide component integration
+- **Update Patterns**: Centralized update functions with listener notifications
+- **Component Coordination**: Multiple components can share and synchronize state
+
+### TypeScript Integration
+
+Strong typing across all architectural layers:
+
+- **Type Definitions**: `src/types/contractTypes.ts` defines data structures
+- **Component Props**: Interfaces for all component prop patterns
+- **API Types**: Request/response type definitions for all endpoints
+- **Field Configuration**: Typed field definitions with validation rules
