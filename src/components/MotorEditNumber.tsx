@@ -3,12 +3,13 @@
 import { Calculator, Euro, Hash, Percent } from 'lucide-react';
 import React, { useState, useEffect } from "react";
 
-import { NumberFormat } from '@/constants/fieldConfig';
+import { NumberFormat, updateEchteEingabe } from '@/constants/fieldConfig';
 
 export interface MotorEditNumberProps {
   value: number;
   onChange: (value: number) => void;
   label: string;
+  fieldKey?: string; // Für echteEingabe tracking
   placeholder?: string;
   disabled?: boolean;
   min?: number;
@@ -22,6 +23,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   value, 
   onChange, 
   label, 
+  fieldKey,
   placeholder,
   disabled = false,
   min,
@@ -32,6 +34,14 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+
+  // Wrapper für onChange mit echteEingabe tracking
+  const handleValueChange = (newValue: number, isUserInput: boolean = true) => {
+    handleValueChange(newValue);
+    if (fieldKey && isUserInput) {
+      updateEchteEingabe(fieldKey, newValue);
+    }
+  };
 
   // Standardwerte basierend auf Format
   const getDecimals = () => {
@@ -149,7 +159,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
     // Sofortige Validierung und Übertragung
     const parsedValue = parseInputValue(newInputValue);
     if (!isNaN(parsedValue)) {
-      onChange(parsedValue);
+      handleValueChange(parsedValue);
     }
   };
 
@@ -165,7 +175,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
     setIsFocused(false);
     // Formatiere Wert beim Verlassen des Fokus
     const parsedValue = parseInputValue(inputValue);
-    onChange(parsedValue);
+    handleValueChange(parsedValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -176,13 +186,13 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
       e.preventDefault();
       const newValue = value + step;
       if (max === undefined || newValue <= max) {
-        onChange(newValue);
+        handleValueChange(newValue);
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       const newValue = value - step;
       if (min === undefined || newValue >= min) {
-        onChange(newValue);
+        handleValueChange(newValue);
       }
     }
   };

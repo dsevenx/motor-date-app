@@ -60,6 +60,10 @@ const menuItems: MenuItem[] = [
     ]
   },
   {
+    name: 'KB-TH',
+    path: '/kb-th'
+  },
+  {
     name: 'GUI-Test',
     path: '/gui-test'
   }

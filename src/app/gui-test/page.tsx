@@ -152,6 +152,7 @@ const GuiTestPage: React.FC = () => {
                         value={fieldValues[field.key] as string}
                         onChange={(value) => handleUpdateVehicleData(field.key, value)}
                         label={field.label}
+                        fieldKey={field.key}
                         disabled={field.ui?.disabled}
                       />
                     ))}
@@ -170,6 +171,7 @@ const GuiTestPage: React.FC = () => {
                         value={fieldValues[field.key] as string}
                         onChange={(value) => handleUpdateVehicleData(field.key, value)}
                         label={field.label}
+                        fieldKey={field.key}
                         placeholder={field.ui?.placeholder}
                         disabled={field.ui?.disabled}
                         maxLength={field.validation?.maxLength}
@@ -181,6 +183,7 @@ const GuiTestPage: React.FC = () => {
                         value={fieldValues[field.key] as number}
                         onChange={(value) => handleUpdateVehicleData(field.key, value)}
                         label={field.label}
+                        fieldKey={field.key}
                         placeholder={field.ui?.placeholder}
                         disabled={field.ui?.disabled}
                         min={field.validation?.min as number}
@@ -204,6 +207,7 @@ const GuiTestPage: React.FC = () => {
                           value={fieldValues[field.key] as 'J' | 'N' | ' '}
                           onChange={(value) => handleUpdateVehicleData(field.key, value)}
                           label={field.label}
+                          fieldKey={field.key}
                           disabled={field.ui?.disabled}
                           infoText={field.ui?.infoText}
                         />

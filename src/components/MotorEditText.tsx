@@ -1,12 +1,14 @@
 "use client"
 
 import { Type } from 'lucide-react';
+import { updateEchteEingabe } from "@/constants/fieldConfig";
 import React, { useState } from "react";
 
 export interface MotorEditTextProps {
   value: string;
   onChange: (value: string) => void;
   label: string;
+  fieldKey?: string; // Für echteEingabe tracking
   placeholder?: string;
   disabled?: boolean;
   maxLength?: number;
@@ -18,6 +20,7 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
   value, 
   onChange, 
   label, 
+  fieldKey,
   placeholder,
   disabled = false,
   maxLength,
@@ -37,6 +40,9 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
     }
     
     onChange(newValue);
+    if (fieldKey) {
+      updateEchteEingabe(fieldKey, newValue);
+    }
   };
 
   const handleFocus = () => {

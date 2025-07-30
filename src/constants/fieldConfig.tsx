@@ -33,6 +33,7 @@ export interface FieldDefinition {
   label: string;                  // Anzeigename
   type: FieldType;               // Datentyp
   defaultValue: string | number | boolean | TableRow[] | 'J' | 'N' | ' '; // Standardwert
+  echteEingabe?: string | number | boolean | TableRow[] | 'J' | 'N' | ' '; // Echte Benutzereingabe
   synonyms: string[];            // KI-Erkennungsworte
   required?: boolean;            // Pflichtfeld
   validation?: {
@@ -906,6 +907,22 @@ export const generateDefaultValues = (): Record<string, any> => {
     acc[field.key] = field.defaultValue;
     return acc;
   }, {} as Record<string, any>);
+};
+
+// Generiere echte Eingabe Werte für KB-TH
+export const generateEchteEingabeValues = (): Record<string, any> => {
+  return FIELD_DEFINITIONS.reduce((acc, field) => {
+    acc[field.key] = field.echteEingabe || field.defaultValue;
+    return acc;
+  }, {} as Record<string, any>);
+};
+
+// Aktualisiere echte Eingabe für ein Feld
+export const updateEchteEingabe = (fieldKey: string, value: any): void => {
+  const fieldIndex = FIELD_DEFINITIONS.findIndex(field => field.key === fieldKey);
+  if (fieldIndex !== -1) {
+    FIELD_DEFINITIONS[fieldIndex].echteEingabe = value;
+  }
 };
 
 // Generiere Field Configs für die Chat-Komponente

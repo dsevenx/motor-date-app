@@ -1,11 +1,13 @@
 "use client"
 
 import React, { useState, useRef } from 'react';
+import { updateEchteEingabe } from "@/constants/fieldConfig";
 
 export interface MotorCheckBoxProps {
   value: 'J' | 'N' | ' ';  // Ja, Nein, Nicht gesetzt (Startzustand)
   onChange: (value: 'J' | 'N') => void;  // Kann nur J oder N setzen
   label: string;
+  fieldKey?: string; // Für echteEingabe tracking
   disabled?: boolean;
   infoText?: string;
   hideLabel?: boolean;
@@ -15,6 +17,7 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
   value = ' ',
   onChange,
   label = '',
+  fieldKey,
   disabled = false,
   infoText,
   hideLabel = false
@@ -24,6 +27,14 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
   const checkboxRef = useRef<HTMLInputElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
+  // Wrapper für onChange mit echteEingabe tracking
+  const handleValueChange = (newValue: 'J' | 'N') => {
+    handleValueChange(newValue);
+    if (fieldKey) {
+      updateEchteEingabe(fieldKey, newValue);
+    }
+  };
+
   const isChecked = value === 'J';
 
   if (isChecked) {
@@ -32,7 +43,7 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (disabled) return;
-    onChange(e.target.checked ? 'J' : 'N');
+    handleValueChange(e.target.checked ? 'J' : 'N');
   };
 
   const handleMouseEnter = (e: React.MouseEvent): void => {
@@ -88,7 +99,7 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
               backgroundColor: isChecked ? (disabled ? '#93C5FD' : '#007AB3') : 'white', // Helleres Blau für disabled
               borderColor: isChecked ? (disabled ? '#93C5FD' : '#007AB3') : '#9CA3AF'
             }}
-            onClick={() => !disabled && onChange(isChecked ? 'N' : 'J')}
+            onClick={() => !disabled && handleValueChange(isChecked ? 'N' : 'J')}
           >
             {/* Checkmark Icon */}
             {isChecked && (
@@ -119,7 +130,7 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
               text-sm cursor-pointer select-none
               ${disabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'}
             `}
-            onClick={() => !disabled && onChange(isChecked ? 'N' : 'J')}
+            onClick={() => !disabled && handleValueChange(isChecked ? 'N' : 'J')}
           >
             {label}
           </label>

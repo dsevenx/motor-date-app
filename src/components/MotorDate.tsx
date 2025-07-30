@@ -1,10 +1,11 @@
 "use client"
 
 import { MotorDateProps } from "@/constants";
+import { updateEchteEingabe } from "@/constants/fieldConfig";
 import { Calendar } from 'lucide-react';
 import React, { useState, useRef, useEffect } from "react";
 
-export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, disabled = false, hideLabel = false }) => {
+export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fieldKey, disabled = false, hideLabel = false }) => {
   // State für Calendar Picker
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -22,6 +23,14 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
   ];
 
   const weekDays: string[] = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+  // Wrapper für onChange mit echteEingabe tracking
+  const handleValueChange = (newValue: string, isUserInput: boolean = true) => {
+    onChange(newValue);
+    if (fieldKey && isUserInput) {
+      updateEchteEingabe(fieldKey, newValue);
+    }
+  };
 
   // Convert ISO date (YYYY-MM-DD) to German format (DD.MM.YYYY) - bestehende Funktion
   const formatToGerman = (isoDate: string): string => {
@@ -105,7 +114,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
 
   const handleDateSelect = (date: Date): void => {
     const isoDate = formatToISO(date);
-    onChange(isoDate);
+    handleValueChange(isoDate, true); // User-Interaktion über Kalender
     setIsOpen(false);
   };
 
@@ -200,7 +209,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
     if (newNumbers.length === 8) {
       const isoDate = parseGermanDate(formatted);
       if (isoDate) {
-        onChange(isoDate);
+        handleValueChange(isoDate, true); // User-Eingabe über Tastatur
       }
     }
 
@@ -236,7 +245,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, di
       setInputValue(formatted);
       const isoDate = parseGermanDate(formatted);
       if (isoDate) {
-        onChange(isoDate);
+        handleValueChange(isoDate, true); // User-Eingabe über Tastatur
       }
     }
   };

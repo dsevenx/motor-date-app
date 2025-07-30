@@ -13,6 +13,7 @@ export interface MotorDateProps {
   value: string;
   onChange: (value: string) => void;
   label: string;
+  fieldKey?: string; // Für echteEingabe tracking
   disabled?: boolean;
   hideLabel?: boolean;
 }
