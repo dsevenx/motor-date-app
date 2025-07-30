@@ -157,6 +157,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             value={cellValue as string}
             onChange={(newValue) => updateCell(row.id, column.key, newValue)}
             label=""
+            fieldKey={`${column.key}_${row.id}`}
             disabled={disabled}
             domainId={column.dropdown?.domainId || ''}
             placeholder={column.ui?.placeholder || 'Bitte auswählen...'}

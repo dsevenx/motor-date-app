@@ -190,12 +190,14 @@ export const ContractTreeComponent: React.FC = () => {
               onChange={(value) => setShowApplications(value)}
               label="Anträge anzeigen"
               hideLabel={false}
+              allowInViewMode={true}
             />
             <MotorCheckBox
               value={showCancelledContracts}
               onChange={(value) => setShowCancelledContracts(value)}
               label="Stornierte Verträge anzeigen"
               hideLabel={false}
+              allowInViewMode={true}
             />
           </div>
           <MotorButton

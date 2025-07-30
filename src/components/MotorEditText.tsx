@@ -2,6 +2,7 @@
 
 import { Type } from 'lucide-react';
 import { updateEchteEingabe } from "@/constants/fieldConfig";
+import { useEditMode } from "@/contexts/EditModeContext";
 import React, { useState } from "react";
 
 export interface MotorEditTextProps {
@@ -27,10 +28,14 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
   hideLabel = false,
   generellNichtEditierbar = false
 }) => {
+  const { isEditMode } = useEditMode();
   const [isFocused, setIsFocused] = useState(false);
+  
+  // Effektiv disabled wenn EditMode aus ist oder prop disabled ist
+  const isEffectivelyDisabled = !isEditMode || disabled || generellNichtEditierbar;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (disabled || generellNichtEditierbar) return;
+    if (isEffectivelyDisabled) return;
     
     let newValue = e.target.value;
     
@@ -46,7 +51,7 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
   };
 
   const handleFocus = () => {
-    if (!disabled && !generellNichtEditierbar) setIsFocused(true);
+    if (!isEffectivelyDisabled) setIsFocused(true);
   };
 
   const handleBlur = () => {
@@ -77,8 +82,8 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder={placeholder}
-          disabled={disabled}
-          readOnly={generellNichtEditierbar}
+          disabled={isEffectivelyDisabled}
+          readOnly={isEffectivelyDisabled}
           maxLength={maxLength}
           className={`
             w-full px-3 py-2 

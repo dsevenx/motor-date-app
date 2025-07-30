@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { Send, Bot, User, Info } from 'lucide-react';
+import { useEditMode } from '@/contexts/EditModeContext';
 import { 
   ApiResponse, 
   ChatComponentProps, 
@@ -13,6 +14,7 @@ import {
 import { ClaudeResponse } from '@/constants/fieldConfig';
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) => {
+   
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -424,7 +426,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         </div>
         <div className="flex-1">
           <h3 className="font-semibold text-gray-800">Claude KI-Assistent</h3>
-          <p className="text-sm text-gray-600">Powered by Anthropic Claude</p>
+          <p className="text-sm text-gray-600">
+            Powered by Anthropic Claude
+          </p>
         </div>
         
         {/* Explanation Checkbox */}

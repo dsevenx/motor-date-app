@@ -229,6 +229,7 @@ const GuiTestPage: React.FC = () => {
                           value={fieldValues[field.key] as string}
                           onChange={(value) => handleUpdateVehicleData(field.key, value)}
                           label={field.label}
+                          fieldKey={field.key}
                           disabled={field.ui?.disabled}
                           domainId={field.dropdown?.domainId || ''}
                           placeholder={field.ui?.placeholder || 'Bitte auswählen...'}

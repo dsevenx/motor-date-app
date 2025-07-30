@@ -2,32 +2,50 @@
 
 import { fetchDomainData } from "@/app/api/FetchDomainData";
 import { DropdownOption } from "@/constants/index";
+import { useEditMode } from "@/contexts/EditModeContext";
+import { updateEchteEingabe } from "@/constants/fieldConfig";
 import React, { useState } from "react";
 
 export interface MotorDropDownProps {
   value: string;
   onChange: (value: string) => void;
   label: string;
+  fieldKey?: string; // Für echteEingabe tracking
   disabled?: boolean;
   domainId: string;
   placeholder?: string;
   hideLabel?: boolean;
+  allowInViewMode?: boolean; // Erlaubt Interaktion auch bei isEditMode=false
 }
 
 export const MotorDropDown: React.FC<MotorDropDownProps> = ({
   value = '',
   onChange,
   label = '',
+  fieldKey,
   disabled = false,
   domainId,
   placeholder = '',
-  hideLabel = false
+  hideLabel = false,
+  allowInViewMode = false
 }) => {
+  const { isEditMode } = useEditMode();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [options, setOptions] = useState<DropdownOption[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedLabel, setSelectedLabel] = useState<string>('');
+
+  // Effektiv disabled wenn EditMode aus ist (außer allowInViewMode) oder prop disabled ist
+  const isEffectivelyDisabled = (!isEditMode && !allowInViewMode) || disabled;
+
+  // Wrapper für onChange mit echteEingabe tracking
+  const handleValueChange = (newValue: string) => {
+    onChange(newValue);
+    if (fieldKey) {
+      updateEchteEingabe(fieldKey, newValue);
+    }
+  };
   
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -61,7 +79,7 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
   );
 
   const handleOptionSelect = (option: DropdownOption): void => {
-    onChange(option.value);
+    handleValueChange(option.value);
     setSelectedLabel(option.label);
     setSearchTerm('');
     setIsOpen(false);
@@ -77,14 +95,14 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
   };
 
   const handleInputFocus = (): void => {
-    if (!disabled) {
+    if (!isEffectivelyDisabled) {
       setIsOpen(true);
       setSearchTerm('');
     }
   };
 
   const handleDropdownToggle = (): void => {
-    if (!disabled) {
+    if (!isEffectivelyDisabled) {
       setIsOpen(!isOpen);
       if (!isOpen) {
         inputRef.current?.focus();
@@ -130,7 +148,7 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
           value={getDisplayValue()}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
-          disabled={disabled}
+          disabled={isEffectivelyDisabled}
           className={`
             w-full px-3 py-2 border border-gray-300 rounded-md 
             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent 
@@ -143,7 +161,7 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
         <button
           type="button"
           onClick={handleDropdownToggle}
-          disabled={disabled}
+          disabled={isEffectivelyDisabled}
           className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded disabled:cursor-not-allowed"
         >
           <svg 

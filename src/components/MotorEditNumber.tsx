@@ -4,6 +4,7 @@ import { Calculator, Euro, Hash, Percent } from 'lucide-react';
 import React, { useState, useEffect } from "react";
 
 import { NumberFormat, updateEchteEingabe } from '@/constants/fieldConfig';
+import { useEditMode } from "@/contexts/EditModeContext";
 
 export interface MotorEditNumberProps {
   value: number;
@@ -32,8 +33,12 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   hideLabel = false,
   generellNichtEditierbar = false
 }) => {
+  const { isEditMode } = useEditMode();
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+
+  // Effektiv disabled wenn EditMode aus ist oder prop disabled ist
+  const isEffectivelyDisabled = !isEditMode || disabled || generellNichtEditierbar;
 
   // Wrapper für onChange mit echteEingabe tracking
   const handleValueChange = (newValue: number, isUserInput: boolean = true) => {
@@ -151,7 +156,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   }, [value, format, decimals, isFocused]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (disabled || generellNichtEditierbar) return;
+    if (isEffectivelyDisabled) return;
     
     const newInputValue = e.target.value;
     setInputValue(newInputValue);
@@ -164,7 +169,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   };
 
   const handleFocus = () => {
-    if (!disabled && !generellNichtEditierbar) {
+    if (!isEffectivelyDisabled) {
       setIsFocused(true);
       // Zeige Rohwert beim Fokus
       setInputValue(value.toString());
@@ -179,7 +184,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (disabled || generellNichtEditierbar) return;
+    if (isEffectivelyDisabled) return;
     
     // Erlaube Pfeiltasten für Increment/Decrement
     if (e.key === 'ArrowUp') {
@@ -234,7 +239,7 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={getPlaceholderText()}
-          disabled={disabled}
+          disabled={isEffectivelyDisabled}
           readOnly={generellNichtEditierbar}
           className={`
             w-full px-3 py-2 

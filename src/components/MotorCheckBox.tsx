@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { updateEchteEingabe } from "@/constants/fieldConfig";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 export interface MotorCheckBoxProps {
   value: 'J' | 'N' | ' ';  // Ja, Nein, Nicht gesetzt (Startzustand)
@@ -11,6 +12,7 @@ export interface MotorCheckBoxProps {
   disabled?: boolean;
   infoText?: string;
   hideLabel?: boolean;
+  allowInViewMode?: boolean; // Erlaubt Interaktion auch bei isEditMode=false (für Tree-CheckBoxes)
 }
 
 export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({ 
@@ -20,12 +22,17 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
   fieldKey,
   disabled = false,
   infoText,
-  hideLabel = false
+  hideLabel = false,
+  allowInViewMode = false
 }) => {
+  const { isEditMode } = useEditMode();
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const checkboxRef = useRef<HTMLInputElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+
+  // Effektiv disabled wenn EditMode aus ist (außer allowInViewMode) oder prop disabled ist
+  const isEffectivelyDisabled = (!isEditMode && !allowInViewMode) || disabled;
 
   // Wrapper für onChange mit echteEingabe tracking
   const handleValueChange = (newValue: 'J' | 'N') => {
@@ -99,7 +106,7 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
               backgroundColor: isChecked ? (disabled ? '#93C5FD' : '#007AB3') : 'white', // Helleres Blau für disabled
               borderColor: isChecked ? (disabled ? '#93C5FD' : '#007AB3') : '#9CA3AF'
             }}
-            onClick={() => !disabled && handleValueChange(isChecked ? 'N' : 'J')}
+            onClick={() => !isEffectivelyDisabled && handleValueChange(isChecked ? 'N' : 'J')}
           >
             {/* Checkmark Icon */}
             {isChecked && (
@@ -130,7 +137,7 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
               text-sm cursor-pointer select-none
               ${disabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'}
             `}
-            onClick={() => !disabled && handleValueChange(isChecked ? 'N' : 'J')}
+            onClick={() => !isEffectivelyDisabled && handleValueChange(isChecked ? 'N' : 'J')}
           >
             {label}
           </label>

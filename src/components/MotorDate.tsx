@@ -2,10 +2,16 @@
 
 import { MotorDateProps } from "@/constants";
 import { updateEchteEingabe } from "@/constants/fieldConfig";
+import { useEditMode } from "@/contexts/EditModeContext";
 import { Calendar } from 'lucide-react';
 import React, { useState, useRef, useEffect } from "react";
 
 export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fieldKey, disabled = false, hideLabel = false }) => {
+  const { isEditMode } = useEditMode();
+  
+  // Effektiv disabled wenn EditMode aus ist oder prop disabled ist
+  const isEffectivelyDisabled = !isEditMode || disabled;
+  
   // State für Calendar Picker
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -143,7 +149,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
   // Handle input changes (required for controlled component) - bestehende Funktion
   const handleInputChange = () => {
     // Do nothing if disabled - React still needs this handler for controlled inputs
-    if (disabled) return;
+    if (isEffectivelyDisabled) return;
     
     // For manual typing, we handle this in onKeyDown instead
     // This handler is mainly to satisfy React's controlled component requirements
@@ -152,7 +158,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
   // Bestehende manuelle Eingabe-Logik
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Skip event handling if disabled
-    if (disabled) return;
+    if (isEffectivelyDisabled) return;
 
     const input = e.currentTarget;
     const cursorPos = input.selectionStart || 0;
@@ -228,7 +234,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
 
   const handlePaste = (e: React.ClipboardEvent) => {
     // Skip paste handling if disabled
-    if (disabled) {
+    if (isEffectivelyDisabled) {
       e.preventDefault();
       return;
     }
@@ -287,13 +293,13 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             placeholder="DD.MM.YYYY"
-            disabled={disabled}
-            readOnly={disabled}
+            disabled={isEffectivelyDisabled}
+            readOnly={isEffectivelyDisabled}
             className={`
               w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
               pr-10
-              ${disabled 
+              ${isEffectivelyDisabled 
                 ? 'bg-gray-100 cursor-not-allowed text-gray-500' 
                 : 'bg-white hover:border-gray-400'
               }
@@ -304,8 +310,8 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
           {/* Calendar Icon */}
           <button
             type="button"
-            onClick={() => !disabled && setIsOpen(!isOpen)}
-            disabled={disabled}
+            onClick={() => !isEffectivelyDisabled && setIsOpen(!isOpen)}
+            disabled={isEffectivelyDisabled}
             className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded disabled:cursor-not-allowed"
           >
             <Calendar className="w-5 h-5 text-gray-400" />
@@ -313,7 +319,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
         </div>
 
         {/* Calendar Dropdown */}
-        {isOpen && !disabled && (
+        {isOpen && !isEffectivelyDisabled && (
           <div className="absolute z-50 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">

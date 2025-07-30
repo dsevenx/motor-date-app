@@ -6,6 +6,7 @@ import {
   ChevronsRight,
   Edit3,
   Eye} from 'lucide-react';
+import { useEditMode } from '@/contexts/EditModeContext';
 
 interface MenuItemProps {
   title: string;
@@ -97,7 +98,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ title, items, onItemClick }) => {
 };
 
 const MotorAktenMenuleiste: React.FC = () => {
-  const [isEditMode, setIsEditMode] = useState(false);
+  const { isEditMode, setIsEditMode } = useEditMode();
   const [currentHistoryLabel] = useState("aktuell");
 
   // Menü-Definitionen basierend auf den Screenshots
