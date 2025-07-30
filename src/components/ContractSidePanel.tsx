@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ContractTreeComponent } from './ContractTreeComponent';
 import { OrdnervereinbarungComponent } from './OrdnervereinbarungComponent';
 import { Contract } from '@/types/contractTypes';
-import { fetchContractData } from '@/app/api/FetchContract';
+import { fetchContractDataDB } from '@/app/api/FetchContractDB';
 
 export const ContractSidePanel: React.FC = () => {
   const [contract, setContract] = useState<Contract | null>(null);
@@ -17,7 +17,7 @@ export const ContractSidePanel: React.FC = () => {
   const loadContractData = async () => {
     setLoading(true);
     try {
-      const contractData = await fetchContractData();
+      const contractData = await fetchContractDataDB();
       setContract(contractData);
     } catch (error) {
       console.error('Fehler beim Laden der Contract-Daten:', error);

@@ -175,7 +175,7 @@ const createMockOrdnervereinbarungen = (): Ordnervereinbarung[] => {
   ];
 };
 
-export const fetchContractData = async (): Promise<Contract> => {
+export const fetchContractDataDB = async (): Promise<Contract> => {
   // Simuliere API-Aufruf mit Delay
   await new Promise(resolve => setTimeout(resolve, 100));
   
@@ -211,4 +211,4 @@ export const addTreeNode = async (parentId: string, newNode: Omit<TreeNode, 'id'
   return newTreeNode;
 };
 
-export default fetchContractData;
+export default fetchContractDataDB;

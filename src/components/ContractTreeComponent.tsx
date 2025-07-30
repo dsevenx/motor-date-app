@@ -6,7 +6,7 @@ import { TreeNodeComponent } from './TreeNodeComponent';
 import { TreeContextMenu } from './TreeContextMenu';
 import { MotorCheckBox } from './MotorCheckBox';
 import { MotorButton } from './MotorButton';
-import { fetchContractData, updateTreeNode, addTreeNode } from '@/app/api/FetchContract';
+import { fetchContractDataDB, updateTreeNode, addTreeNode } from '@/app/api/FetchContractDB';
 import { RefreshCw, Folder } from 'lucide-react';
 
 export const ContractTreeComponent: React.FC = () => {
@@ -30,7 +30,7 @@ export const ContractTreeComponent: React.FC = () => {
   const loadContractData = async () => {
     setLoading(true);
     try {
-      const contractData = await fetchContractData();
+      const contractData = await fetchContractDataDB();
       setContract(contractData);
       setSelectedNodeId(contractData.tree.activeNodeId);
     } catch (error) {

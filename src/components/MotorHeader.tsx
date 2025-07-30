@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Contract } from '@/types/contractTypes';
-import { fetchContractData } from '@/app/api/FetchContract';
+import { fetchContractDataDB } from '@/app/api/FetchContractDB';
 import { NavigationMenu } from './NavigationMenu';
 
 interface MotorHeaderProps {
@@ -22,7 +22,7 @@ export const MotorHeader: React.FC<MotorHeaderProps> = ({ contract: propContract
   const loadContractData = async () => {
     setLoading(true);
     try {
-      const contractData = await fetchContractData();
+      const contractData = await fetchContractDataDB();
       setContract(contractData);
     } catch (error) {
       console.error('Fehler beim Laden der Contract-Daten:', error);
