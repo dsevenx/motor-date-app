@@ -264,6 +264,19 @@ Dann auf der ganz linken Seite kommen 4 Historienbuttons wobei zwischen Ihren ei
 (siehe HistBlaettern.png)
 Bitte erstell diese Componente MotorAktenMenuleiste.tsx.
 
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 12
+
+Unser Object Contract kommt aktuell nur über fetchContractDataDB. Wir müssen hier noch ein fetchContractDataBL dazwischen schieben. D.h. alle jetzigen                    │
+fetchContractDataDB Rufer nutzen in Zukunft fetchContractDataBL. fetchContractDataBL selbst funtkioniert so : Wenn man im isEditMode=false ist, dann wird                 │
+fetchContractDataBL aus fetchContractDataDB gefüllt. Wenn man im isEditMode=true, wird eine Funtktion "TardisCallVorTardisCallVorebbereiten" gerufen, die aus             │
+FIELD_DFEFIMNTIONEN und fetchContractDataDB ein neues Contract-Objekt bildet welches dann einen WebService fetchContractTardis ruft, der wwieder rum als Rückgabewert     │
+ein Contract-Objekt hat. Dieser Rückgabewert ist dann das Ergebnis von fetchContractDataBL. 
+Um das etwas zu siumlieren - dachte ich an folgendes : In der TardisCallVorTardisCallVorebbereiten machen wir an die Strasse ein "vorbereitet" dran 
+- also aus "Potzdamer Platz" wird "Potzdamer Platz vorbereitet" und im fetchContractTardis hängen wird dann nochmal ein "für Tardis" dran - also sehen wir dann
+"Potzdamer Platz vorbereitet für Tardis". Wenn ich den EditModus wireder rausnehme, dann steht wieder nur "Potzdamer Platz" da. Kannst Du dies nachvollziehen =  
+
 
 
 

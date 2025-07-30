@@ -6,10 +6,13 @@ import { TreeNodeComponent } from './TreeNodeComponent';
 import { TreeContextMenu } from './TreeContextMenu';
 import { MotorCheckBox } from './MotorCheckBox';
 import { MotorButton } from './MotorButton';
-import { fetchContractDataDB, updateTreeNode, addTreeNode } from '@/app/api/FetchContractDB';
+import { fetchContractDataBL } from '@/app/api/FetchContractBL';
+import { updateTreeNode, addTreeNode } from '@/app/api/FetchContractDB';
+import { useEditMode } from '@/contexts/EditModeContext';
 import { RefreshCw, Folder } from 'lucide-react';
 
 export const ContractTreeComponent: React.FC = () => {
+  const { isEditMode } = useEditMode();
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
@@ -27,10 +30,15 @@ export const ContractTreeComponent: React.FC = () => {
     loadContractData();
   }, []);
 
+  // Reload wenn EditMode sich ändert
+  useEffect(() => {
+    loadContractData();
+  }, [isEditMode]);
+
   const loadContractData = async () => {
     setLoading(true);
     try {
-      const contractData = await fetchContractDataDB();
+      const contractData = await fetchContractDataBL(isEditMode);
       setContract(contractData);
       setSelectedNodeId(contractData.tree.activeNodeId);
     } catch (error) {

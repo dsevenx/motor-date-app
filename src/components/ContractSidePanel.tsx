@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { ContractTreeComponent } from './ContractTreeComponent';
 import { OrdnervereinbarungComponent } from './OrdnervereinbarungComponent';
 import { Contract } from '@/types/contractTypes';
-import { fetchContractDataDB } from '@/app/api/FetchContractDB';
+import { fetchContractDataBL } from '@/app/api/FetchContractBL';
+import { useEditMode } from '@/contexts/EditModeContext';
 
 export const ContractSidePanel: React.FC = () => {
+  const { isEditMode } = useEditMode();
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -14,10 +16,15 @@ export const ContractSidePanel: React.FC = () => {
     loadContractData();
   }, []);
 
+  // Reload wenn EditMode sich ändert
+  useEffect(() => {
+    loadContractData();
+  }, [isEditMode]);
+
   const loadContractData = async () => {
     setLoading(true);
     try {
-      const contractData = await fetchContractDataDB();
+      const contractData = await fetchContractDataBL(isEditMode);
       setContract(contractData);
     } catch (error) {
       console.error('Fehler beim Laden der Contract-Daten:', error);

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Contract } from '@/types/contractTypes';
-import { fetchContractDataDB } from '@/app/api/FetchContractDB';
+import { fetchContractDataBL } from '@/app/api/FetchContractBL';
+import { useEditMode } from '@/contexts/EditModeContext';
 import { NavigationMenu } from './NavigationMenu';
 
 interface MotorHeaderProps {
@@ -10,6 +11,7 @@ interface MotorHeaderProps {
 }
 
 export const MotorHeader: React.FC<MotorHeaderProps> = ({ contract: propContract }) => {
+  const { isEditMode } = useEditMode();
   const [contract, setContract] = useState<Contract | null>(propContract || null);
   const [loading, setLoading] = useState(!propContract);
 
@@ -19,10 +21,17 @@ export const MotorHeader: React.FC<MotorHeaderProps> = ({ contract: propContract
     }
   }, [propContract]);
 
+  // Reload wenn EditMode sich ändert
+  useEffect(() => {
+    if (!propContract) {
+      loadContractData();
+    }
+  }, [isEditMode, propContract]);
+
   const loadContractData = async () => {
     setLoading(true);
     try {
-      const contractData = await fetchContractDataDB();
+      const contractData = await fetchContractDataBL(isEditMode);
       setContract(contractData);
     } catch (error) {
       console.error('Fehler beim Laden der Contract-Daten:', error);
