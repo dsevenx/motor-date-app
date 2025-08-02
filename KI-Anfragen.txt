@@ -317,8 +317,9 @@ Dieser WebService wird aufgerufen, wenn im man in Edit Modus speichert. Der WebS
 Das XML dieht so aus :
 <ANTRAG><PERSONEN></PERSONEN><VERTRAG><KRAFTBL></KRAFTBL></VERTRAG></ANTRAG>
 Bitte sieh schon eine eine ServiceABSEinarbeiter.tsx vor. Diese erstellt und pflegt das zu versendende SendeXML. 
-Funktion ergaenzeKraftXML() vor, die im obigen XML bei dem Tag KRAFTBL Element einfügt. 
+Funktion ergaenzeKraftXML() vor, die im obigen XML bei dem Tag KRAFTBL Elemente einfügt. Diese Methode wollen wir im Helper für jedes FIELDDEFINTION Feld aufrufen.
 Der WebService soll bei unseren beiden Buttons dahinter sein. Es ist OK, dass hinter beiden Buttons aktuell die gleiche Logik ist.
+Beim Mocken des WebService bitte aktuell auf KB-TH die neue Section
 
 
 
