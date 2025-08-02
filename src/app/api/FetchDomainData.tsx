@@ -1603,6 +1603,27 @@ const mockDomainData: Datalist[] =[{
                 "label": "ruhend"
             }
         ]
+  }, {
+        "classId": "com.allianz.cisl.base.datalist.Datalist",
+        "id": "KraftBoGruppeMoeglGrundManTypklasse",
+        "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": " ",
+                "label": " "
+            },{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "1",
+                "label": "Tuningfahrzeug"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "2",
+                "label": "vorläufige Einstufung"
+            }, {
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "3",
+                "label": "Sonderfahrzeug"
+            }
+        ]
     }, {
         "classId": "com.allianz.cisl.base.datalist.Datalist",
         "id": "KraftBoGruppeMoeglVertragZustandKU",

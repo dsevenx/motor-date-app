@@ -755,7 +755,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
             placeholder: 'Grund auswählen...'
           },
           dropdown: {
-            domainId: 'KraftBoGruppeMoeglTypklasseGrund'
+            domainId: 'KraftBoGruppeMoeglGrundManTypklasse'
           }
         },
         {
