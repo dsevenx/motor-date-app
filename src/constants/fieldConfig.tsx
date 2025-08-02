@@ -695,6 +695,108 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       ],
       emptyText: 'Keine Bausteine verfügbar'
     }
+  },
+
+  // === FAHRZEUG-DETAIL FELDER ===
+  
+  // Fahrleistung
+  {
+    key: 'KraftDmKfzVorfahrl',
+    label: 'Aktuelle Fahrleistung (km)',
+    type: 'number',
+    defaultValue: 0,
+    synonyms: [
+      'fahrleistung', 'jahresfahrleistung', 'km pro jahr', 'kilometer pro jahr',
+      'jährliche fahrleistung', 'voraussichtliche fahrleistung', 'geschätzte fahrleistung'
+    ],
+    validation: {
+      min: 0,
+      max: 200000,
+      numberFormat: 'integer'
+    },
+    ui: {
+      placeholder: 'Fahrleistung in km eingeben...',
+      group: 'fahrzeugDetail'
+    },
+    ai: {
+      priority: 'medium',
+      context: 'Jährliche Fahrleistung des Fahrzeugs in Kilometern'
+    }
+  },
+
+  // Manuelle Typklasse (als einzeilige Tabelle)
+  {
+    key: 'manuelleTypklasse',
+    label: 'Manuelle Typklasse',
+    type: 'table',
+    defaultValue: [{
+      id: '1',
+      grund: '',
+      haftpflicht: 0,
+      vollkasko: 0,
+      teilkasko: 0
+    }],
+    synonyms: [
+      'manuelle typklasse', 'typklasse manuell', 'manuelle einstufung',
+      'grund für typklasse', 'typklasse grund', 'abweichende typklasse'
+    ],
+    ai: {
+      priority: 'low',
+      context: 'Manuelle Typklasse-Einstufung mit Grund und drei Typklassen'
+    },
+    table: {
+      columns: [
+        {
+          key: 'grund',
+          label: 'Grund der Typklasse',
+          type: 'dropdown',
+          width: '250px',
+          ui: {
+            placeholder: 'Grund auswählen...'
+          },
+          dropdown: {
+            domainId: 'KraftBoGruppeMoeglTypklasseGrund'
+          }
+        },
+        {
+          key: 'haftpflicht',
+          label: 'Haftpflicht',
+          type: 'number',
+          width: '120px',
+          validation: {
+            min: 0,
+            max: 50,
+            numberFormat: 'integer'
+          }
+        },
+        {
+          key: 'vollkasko',
+          label: 'Vollkasko',
+          type: 'number',
+          width: '120px',
+          validation: {
+            min: 0,
+            max: 50,
+            numberFormat: 'integer'
+          }
+        },
+        {
+          key: 'teilkasko',
+          label: 'Teilkasko',
+          type: 'number',
+          width: '120px',
+          validation: {
+            min: 0,
+            max: 50,
+            numberFormat: 'integer'
+          }
+        }
+      ],
+      emptyText: 'Keine manuelle Typklasse definiert'
+    },
+    ui: {
+      group: 'fahrzeugDetail'
+    }
   }
 ];
 

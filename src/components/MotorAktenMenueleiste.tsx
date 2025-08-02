@@ -5,7 +5,9 @@ import {
   ChevronsLeft, 
   ChevronsRight,
   Edit3,
-  Eye} from 'lucide-react';
+  Eye,
+  Save,
+  X} from 'lucide-react';
 import { useEditMode } from '@/contexts/EditModeContext';
 
 interface MenuItemProps {
@@ -226,6 +228,16 @@ const MotorAktenMenuleiste: React.FC = () => {
     // Hier würde die Historien-Navigation implementiert werden
   };
 
+  const handleSave = () => {
+    console.log('Save button clicked');
+    // TODO: Implementierung der Save-Logik
+  };
+
+  const handleSaveWithClose = () => {
+    console.log('Save and Close button clicked');
+    // TODO: Implementierung der Save and Close-Logik
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-lg border border-gray-200">
       {/* Hauptmenü mit Historie-Navigation */}
@@ -266,6 +278,35 @@ const MotorAktenMenuleiste: React.FC = () => {
             isEditMode ? 'text-green-700' : 'text-red-700'
           }`}>
             {isEditMode ? 'Edit' : 'Anzeige'}
+          </div>
+
+          {/* Save Buttons */}
+          <div className="flex items-center gap-1 px-2">
+            <button
+              className={`flex items-center p-1.5 rounded border transition-colors ${
+                isEditMode 
+                  ? 'bg-white border-gray-300 hover:bg-gray-50 text-gray-700' 
+                  : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+              onClick={isEditMode ? handleSave : undefined}
+              disabled={!isEditMode}
+              title="Speichern"
+            >
+              <Save className="w-4 h-4" />
+            </button>
+            <button
+              className={`flex items-center p-1.5 rounded border transition-colors ${
+                isEditMode 
+                  ? 'bg-white border-gray-300 hover:bg-gray-50 text-gray-700' 
+                  : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+              onClick={isEditMode ? handleSaveWithClose : undefined}
+              disabled={!isEditMode}
+              title="Speichern und Schließen"
+            >
+              <Save className="w-3.5 h-3.5 mr-0.5" />
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           {/* Menüpunkte */}

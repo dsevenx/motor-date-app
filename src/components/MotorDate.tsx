@@ -5,6 +5,7 @@ import { updateEchteEingabe } from "@/constants/fieldConfig";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { Calendar } from 'lucide-react';
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fieldKey, disabled = false, hideLabel = false }) => {
   const { isEditMode } = useEditMode();
@@ -15,12 +16,15 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
   // State für Calendar Picker
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [portalPosition, setPortalPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   
   // State für manuelle Eingabe (bestehende Logik)
   const [inputValue, setInputValue] = useState('');
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Deutsche Monatsnamen
   const monthsLong: string[] = [
@@ -37,6 +41,103 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
       updateEchteEingabe(fieldKey, newValue);
     }
   };
+
+  // Client-side mounting check
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Position calculation for portal
+  const calculatePortalPosition = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      
+      // Check if input is visible in viewport
+      const isVisible = rect.bottom > 0 && rect.top < window.innerHeight && 
+                       rect.right > 0 && rect.left < window.innerWidth;
+      
+      if (!isVisible) {
+        // Close DatePicker if input field scrolled out of view
+        setIsOpen(false);
+        return;
+      }
+      
+      // Always position calendar below the input field
+      setPortalPosition({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: Math.max(320, rect.width)
+      });
+    }
+  };
+
+  // Open calendar handler
+  const handleOpenCalendar = () => {
+    if (!isEffectivelyDisabled) {
+      calculatePortalPosition();
+      setIsOpen(true);
+    }
+  };
+
+  // Close calendar on outside click and handle scroll
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleScroll = () => {
+      if (isOpen) {
+        // Use requestAnimationFrame for smoother positioning
+        requestAnimationFrame(() => {
+          calculatePortalPosition();
+        });
+      }
+    };
+
+    const handleResize = () => {
+      if (isOpen) {
+        calculatePortalPosition();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      
+      // Add scroll listeners to window and all scrollable parent elements
+      window.addEventListener('scroll', handleScroll, true);
+      document.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      // Find and add listeners to all scrollable parent containers
+      const scrollableParents: Element[] = [];
+      let element = inputRef.current?.parentElement;
+      while (element && element !== document.body) {
+        const style = window.getComputedStyle(element);
+        if (style.overflow === 'auto' || style.overflow === 'scroll' || 
+            style.overflowY === 'auto' || style.overflowY === 'scroll' ||
+            style.overflowX === 'auto' || style.overflowX === 'scroll') {
+          scrollableParents.push(element);
+          element.addEventListener('scroll', handleScroll);
+        }
+        element = element.parentElement;
+      }
+      
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        window.removeEventListener('scroll', handleScroll, true);
+        document.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+        
+        // Remove listeners from scrollable parents
+        scrollableParents.forEach(parent => {
+          parent.removeEventListener('scroll', handleScroll);
+        });
+      };
+    }
+  }, [isOpen]);
 
   // Convert ISO date (YYYY-MM-DD) to German format (DD.MM.YYYY) - bestehende Funktion
   const formatToGerman = (isoDate: string): string => {
@@ -256,20 +357,6 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
     }
   };
 
-  // Schließt Dropdown bei Klick außerhalb
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    // SSR-safe: Only add event listeners in browser environment
-    if (typeof window !== 'undefined') {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, []);
 
   const calendarDays: Date[] = generateCalendarDays();
 
@@ -282,7 +369,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
         </label>
       )}
       
-      <div className="relative w-full" ref={dropdownRef}>
+      <div className="relative w-full" ref={containerRef}>
         {/* Input Field */}
         <div className="relative">
           <input
@@ -310,7 +397,7 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
           {/* Calendar Icon */}
           <button
             type="button"
-            onClick={() => !isEffectivelyDisabled && setIsOpen(!isOpen)}
+            onClick={handleOpenCalendar}
             disabled={isEffectivelyDisabled}
             className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded disabled:cursor-not-allowed"
           >
@@ -318,9 +405,20 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
           </button>
         </div>
 
-        {/* Calendar Dropdown */}
-        {isOpen && !isEffectivelyDisabled && (
-          <div className="absolute z-50 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg">
+      </div>
+      
+      {/* Calendar Dropdown via Portal */}
+      {isOpen && !isEffectivelyDisabled && isMounted && portalPosition && (
+        createPortal(
+          <div 
+            ref={dropdownRef}
+            className="fixed z-[9999] bg-white border border-gray-200 rounded-lg shadow-xl"
+            style={{
+              top: `${portalPosition.top}px`,
+              left: `${portalPosition.left}px`,
+              width: `${Math.max(320, portalPosition.width)}px`
+            }}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <button
@@ -390,9 +488,10 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
                 </button>
               ))}
             </div>
-          </div>
-        )}
-      </div>
+          </div>,
+          document.body
+        )
+      )}
     </div>
   );
 };

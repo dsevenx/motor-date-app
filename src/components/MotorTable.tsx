@@ -8,6 +8,7 @@ import { MotorEditNumber } from './MotorEditNumber';
 import { MotorCheckBox } from './MotorCheckBox';
 import { MotorDropDown } from './MotorDropDown';
 import { TableRow, TableColumn, FieldType } from '@/constants/fieldConfig';
+import { useEditMode } from '@/contexts/EditModeContext';
 
 export interface MotorTableProps {
   value: TableRow[];
@@ -17,6 +18,8 @@ export interface MotorTableProps {
   addButtonText?: string;
   emptyText?: string;
   disabled?: boolean;
+  maxRows?: number; // Maximale Anzahl von Zeilen
+  einzeiligeTabelle?: boolean; // Keine Aktionen-Spalte und kein maxRows Hinweis
 }
 
 export const MotorTable: React.FC<MotorTableProps> = ({
@@ -26,8 +29,11 @@ export const MotorTable: React.FC<MotorTableProps> = ({
   columns,
   addButtonText = 'Zeile hinzufügen',
   emptyText = 'Keine Daten vorhanden',
-  disabled = false
+  disabled = false,
+  maxRows,
+  einzeiligeTabelle = false
 }) => {
+  const { isEditMode } = useEditMode();
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
 
   // Stelle sicher, dass value immer ein Array ist
@@ -69,6 +75,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
   // Zeile hinzufügen
   const addRow = () => {
     if (disabled) return;
+    if (maxRows && safeValue.length >= maxRows) return; // Verhindere Hinzufügen wenn maxRows erreicht
     const newRow = createNewRow();
     onChange([...safeValue, newRow]);
   };
@@ -105,6 +112,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             label=""
             disabled={disabled}
             hideLabel={true}
+            allowInViewMode={true}
           />
         );
 
@@ -162,6 +170,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             domainId={column.dropdown?.domainId || ''}
             placeholder={column.ui?.placeholder || 'Bitte auswählen...'}
             hideLabel={true}
+            allowInViewMode={true}
           />
         );
 
@@ -216,9 +225,11 @@ export const MotorTable: React.FC<MotorTableProps> = ({
                       {column.label}
                     </th>
                   ))}
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 tracking-wider w-16">
-                    Aktionen
-                  </th>
+                  {!einzeiligeTabelle && isEditMode && (
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 tracking-wider w-16">
+                      Aktionen
+                    </th>
+                  )}
                 </tr>
               </thead>
 
@@ -247,27 +258,29 @@ export const MotorTable: React.FC<MotorTableProps> = ({
                       </td>
                     ))}
                     
-                    {/* Aktionen-Spalte */}
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => deleteRow(row.id)}
-                        disabled={disabled}
-                        className={`
-                          p-1 rounded-md transition-all duration-200
-                          ${hoveredRowId === row.id 
-                            ? 'text-red-600 hover:bg-red-50 hover:text-red-700' 
-                            : 'text-gray-400 hover:text-red-500'
-                          }
-                          ${disabled 
-                            ? 'cursor-not-allowed opacity-50' 
-                            : 'cursor-pointer'
-                          }
-                        `}
-                        title="Zeile löschen"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+                    {/* Aktionen-Spalte (nur im Edit-Modus und nicht bei einzeiliger Tabelle) */}
+                    {!einzeiligeTabelle && isEditMode && (
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => deleteRow(row.id)}
+                          disabled={disabled}
+                          className={`
+                            p-1 rounded-md transition-all duration-200
+                            ${hoveredRowId === row.id 
+                              ? 'text-red-600 hover:bg-red-50 hover:text-red-700' 
+                              : 'text-gray-400 hover:text-red-500'
+                            }
+                            ${disabled 
+                              ? 'cursor-not-allowed opacity-50' 
+                              : 'cursor-pointer'
+                            }
+                          `}
+                          title="Zeile löschen"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                   );
                 })}
@@ -277,22 +290,31 @@ export const MotorTable: React.FC<MotorTableProps> = ({
         )}
       </div>
 
-      {/* Hinzufügen-Button */}
-      <button
-        onClick={addRow}
-        disabled={disabled}
-        className={`
-          flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg
-          transition-all duration-200
-          ${disabled
-            ? 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
-            : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
-          }
-        `}
-      >
-        <Plus className="w-4 h-4" />
-        <span className="text-sm font-medium">{addButtonText}</span>
-      </button>
+      {/* Hinzufügen-Button (nur im Edit-Modus und nicht bei einzeiliger Tabelle) */}
+      {!einzeiligeTabelle && isEditMode && (!maxRows || safeValue.length < maxRows) && (
+        <button
+          onClick={addRow}
+          disabled={disabled}
+          className={`
+            flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg
+            transition-all duration-200
+            ${disabled
+              ? 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
+              : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
+            }
+          `}
+        >
+          <Plus className="w-4 h-4" />
+          <span className="text-sm font-medium">{addButtonText}</span>
+        </button>
+      )}
+      
+      {/* Info wenn maxRows erreicht (nicht bei einzeiliger Tabelle) */}
+      {!einzeiligeTabelle && maxRows && safeValue.length >= maxRows && (
+        <div className="text-center py-2 text-sm text-gray-500">
+          Maximale Anzahl von {maxRows} Zeile(n) erreicht
+        </div>
+      )}
     </div>
   );
 };

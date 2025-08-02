@@ -176,7 +176,7 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-[9999] mt-1 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-60 overflow-y-auto">
           {loading ? (
             <div className="p-3 text-center text-gray-500">
               Laden...

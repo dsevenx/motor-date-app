@@ -286,6 +286,40 @@ Die Vorbereitungslogik und die TardisLogk können den ContractTree beim Editwech
 D.h. wir können uns bei EditSwitch den Contract-Treeneuaufbau sparen.
 Ich hatte gedeacht ContractTreeComponent muss dafür nicht den ganzen Contract bekommen, sondern vielleicht nur den Tree. Was meinst Du ?
 
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 14
+
+In den Bilder sind die beiden Speicher-Button. Diese soll direkt neben unserem Text neben Anzeige/Edit Button, also vor dem Menu.                                         │
+Das SicherImEditModus.png zeigt die Button im EditModus, das Bild SpeichernAnzeigeModus.png zeigt die Button im Anzeigemous.                                              │
+Bitte Sie die Biuttons vor. Der erste Button solle eine Methode "onSave" aufrufe, der zweite eine Methode "onSaveWithClose".                                              │
+Der Inhalt kommt später.'/Users/steffenrokosch/Documents/AI_gen_React/ZumVergleichen/SicherImEditModus.png''/Users/steffenrokosch/Documents/AI_gen_React/ZumVergleichen/  │
+SpeichernAnzeigeModus.png'
+
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 15
+
+Wir arbeiten jetzt an der Objekt-Detail Page - siehe FahrzeugDetail.png. Die Kiloemterstände und Zubehör haben wir schon.
+Bitte an dieser Stelle unsere beiden Tabellen einsetzen.
+Die Fahrleistung oben im Bild müssen wir auch als neue FIELDDEFINTION einführen - die ID ist KraftDmKfzVorfahrl, es ist eine Zahl zwischen 0 und 200000.
+Die Typ-Regioklasse Tabelle ist eine reine Anzeigetabelle.
+Die Manuelle Typklasse unten hat 4 Felder, die auch in FieldDefintions müssen. Diese 4 Felder sind aber als einzeilige Tabelle abzubilden. 
+Es ist immer genau eine Zeile. Das erste Feld ist MotorDropDonw, die den Grund für die manuelle Typklasse angibt.
+Die 3 MotorEditNumber Felder für die manuelle Typklasse beinhalten Zahlen von 0 bis 50.
+Bitte erstell die Page und hänge die andere bei Objekt-Detail ein.
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 14
+
+Für das finale persistieren haben wir ein WebService, den wir ServiceABSEinarbeiter nennen. Bitte sieh diesen als separate WerbService Call vor.
+Dieser WebService wird aufgerufen, wenn im man in Edit Modus speichert. Der WebService wird als Soap-WebService mit XML gerufen.
+Das XML dieht so aus :
+<ANTRAG><PERSONEN></PERSONEN><VERTRAG><KRAFTBL></KRAFTBL></VERTRAG></ANTRAG>
+Bitte sieh schon eine eine ServiceABSEinarbeiter.tsx vor. Diese erstellt und pflegt das zu versendende SendeXML. 
+Funktion ergaenzeKraftXML() vor, die im obigen XML bei dem Tag KRAFTBL Element einfügt. 
+Der WebService soll bei unseren beiden Buttons dahinter sein. Es ist OK, dass hinter beiden Buttons aktuell die gleiche Logik ist.
+
 
 
 
