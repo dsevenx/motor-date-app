@@ -242,22 +242,12 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
           disabled={isEffectivelyDisabled}
           readOnly={generellNichtEditierbar}
           className={`
-            w-full px-3 py-2 
-            ${generellNichtEditierbar 
-              ? 'border-0 bg-transparent' 
-              : 'border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            ${isEffectivelyDisabled 
+              ? 'bg-gray-100 cursor-not-allowed text-gray-500' 
+              : 'bg-white hover:border-gray-400'
             }
-            ${disabled && !generellNichtEditierbar
-              ? 'bg-gray-100 cursor-not-allowed text-gray-500'
-              : 'text-gray-900'
-            }
-            ${generellNichtEditierbar
-              ? 'cursor-default'
-              : disabled 
-                ? 'cursor-not-allowed'
-                : 'cursor-text'
-            }
-            ${!generellNichtEditierbar && isFocused ? 'border-blue-500' : !generellNichtEditierbar ? 'border-gray-300' : ''}
             transition-colors duration-200
           `}
         />

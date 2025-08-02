@@ -253,10 +253,15 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
           onFocus={handleInputFocus}
           disabled={isEffectivelyDisabled}
           className={`
-            w-full px-3 py-2 border border-gray-300 rounded-md 
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent 
-            pr-10 disabled:bg-gray-100 disabled:cursor-not-allowed
-            ${!selectedLabel && !isOpen ? 'text-gray-400' : 'text-gray-900'}
+            w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            pr-10
+            ${isEffectivelyDisabled 
+              ? 'bg-gray-100 cursor-not-allowed text-gray-500' 
+              : 'bg-white hover:border-gray-400'
+            }
+            ${!selectedLabel && !isOpen && !isEffectivelyDisabled ? 'text-gray-400' : ''}
+            transition-colors duration-200
           `}
           placeholder={isOpen ? placeholder : ''}
         />
