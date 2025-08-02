@@ -62,20 +62,31 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
         return;
       }
       
-      // Calculate calendar position below the input field
-      const calendarTop = rect.bottom + 4;
+      // Check available space above and below
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const calendarHeight = 400; // Approximate calendar height
+      const menuHeight = 120; // Top menu height
       
-      // Check if calendar would overlap with top menu area
-      // Assume top menu takes up roughly first 120px of screen
-      const menuHeight = 120;
+      // Determine position: above or below
+      const shouldShowAbove = spaceBelow < calendarHeight && spaceAbove > calendarHeight;
       
-      if (calendarTop < menuHeight) {
-        // Calendar would overlap with menu, close it
+      let calendarTop;
+      if (shouldShowAbove) {
+        // Position calendar so its bottom edge is just above the input field
+        calendarTop = rect.top - calendarHeight - 4;
+      } else {
+        calendarTop = rect.bottom + 4;
+      }
+      
+      // Check if calendar would overlap with top menu area or go outside viewport
+      if (calendarTop < menuHeight || calendarTop > window.innerHeight - 100) {
+        // Calendar would overlap with menu or be outside viewport, close it
         setIsOpen(false);
         return;
       }
       
-      // Always position calendar below the input field
+      // Position calendar
       setPortalPosition({
         top: calendarTop,
         left: rect.left,

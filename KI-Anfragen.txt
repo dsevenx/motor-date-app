@@ -312,15 +312,30 @@ Bitte erstell die Page und hänge die andere bei Objekt-Detail ein.
 
 Anfrage 14
 
-Für das finale persistieren haben wir ein WebService, den wir ServiceABSEinarbeiter nennen. Bitte sieh diesen als separate WerbService Call vor.
-Dieser WebService wird aufgerufen, wenn im man in Edit Modus speichert. Der WebService wird als Soap-WebService mit XML gerufen.
+Für das finale persistieren nutzen wir ein bestehenden WebService, den wir ServiceABSEinarbeiter nennen. Bitte bereite diesen als separate WerbService API-Call vor.
+Dieser WebService wird aufgerufen, wenn man im Edit Modus speichert. Der WebService wird als Soap-WebService mit XML gerufen.
 Das XML dieht so aus :
 <ANTRAG><PERSONEN></PERSONEN><VERTRAG><KRAFTBL></KRAFTBL></VERTRAG></ANTRAG>
-Bitte sieh schon eine eine ServiceABSEinarbeiterHelper.tsx vor. Diese Klasse erstellt und pflegt das zu versendende SendeXML. 
-In der Funktion "erzeugeSendeXML" werden alle FIELDDEFINTION Felder abgelaufen und vo jedem Feld wird die Funktion ergaenzeKraftXML() aufgerufen.
-vor, die im obigen XML bei dem Tag KRAFTBL Elemente einfügt. Diese Methode wollen wir im Helper für jedes FIELDDEFINTION Feld aufrufen.
-Der WebService soll bei unseren beiden Buttons dahinter sein. Es ist OK, dass hinter beiden Buttons aktuell die gleiche Logik ist.
-Beim Mocken des WebService bitte aktuell auf KB-TH die neue Section
+Bitte sieh schon mal eine eine ServiceABSEinarbeiterHelper.tsx vor. Diese Klasse erstellt und pflegt das zu versendende SendeXML. 
+In der ServiceABSEinarbeiterHelper kommt eine Funktion "erzeugeSendeXML".
+Dies Funtkion erzeugt für den ServiceABSEinarbeiter-Soap-Service das XML, stellt aber auch diese XML auf einer neuen Section auf der KB-TH page dar.
+
+Der Inhalt der erzeugeSendeXML-Funktion ist wie folgt:
+
+Alle FIELDDEFINTION-Felder abgelaufen :
+Wenn das Feld ein direktes Feld (also Zahl,Datum,Text,DropDown,CheckBox) ist und vom Nutzer oder via KI chat eingegeben ist, dann wird das XML für diese Feld wie folgt aufgebaut.
+"<"+ Name des Feldes +"_e/>+ Wert des Feldes + "</"+ Name des Feldes +"_e/>.
+Wenn das Feld eine Tabelle ist, dann reicht eine geänderte Zelle aus, das die ganze Tabelle als eingegeben zählt und damit gesendet wird.
+Die Tabelle wir so gesendet:
+"<"+ Name der Tabelle +"_e/>
+<zeile> Zeile 1 in XML </zeile>   
+<zeile> Zeile 2 in XML </zeile>  
+"</"+ Name der Tabelle +"_e/>.
+Bei den Produtktabellen werden nur die Felder gesendet, die eine KnotenID haben. (also z.B. KH bei der Spartentabelle, oder "KBM00087" bei Bausteintabellen)
+
+Wenn diese FIELDDEINTION-XML snippet erstellt sind, dann kommen diese das <KRAFTBL> Tag.
+
+
 
 
 

@@ -112,7 +112,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             label=""
             disabled={disabled}
             hideLabel={true}
-            allowInViewMode={true}
+            allowInViewMode={false}
           />
         );
 
@@ -170,7 +170,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             domainId={column.dropdown?.domainId || ''}
             placeholder={column.ui?.placeholder || 'Bitte auswählen...'}
             hideLabel={true}
-            allowInViewMode={true}
+            allowInViewMode={false}
           />
         );
 

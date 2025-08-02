@@ -74,20 +74,33 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
         return;
       }
       
-      // Calculate dropdown position below the input field
-      const dropdownTop = rect.bottom + 4;
+      // Check available space above and below
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const dropdownHeight = 240; // Approximate dropdown height (max-h-60)
+      const menuHeight = 120; // Top menu height
       
-      // Check if dropdown would overlap with top menu area
-      // Assume top menu takes up roughly first 120px of screen
-      const menuHeight = 120;
+      // Determine position: above or below
+      const shouldShowAbove = spaceBelow < dropdownHeight && spaceAbove > dropdownHeight;
       
-      if (dropdownTop < menuHeight) {
-        // Dropdown would overlap with menu, close it
+      let dropdownTop;
+      if (shouldShowAbove) {
+        // Position dropdown so its bottom edge is just above the input field
+        // Use smaller estimate: each option ~32px + padding
+        const actualDropdownHeight = Math.min(240, Math.max(filteredOptions.length * 32 + 16, 60));
+        dropdownTop = rect.top - actualDropdownHeight - 4;
+      } else {
+        dropdownTop = rect.bottom + 4;
+      }
+      
+      // Check if dropdown would overlap with top menu area or go outside viewport
+      if (dropdownTop < menuHeight || dropdownTop > window.innerHeight - 100) {
+        // Dropdown would overlap with menu or be outside viewport, close it
         setIsOpen(false);
         return;
       }
       
-      // Always position dropdown below the input field
+      // Position dropdown
       setPortalPosition({
         top: dropdownTop,
         left: rect.left,
