@@ -1,14 +1,17 @@
 "use client"
 
-import React from 'react';
-import { Database, Eye, User, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Database, Eye, User, MessageSquare, Code, Download, FileText, Settings } from 'lucide-react';
 import { FIELD_DEFINITIONS, generateEchteEingabeValues } from '@/constants/fieldConfig';
+import { ServiceABSEinarbeiterHelper } from '@/utils/ServiceABSEinarbeiterHelper';
+import { PageTemplate } from '@/components/PageTemplate';
 
 // Force dynamic rendering to avoid SSR issues
 export const dynamic = 'force-dynamic';
 
 export default function KbThPage() {
   const echteEingabeValues = generateEchteEingabeValues();
+  const [showXmlDetails, setShowXmlDetails] = useState(false);
 
   // Formatiere Werte für die Anzeige
   const formatDisplayValue = (field: any, value: any) => {
@@ -99,21 +102,10 @@ export default function KbThPage() {
     );
   };
 
-  return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <div className="text-center mb-6">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Database className="w-8 h-8 text-green-600" />
-          <h1 className="text-3xl font-bold text-gray-800">
-            KB-TH: Echte Eingaben
-          </h1>
-        </div>
-        <p className="text-gray-600">
-          Übersicht aller erfassten Benutzereingaben und deren Datenquellen
-        </p>
-      </div>
 
-      <div className="space-y-8">
+  // Echte Eingaben Content
+  const renderEchteEingabenContent = () => (
+    <div className="space-y-8">
         {/* Datums-Felder */}
         {dateFields.length > 0 && (
           <div>
@@ -286,7 +278,138 @@ export default function KbThPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
+  );
+
+  // ServiceABSEinarbeiter Content  
+  const renderServiceABSContent = () => (
+    <div className="space-y-8">
+        {/* XML-Generierung für ServiceABSEinarbeiter */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+            📤 ServiceABSEinarbeiter XML
+          </h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Code className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-gray-700">SOAP XML für Persistierung</span>
+              </div>
+              <button
+                onClick={() => setShowXmlDetails(!showXmlDetails)}
+                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+              >
+                {showXmlDetails ? 'XML verbergen' : 'XML anzeigen'}
+              </button>
+            </div>
+
+            {/* XML-Statistiken */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-white rounded p-3">
+                <div className="text-sm text-gray-600">Eingegbene Felder</div>
+                <div className="text-lg font-semibold text-blue-600">
+                  {ServiceABSEinarbeiterHelper.zaehleEingegebeneFelder(echteEingabeValues)}
+                </div>
+              </div>
+              <div className="bg-white rounded p-3">
+                <div className="text-sm text-gray-600">XML-Größe</div>
+                <div className="text-lg font-semibold text-green-600">
+                  {Math.round(ServiceABSEinarbeiterHelper.erzeugeSendeXML(echteEingabeValues).length / 1024 * 100) / 100} KB
+                </div>
+              </div>
+              <div className="bg-white rounded p-3">
+                <div className="text-sm text-gray-600">Status</div>
+                <div className="text-lg font-semibold text-purple-600">
+                  {ServiceABSEinarbeiterHelper.zaehleEingegebeneFelder(echteEingabeValues) > 0 ? 'Bereit' : 'Keine Daten'}
+                </div>
+              </div>
+            </div>
+
+            {/* Zusammenfassung der zu sendenden Daten */}
+            <div className="mb-4">
+              <h4 className="font-medium text-gray-700 mb-2">Zu sendende Daten:</h4>
+              <div className="bg-white rounded p-3 max-h-32 overflow-y-auto">
+                {ServiceABSEinarbeiterHelper.erstelleZusammenfassung(echteEingabeValues).length > 0 ? (
+                  <ul className="text-sm space-y-1">
+                    {ServiceABSEinarbeiterHelper.erstelleZusammenfassung(echteEingabeValues).map((item, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-gray-500 text-sm">Keine echten Eingaben vorhanden</div>
+                )}
+              </div>
+            </div>
+
+            {/* XML-Anzeige */}
+            {showXmlDetails && (
+              <div className="bg-white rounded border">
+                <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+                  <span className="font-medium text-gray-700">Generiertes SOAP XML</span>
+                  <button
+                    onClick={() => {
+                      const xml = ServiceABSEinarbeiterHelper.erzeugeSendeXML(echteEingabeValues);
+                      navigator.clipboard.writeText(xml);
+                      alert('XML in Zwischenablage kopiert!');
+                    }}
+                    className="flex items-center gap-2 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    <Download className="w-3 h-3" />
+                    Kopieren
+                  </button>
+                </div>
+                <div className="p-4">
+                  <pre className="text-xs bg-gray-50 p-3 rounded border overflow-x-auto max-h-96 overflow-y-auto">
+                    <code className="text-gray-800">
+                      {ServiceABSEinarbeiterHelper.formatXML(
+                        ServiceABSEinarbeiterHelper.erzeugeSendeXML(echteEingabeValues)
+                      )}
+                    </code>
+                  </pre>
+                </div>
+              </div>
+            )}
+
+            {/* Hinweise */}
+            <div className="mt-4 p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+              <div className="text-sm text-blue-800">
+                <strong>Hinweis:</strong> Dieses XML wird an den ServiceABSEinarbeiter SOAP-WebService gesendet, 
+                wenn im EditModus gespeichert wird. Es enthält nur Felder mit echten Benutzereingaben.
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  );
+
+  return (
+    <PageTemplate title="KB-TH: Diagnose & Persistierung" enableSectionNavigation>
+      <div className="space-y-8">
+        <section id="echte-eingaben">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Echte Eingaben
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Übersicht aller erfassten Benutzereingaben und deren Datenquellen
+          </p>
+          {renderEchteEingabenContent()}
+        </section>
+        
+        <section id="service-abs">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <Code className="w-5 h-5" />
+            ServiceABSEinarbeiter
+          </h2>
+          <p className="text-gray-600 mb-6">
+            XML-Generierung für SOAP-Service und Persistierung
+          </p>
+          {renderServiceABSContent()}
+        </section>
+      </div>
+    </PageTemplate>
   );
 }

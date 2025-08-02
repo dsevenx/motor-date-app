@@ -61,7 +61,11 @@ const menuItems: MenuItem[] = [
   },
   {
     name: 'KB-TH',
-    path: '/kb-th'
+    path: '/kb-th',
+    subItems: [
+      { name: 'Echte Eingaben', path: '/kb-th', section: 'echte-eingaben' },
+      { name: 'ServiceABSEinarbeiter', path: '/kb-th', section: 'service-abs' }
+    ]
   },
   {
     name: 'GUI-Test',

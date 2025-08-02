@@ -171,16 +171,22 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
   const handleFocus = () => {
     if (!isEffectivelyDisabled) {
       setIsFocused(true);
-      // Zeige Rohwert beim Fokus
-      setInputValue(value.toString());
+      // Wenn Wert 0 ist, leere das Feld für bessere UX
+      if (value === 0) {
+        setInputValue('');
+      } else {
+        // Zeige Rohwert beim Fokus
+        setInputValue(value.toString());
+      }
     }
   };
 
   const handleBlur = () => {
     setIsFocused(false);
     // Formatiere Wert beim Verlassen des Fokus
-    const parsedValue = parseInputValue(inputValue);
-    handleValueChange(parsedValue);
+    // Wenn Feld leer ist, setze auf 0
+    const finalValue = inputValue.trim() === '' ? 0 : parseInputValue(inputValue);
+    handleValueChange(finalValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
