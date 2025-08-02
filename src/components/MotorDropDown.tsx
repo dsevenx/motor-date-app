@@ -4,7 +4,8 @@ import { fetchDomainData } from "@/app/api/FetchDomainData";
 import { DropdownOption } from "@/constants/index";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { updateEchteEingabe } from "@/constants/fieldConfig";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export interface MotorDropDownProps {
   value: string;
@@ -35,6 +36,8 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
   const [options, setOptions] = useState<DropdownOption[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedLabel, setSelectedLabel] = useState<string>('');
+  const [portalPosition, setPortalPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Effektiv disabled wenn EditMode aus ist (außer allowInViewMode) oder prop disabled ist
   const isEffectivelyDisabled = (!isEditMode && !allowInViewMode) || disabled;
@@ -47,8 +50,59 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
     }
   };
   
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Client-side mounting check
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Position calculation for portal
+  const calculatePortalPosition = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      
+      // Check if input is visible in viewport
+      const isVisible = rect.bottom > 0 && rect.top < window.innerHeight && 
+                       rect.right > 0 && rect.left < window.innerWidth;
+      
+      if (!isVisible) {
+        // Close dropdown if input field scrolled out of view
+        setIsOpen(false);
+        return;
+      }
+      
+      // Calculate dropdown position below the input field
+      const dropdownTop = rect.bottom + 4;
+      
+      // Check if dropdown would overlap with top menu area
+      // Assume top menu takes up roughly first 120px of screen
+      const menuHeight = 120;
+      
+      if (dropdownTop < menuHeight) {
+        // Dropdown would overlap with menu, close it
+        setIsOpen(false);
+        return;
+      }
+      
+      // Always position dropdown below the input field
+      setPortalPosition({
+        top: dropdownTop,
+        left: rect.left,
+        width: Math.max(200, rect.width)
+      });
+    }
+  };
+
+  // Open dropdown handler
+  const handleOpenDropdown = () => {
+    if (!isEffectivelyDisabled) {
+      calculatePortalPosition();
+      setIsOpen(true);
+    }
+  };
 
   React.useEffect(() => {
     const loadOptions = async () => {
@@ -90,40 +144,89 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
     setSearchTerm(newSearchTerm);
     
     if (!isOpen) {
-      setIsOpen(true);
+      handleOpenDropdown();
     }
   };
 
   const handleInputFocus = (): void => {
     if (!isEffectivelyDisabled) {
-      setIsOpen(true);
+      handleOpenDropdown();
       setSearchTerm('');
     }
   };
 
   const handleDropdownToggle = (): void => {
     if (!isEffectivelyDisabled) {
-      setIsOpen(!isOpen);
       if (!isOpen) {
+        handleOpenDropdown();
         inputRef.current?.focus();
+      } else {
+        setIsOpen(false);
+        setSearchTerm('');
       }
     }
   };
 
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+  // Handle outside clicks and scrolling
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchTerm('');
       }
     };
 
-    // SSR-safe: Only add event listeners in browser environment
-    if (typeof window !== 'undefined') {
+    const handleScroll = () => {
+      if (isOpen) {
+        // Use requestAnimationFrame for smoother positioning
+        requestAnimationFrame(() => {
+          calculatePortalPosition();
+        });
+      }
+    };
+
+    const handleResize = () => {
+      if (isOpen) {
+        calculatePortalPosition();
+      }
+    };
+
+    if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      
+      // Add scroll listeners to window and all scrollable parent elements
+      window.addEventListener('scroll', handleScroll, true);
+      document.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      // Find and add listeners to all scrollable parent containers
+      const scrollableParents: Element[] = [];
+      let element = inputRef.current?.parentElement;
+      while (element && element !== document.body) {
+        const style = window.getComputedStyle(element);
+        if (style.overflow === 'auto' || style.overflow === 'scroll' || 
+            style.overflowY === 'auto' || style.overflowY === 'scroll' ||
+            style.overflowX === 'auto' || style.overflowX === 'scroll') {
+          scrollableParents.push(element);
+          element.addEventListener('scroll', handleScroll);
+        }
+        element = element.parentElement;
+      }
+      
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        window.removeEventListener('scroll', handleScroll, true);
+        document.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+        
+        // Remove listeners from scrollable parents
+        scrollableParents.forEach(parent => {
+          parent.removeEventListener('scroll', handleScroll);
+        });
+      };
     }
-  }, []);
+  }, [isOpen]);
 
   const getDisplayValue = (): string => {
     if (isOpen && searchTerm !== '') {
@@ -133,7 +236,7 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
   };
 
   return (
-    <div className="relative w-full" ref={dropdownRef}>
+    <div className="relative w-full" ref={containerRef}>
       {/* Label - nur anzeigen wenn vorhanden und nicht versteckt */}
       {label && !hideLabel && (
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -174,43 +277,55 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
           </svg>
         </button>
       </div>
-
-      {isOpen && (
-        <div className="absolute z-[9999] mt-1 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-60 overflow-y-auto">
-          {loading ? (
-            <div className="p-3 text-center text-gray-500">
-              Laden...
-            </div>
-          ) : filteredOptions.length === 0 ? (
-            <div className="p-3 text-center text-gray-500">
-              Keine Optionen gefunden
-            </div>
-          ) : (
-            <>
-              {searchTerm && (
-                <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-sm text-gray-600">
-                  {filteredOptions.length} von {options.length} Optionen
-                </div>
-              )}
-              
-              <div className="py-1">
-                {filteredOptions.map((option, index) => (
-                  <button
-                    key={`${option.value}-${index}`}
-                    onClick={() => handleOptionSelect(option)}
-                    className={`
-                      w-full text-left px-3 py-2 text-sm hover:bg-gray-100 
-                      focus:bg-gray-100 focus:outline-none transition-colors
-                      ${option.value === value ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-900'}
-                    `}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+      
+      {/* Dropdown Options via Portal */}
+      {isOpen && !isEffectivelyDisabled && isMounted && portalPosition && (
+        createPortal(
+          <div 
+            ref={dropdownRef}
+            className="fixed z-[9999] bg-white border border-gray-200 rounded-md shadow-xl max-h-60 overflow-y-auto"
+            style={{
+              top: `${portalPosition?.top}px`,
+              left: `${portalPosition?.left}px`,
+              width: `${portalPosition?.width}px`
+            }}
+          >
+            {loading ? (
+              <div className="p-3 text-center text-gray-500">
+                Laden...
               </div>
-            </>
-          )}
-        </div>
+            ) : filteredOptions.length === 0 ? (
+              <div className="p-3 text-center text-gray-500">
+                Keine Optionen gefunden
+              </div>
+            ) : (
+              <>
+                {searchTerm && (
+                  <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-sm text-gray-600">
+                    {filteredOptions.length} von {options.length} Optionen
+                  </div>
+                )}
+                
+                <div className="py-1">
+                  {filteredOptions.map((option, index) => (
+                    <button
+                      key={`${option.value}-${index}`}
+                      onClick={() => handleOptionSelect(option)}
+                      className={`
+                        w-full text-left px-3 py-2 text-sm hover:bg-gray-100 
+                        focus:bg-gray-100 focus:outline-none transition-colors
+                        ${option.value === value ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-900'}
+                      `}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>,
+          document.body
+        )
       )}
     </div>
   );

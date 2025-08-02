@@ -64,7 +64,6 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
       
       // Calculate calendar position below the input field
       const calendarTop = rect.bottom + 4;
-      const calendarHeight = 400; // Approximate calendar height
       
       // Check if calendar would overlap with top menu area
       // Assume top menu takes up roughly first 120px of screen
