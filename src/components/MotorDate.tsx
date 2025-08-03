@@ -1,7 +1,7 @@
 "use client"
 
 import { MotorDateProps } from "@/constants";
-import { updateEchteEingabe } from "@/constants/fieldConfig";
+import { setFieldValueWithEchteEingabe } from "@/constants/fieldConfig";
 import { useEditMode } from "@/contexts/EditModeContext";
 import { Calendar } from 'lucide-react';
 import React, { useState, useRef, useEffect } from "react";
@@ -36,9 +36,10 @@ export const MotorDate: React.FC<MotorDateProps> = ({ value, onChange, label, fi
 
   // Wrapper für onChange mit echteEingabe tracking
   const handleValueChange = (newValue: string, isUserInput: boolean = true) => {
-    onChange(newValue);
     if (fieldKey && isUserInput) {
-      updateEchteEingabe(fieldKey, newValue);
+      setFieldValueWithEchteEingabe(fieldKey, newValue, onChange);
+    } else {
+      onChange(newValue);
     }
   };
 

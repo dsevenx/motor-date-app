@@ -3,7 +3,7 @@
 import { fetchDomainData } from "@/app/api/FetchDomainData";
 import { DropdownOption } from "@/constants/index";
 import { useEditMode } from "@/contexts/EditModeContext";
-import { updateEchteEingabe } from "@/constants/fieldConfig";
+import { setFieldValueWithEchteEingabe } from "@/constants/fieldConfig";
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -44,9 +44,10 @@ export const MotorDropDown: React.FC<MotorDropDownProps> = ({
 
   // Wrapper für onChange mit echteEingabe tracking
   const handleValueChange = (newValue: string) => {
-    onChange(newValue);
     if (fieldKey) {
-      updateEchteEingabe(fieldKey, newValue);
+      setFieldValueWithEchteEingabe(fieldKey, newValue, onChange);
+    } else {
+      onChange(newValue);
     }
   };
   

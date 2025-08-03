@@ -11,7 +11,7 @@ import {
   formatValueForDisplay,
   convertValueToFieldType
 } from '@/constants';
-import { markAsEchteEingabe } from '@/constants/fieldConfig';
+// echteEingabe wird automatisch durch setFieldValueWithEchteEingabe in Motor-Komponenten gesetzt
 import { ClaudeResponse } from '@/constants/fieldConfig';
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) => {
@@ -170,11 +170,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
           
         if (hasChanged) {
           try {
-            // Feld aktualisieren
+            // Feld aktualisieren (echteEingabe wird automatisch durch setFieldValueWithEchteEingabe gesetzt)
             fieldConfig.onChange(newValue);
-            
-            // WICHTIG: Alle KI-Updates als echte Eingabe markieren
-            markAsEchteEingabe(fieldKey, newValue, true);  // true = isFromAI
             
             // Formatierung für die Anzeige
             const formattedValue = formatValueForDisplay(newValue, fieldConfig.type);

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef } from 'react';
-import { updateEchteEingabe } from "@/constants/fieldConfig";
+import { setFieldValueWithEchteEingabe } from "@/constants/fieldConfig";
 import { useEditMode } from "@/contexts/EditModeContext";
 
 export interface MotorCheckBoxProps {
@@ -36,9 +36,10 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
 
   // Wrapper für onChange mit echteEingabe tracking
   const handleValueChange = (newValue: 'J' | 'N') => {
-    onChange(newValue);
     if (fieldKey) {
-      updateEchteEingabe(fieldKey, newValue);
+      setFieldValueWithEchteEingabe(fieldKey, newValue, onChange);
+    } else {
+      onChange(newValue);
     }
   };
 

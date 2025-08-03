@@ -3,7 +3,7 @@
 import { Calculator, Euro, Hash, Percent } from 'lucide-react';
 import React, { useState, useEffect } from "react";
 
-import { NumberFormat, updateEchteEingabe } from '@/constants/fieldConfig';
+import { NumberFormat, setFieldValueWithEchteEingabe } from '@/constants/fieldConfig';
 import { useEditMode } from "@/contexts/EditModeContext";
 
 export interface MotorEditNumberProps {
@@ -42,9 +42,10 @@ export const MotorEditNumber: React.FC<MotorEditNumberProps> = ({
 
   // Wrapper für onChange mit echteEingabe tracking
   const handleValueChange = (newValue: number, isUserInput: boolean = true) => {
-    onChange(newValue);
     if (fieldKey && isUserInput) {
-      updateEchteEingabe(fieldKey, newValue);
+      setFieldValueWithEchteEingabe(fieldKey, newValue, onChange);
+    } else {
+      onChange(newValue);
     }
   };
 

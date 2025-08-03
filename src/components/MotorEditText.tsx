@@ -1,7 +1,7 @@
 "use client"
 
 import { Type } from 'lucide-react';
-import { updateEchteEingabe } from "@/constants/fieldConfig";
+import { setFieldValueWithEchteEingabe } from "@/constants/fieldConfig";
 import { useEditMode } from "@/contexts/EditModeContext";
 import React, { useState } from "react";
 
@@ -44,9 +44,10 @@ export const MotorEditText: React.FC<MotorEditTextProps> = ({
       newValue = newValue.substring(0, maxLength);
     }
     
-    onChange(newValue);
     if (fieldKey) {
-      updateEchteEingabe(fieldKey, newValue);
+      setFieldValueWithEchteEingabe(fieldKey, newValue, onChange);
+    } else {
+      onChange(newValue);
     }
   };
 

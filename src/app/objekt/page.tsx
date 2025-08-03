@@ -10,8 +10,7 @@ import {
   generateDefaultValues, 
   generateEchteEingabeValues,
   getFieldByKey,
-  TableRow,
-  updateEchteEingabe
+  TableRow
 } from '@/constants/fieldConfig';
 import { useGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
 
@@ -76,8 +75,7 @@ export default function ObjektPage() {
               updates = { ...updates, [key]: newValue };
               hasChanges = true;
               
-              // Update echteEingabe for single-line-table from AI Chat
-              updateEchteEingabe(key, newValue);
+              // echteEingabe wird automatisch durch ChatComponent → handleFieldChange → markAsEchteEingabe gesetzt
               
               console.log(`Single-line-table update for ${key}:`, newValue);
             }
@@ -101,8 +99,7 @@ export default function ObjektPage() {
         return prev;
       }
       
-      // Echte Eingabe auch in globalen Field Definitions speichern
-      updateEchteEingabe(fieldKey, value);
+      // echteEingabe wird automatisch durch Motor-Komponenten über setFieldValueWithEchteEingabe gesetzt
       
       // Propagate to global state for Chat component
       updateFieldDefinitions({ [fieldKey]: value });

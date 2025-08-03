@@ -1085,36 +1085,38 @@ export const generateEchteEingabeValues = (): Record<string, any> => {
   }, {} as Record<string, any>);
 };
 
-// Aktualisiere echte Eingabe für ein Feld
-export const updateEchteEingabe = (fieldKey: string, value: any): void => {
-  const fieldIndex = FIELD_DEFINITIONS.findIndex(field => field.key === fieldKey);
+// Zentrale Funktion: Setze Feldwert UND markiere als echte Eingabe
+export const setFieldValueWithEchteEingabe = (
+  fieldKey: string, 
+  value: any, 
+  onChange: (value: any) => void
+): void => {
+  const field = getFieldByKey(fieldKey);
+  if (!field) {
+    onChange(value);
+    return;
+  }
+  
+  let finalValue = value;
+  
+  // Für Tabellen: Row-Level echteEingabe automatisch setzen
+  if ((field.type === 'table' || field.type === 'single-line-table') && Array.isArray(value)) {
+    finalValue = value.map(row => ({
+      ...row,
+      echteEingabe: row.echteEingabe !== undefined ? row.echteEingabe : true
+    }));
+  }
+  
+  // 1. Feld aktualisieren über onChange
+  onChange(finalValue);
+  
+  // 2. echteEingabe in FIELD_DEFINITIONS setzen
+  const fieldIndex = FIELD_DEFINITIONS.findIndex(f => f.key === fieldKey);
   if (fieldIndex !== -1) {
-    FIELD_DEFINITIONS[fieldIndex].echteEingabe = value;
+    FIELD_DEFINITIONS[fieldIndex].echteEingabe = finalValue;
     // Invalidate cache for this field so it gets updated
     delete _echteEingabeCache[fieldKey];
   }
-};
-
-// Markiere ein Feld als echte Eingabe (KI oder User)
-export const markAsEchteEingabe = (fieldKey: string, value: any, isFromAI: boolean = false): void => {
-  const field = getFieldByKey(fieldKey);
-  if (!field) return;
-  
-  // 1. Field-Level echteEingabe setzen
-  updateEchteEingabe(fieldKey, value);
-  
-  // 2. Für Tabellen: Auch Row-Level echteEingabe markieren
-  if ((field.type === 'table' || field.type === 'single-line-table') && Array.isArray(value)) {
-    const updatedValue = value.map(row => ({
-      ...row,
-      echteEingabe: true // Markiere als echte Eingabe (von KI oder User)
-    }));
-    
-    // Aktualisiere nochmal mit dem erweiterten Wert
-    updateEchteEingabe(fieldKey, updatedValue);
-  }
-  
-  console.log(`${isFromAI ? '🤖 KI' : '👤 User'} marked ${fieldKey} as echteEingabe:`, value);
 };
 
 // Generiere Field Configs für die Chat-Komponente
@@ -1123,15 +1125,39 @@ export const generateFieldConfigs = (
   setters: Record<string, (value: any) => void>,
   onFieldDefinitionsChange?: (updates: Record<string, any>) => void
 ) => {
-  return FIELD_DEFINITIONS.map(field => ({
-    fieldKey: field.key,
-    label: field.label,
-    synonyms: field.synonyms,
-    currentValue: values[field.key],
-    onChange: setters[field.key],
-    type: field.type,
-    table: field.table,
-    dropdown: field.dropdown,
-    onFieldDefinitionsChange: field.key === 'produktSparten' ? onFieldDefinitionsChange : undefined
-  }));
+  return FIELD_DEFINITIONS.map(field => {
+    // Erstelle wrapper onChange für ChatComponent, der echteEingabe automatisch setzt
+    const wrappedOnChange = (value: any) => {
+      // Für Tabellen: Row-Level echteEingabe setzen
+      let finalValue = value;
+      if ((field.type === 'table' || field.type === 'single-line-table') && Array.isArray(value)) {
+        finalValue = value.map(row => ({
+          ...row,
+          echteEingabe: row.echteEingabe !== undefined ? row.echteEingabe : true
+        }));
+      }
+      
+      // Original onChange aufrufen
+      setters[field.key](finalValue);
+      
+      // echteEingabe in FIELD_DEFINITIONS setzen (für ChatComponent/KI-Updates)
+      const fieldIndex = FIELD_DEFINITIONS.findIndex(f => f.key === field.key);
+      if (fieldIndex !== -1) {
+        FIELD_DEFINITIONS[fieldIndex].echteEingabe = finalValue;
+        delete _echteEingabeCache[field.key];
+      }
+    };
+    
+    return {
+      fieldKey: field.key,
+      label: field.label,
+      synonyms: field.synonyms,
+      currentValue: values[field.key],
+      onChange: wrappedOnChange,
+      type: field.type,
+      table: field.table,
+      dropdown: field.dropdown,
+      onFieldDefinitionsChange: field.key === 'produktSparten' ? onFieldDefinitionsChange : undefined
+    };
+  });
 };

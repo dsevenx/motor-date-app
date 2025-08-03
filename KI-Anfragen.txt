@@ -359,7 +359,7 @@ dann bedeutet dies, das ist ein "Antrag" an dem jemand weiterarbeiten möchte. D
 dann übertragen wir 
  contractAusfertigunsgrund in das FiledDefintion KraftBoGruppeAusfertigungsgrundABS
  und
- inceptionDate in das FieldDefintion KraftBoZefdatum.
+ inceptionDate in das FieldDefintion KraftBoZefdatum. Das zählt nicht als echte Eingabe, weil es vom fetchContractDataDB kommt.
 Wenn der Nutzer den EditModus wieder verlässt - wird die WebSite neu gestartet. D.h. man würde auf KB-TH keine Eingaben mehr sehen.
 
 Fall2:
@@ -369,7 +369,9 @@ Fall2:
 dann bedeutet dies, das ist ein "Vertrag" an dem jemand ein Vorgang beginnen könnte. D.h. wenn man in den EditModus geht,
 dann öffnen wir ein modales PopUp in der Bildschirmmitte , 
 wo der Nutzer KraftBoGruppeAusfertigungsgrundABS per MotorDropDonw und KraftBoZefdatum per MotorDate eingeben kann.
+Wenn beide Felder gefüllt sind, ist der OK Button enabeld, sonst disabled.
 Wenn der Nutzer auf dem PopUp OK klickt, dann gelangt der Nutzer in den globalen Edit Modus und KraftBoGruppeAusfertigungsgrundABS und KraftBoZefdatum in FieldDefintions werden aus den lokalen aktualisiert.
+Dies muss als echte Eingabe zählen.
 Wenn der Nutzer auf Abbrechen klickt, dann ist der Nutzer wieder im Anzeigemodus und KraftBoGruppeAusfertigungsgrundABS und KraftBoZefdatum sind nicht in FieldDefintions aktualisiert worden.
 Wenn der Nutzer den EditModus wieder verlässt - wird die WebSite neu gestartet. D.h. man würde auf KB-TH keine Eingaben mehr sehen.
 
@@ -378,9 +380,11 @@ Fall3:
     contractAusfertigunsgrund: 'G01',
     inceptionDate: '2025-07-01'
 dann bedeutet dies, das ist der Start eines Neuschgeschäfts. 
-Der Nutzer ist sofort im EditModus und kann auch nicht in den Anzeigemodus wechseln. Wir müssen den Anzeig-Button dann etwas grau machen.
-KraftBoGruppeAusfertigungsgrundABS in FieldDefintion wird mit G01 als eingegeben gesetzt.
-KraftBoZefdatum in FieldDefintions wird mit Tagesdatum als eingegeben gesetzt.
+Wir öffnen erneut das PopUp aus Fall 2 - diesmal ist aber der Ausfertigungsgrund geschützt auf G01. Nur das Datum - welches mit Tagesdatum vorlegt ist, kann man ändern.
+Wenn der Nutzer auf dem PopUp OK klickt, dann gelangt der Nutzer in den globalen Edit Modus und KraftBoGruppeAusfertigungsgrundABS und KraftBoZefdatum in FieldDefintions werden aus den lokalen aktualisiert.
+Dies muss als echte Eingabe zählen.
+Der Abbrechen Button macht hier nicht viel sinn - wir blenden dies generell aus.
+Aus das Verlassen des EditModus danach macht nicht viel Sinn. wir würden den "Anzeige" Button ebenfalls disablen.
 
 
 
