@@ -345,6 +345,18 @@ Die KI-Antwort mit "Verstanden! Ich habe folgende Daten aktualisiert: Aktuelle F
 ist eigentlich auch OK - aber die GUI Aktualisierung erfolgt nicht. Bitte prüfe ob FIELDDEFINTION korrekt aktualisiert wurde.
 
 ------------------------------------------------------------------------------------------------------------
+Anfrage 15a
+
+Bei der Vorführung unserer Anwendung ist eine wertvolle Funtkionalität : Man kann im Chat Infos eingeben und wir erstellen ein ServiceEinarbeiterXML.
+Diese Funktionnalität würden wir gern jetzt im ChatGPT eines Kunden zur Verfügung stellen. 
+Ich dachte unser Anwendung könnte wir auch MCP Servcer laufen lassen, das Tool was wir anbieten würden, wäre ServiceABS-Einarbeiter XML erstellen.
+Input wäre der Chat und Ausgabe wäre das XML. Wenn wir weitere Felder in FIELDDEFINTIONS einbauen, dann würden wir die auch via MCP unserem Kunden zur Verfügung
+stehen. Wie sollten wir vorgehen, um in dem Kunden-ChatGPT mit unserer Logik aktiv zu werden. 
+
+Testsatz :
+Kannst Du mir das ServiceABS Einarbeiter XML für eine Fahrleistung von 9000 und eine manuelle Typklasse KH mit dem Wert 8 anzeigen 
+
+------------------------------------------------------------------------------------------------------------
 
 Anfrage 16
 

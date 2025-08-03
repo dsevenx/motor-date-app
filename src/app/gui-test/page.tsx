@@ -118,7 +118,7 @@ const GuiTestPage: React.FC = () => {
   const dropdownFields = FIELD_DEFINITIONS.filter(field => field.type === 'dropdown');
   // Filtere Sparten- und Baustein-Tabellen aus, da diese über MotorProduktSpartenTree verwaltet werden
   const tableFields = FIELD_DEFINITIONS.filter(field => 
-    field.type === 'table' && 
+    (field.type === 'table' || field.type === 'single-line-table') && 
     field.key !== 'produktSparten' && 
     !field.key.startsWith('produktBausteine_')
   );
@@ -279,7 +279,7 @@ const GuiTestPage: React.FC = () => {
                       displayValue = fieldValues[field.key] === 'J' ? 'Ja' 
                         : fieldValues[field.key] === 'N' ? 'Nein' 
                         : 'Nicht gesetzt';
-                    } else if (field.type === 'table') {
+                    } else if (field.type === 'table' || field.type === 'single-line-table') {
                       const tableData = fieldValues[field.key];
                       displayValue = Array.isArray(tableData) ? `${tableData.length} Einträge` : '0 Einträge';
                     } else if (field.type === 'date') {
@@ -311,7 +311,7 @@ const GuiTestPage: React.FC = () => {
                       <div key={field.key} className="flex justify-between items-center">
                         <span className="font-medium text-gray-700">{field.label}:</span>
                         <span className={`text-gray-600 ${
-                          field.type === 'table' && Array.isArray(fieldValues[field.key]) && fieldValues[field.key].length > 0
+                          (field.type === 'table' || field.type === 'single-line-table') && Array.isArray(fieldValues[field.key]) && fieldValues[field.key].length > 0
                             ? 'font-medium text-blue-600'
                             : ''
                         }`}>
