@@ -1163,6 +1163,31 @@ const mockDomainData: Datalist[] =[{
         ]
     }, {
         "classId": "com.allianz.cisl.base.datalist.Datalist",
+        "id": "KraftBoGruppeMoeglAusfertigungsgrundABS",
+        "options": [{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "G01",
+                "label": "Neugeschäft"
+            },{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "G80",
+                "label": "Änderung"
+            },{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "G08",
+                "label": "Stornierung"
+            },{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "INT",
+                "label": "intere Änderung"
+            },{
+                "classId": "com.allianz.cisl.base.datalist.Option",
+                "value": "G1F",
+                "label": "Fahrzeugwechsel"
+            }
+        ]
+    }, {
+        "classId": "com.allianz.cisl.base.datalist.Datalist",
         "id": "KraftBoGruppeMoeglFzgArt",
         "options": [{
                 "classId": "com.allianz.cisl.base.datalist.Option",

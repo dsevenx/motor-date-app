@@ -48,7 +48,7 @@ export default function KbThPage() {
       return 'Nicht gesetzt';
     }
 
-    if (field.type === 'table') {
+    if (field.type === 'table' || field.type === 'single-line-table') {
       return Array.isArray(value) ? `${value.length} Einträge` : '0 Einträge';
     }
 
@@ -75,7 +75,7 @@ export default function KbThPage() {
   const numberFields = FIELD_DEFINITIONS.filter(field => field.type === 'number');
   const tristateFields = FIELD_DEFINITIONS.filter(field => field.type === 'tristate');
   const dropdownFields = FIELD_DEFINITIONS.filter(field => field.type === 'dropdown');
-  const tableFields = FIELD_DEFINITIONS.filter(field => field.type === 'table');
+  const tableFields = FIELD_DEFINITIONS.filter(field => field.type === 'table' || field.type === 'single-line-table');
 
   // Funktion für Tabellen-Detail-Anzeige
   const renderTableDetails = (field: any, tableData: any[]) => {

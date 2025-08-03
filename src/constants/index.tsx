@@ -253,6 +253,7 @@ export const convertValueToFieldType = (value: any, type: FieldType): any => {
     case 'dropdown':
       return typeof value === 'string' ? value : String(value || '');
     case 'table':
+    case 'single-line-table':
       return Array.isArray(value) ? value : [];
     default:
       return value;
@@ -282,6 +283,7 @@ export const formatValueForDisplay = (value: any, type: FieldType): string => {
     case 'dropdown':
       return value === '' ? 'Nicht gesetzt' : String(value);
     case 'table':
+    case 'single-line-table':
       return Array.isArray(value) ? `${value.length} Einträge` : 'Nicht gesetzt';
     default:
       return String(value);

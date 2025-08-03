@@ -7,7 +7,7 @@ import { ChatComponent } from '@/components/ChatComponent';
 import MotorAktenMenueleiste from '@/components/MotorAktenMenueleiste';
 import { EditModeProvider } from '@/contexts/EditModeContext';
 import { useGlobalChatConfig } from '@/hooks/useGlobalChatConfig';
-import { setGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
+import { setGlobalFieldDefinitions, useGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
 import { 
   FIELD_DEFINITIONS, 
   generateDefaultValues, 
@@ -20,23 +20,62 @@ interface AppLayoutProps {
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const globalChatConfig = useGlobalChatConfig();
+  const { fieldDefinitions: globalFieldValues, updateFieldDefinitions } = useGlobalFieldDefinitions();
   
   // Standard State für normale Seiten
   const defaultValues = useMemo(() => generateDefaultValues(), []);
   const [fieldValues, setFieldValues] = useState(defaultValues);
 
+  // Sync with global field values from other pages (avoid circular updates)
+  useEffect(() => {
+    if (globalFieldValues && Object.keys(globalFieldValues).length > 0) {
+      setFieldValues(prev => {
+        // Filter out single-line-table fields to prevent loops
+        const filteredUpdates: Record<string, any> = {};
+        Object.keys(globalFieldValues).forEach(key => {
+          const field = FIELD_DEFINITIONS.find(f => f.key === key);
+          if (field?.type !== 'single-line-table') {
+            filteredUpdates[key] = globalFieldValues[key];
+          }
+        });
+        
+        if (Object.keys(filteredUpdates).length === 0) {
+          return prev; // No updates for this component
+        }
+        
+        // Only update if values have actually changed
+        const hasChanges = Object.keys(filteredUpdates).some(key => 
+          prev[key] !== filteredUpdates[key]
+        );
+        return hasChanges ? { ...prev, ...filteredUpdates } : prev;
+      });
+    }
+  }, [globalFieldValues]);
+
   // Generiere individuelle Setter für jedes Feld
   const setters = useMemo(() => {
     return FIELD_DEFINITIONS.reduce((acc, field) => {
       acc[field.key] = (value: any) => {
-        setFieldValues(prev => ({
-          ...prev,
-          [field.key]: value
-        }));
+        setFieldValues(prev => {
+          // Only update if value actually changed
+          if (prev[field.key] === value || 
+              (Array.isArray(prev[field.key]) && Array.isArray(value) && 
+               JSON.stringify(prev[field.key]) === JSON.stringify(value))) {
+            return prev;
+          }
+          
+          // Propagate changes to global state
+          updateFieldDefinitions({ [field.key]: value });
+          
+          return {
+            ...prev,
+            [field.key]: value
+          };
+        });
       };
       return acc;
     }, {} as Record<string, (value: any) => void>);
-  }, []);
+  }, [updateFieldDefinitions]);
 
   const handleFieldDefinitionsChange = (updates: Record<string, any>) => {
     setFieldValues(prev => ({ ...prev, ...updates }));

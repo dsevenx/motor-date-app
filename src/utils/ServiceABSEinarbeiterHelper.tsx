@@ -57,7 +57,7 @@ ${kraftblContent}
       const istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
       
       if (istEingegeben) {
-        if (field.type === 'table') {
+        if (field.type === 'table' || field.type === 'single-line-table') {
           // Tabellen-Behandlung
           const tableXml = this.erzeugeTabellXML(field, fieldValue);
           if (tableXml) {

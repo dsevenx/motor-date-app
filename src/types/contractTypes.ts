@@ -49,6 +49,9 @@ export interface ContractHeader {
 export interface Contract {
   id: string;
   name: string;
+  contractstate: string;
+  contractAusfertigunsgrund: string;
+  inceptionDate: Date;
   header: ContractHeader;
   tree: ContractTree;
   ordnervereinbarungen: Ordnervereinbarung[];

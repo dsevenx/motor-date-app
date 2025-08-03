@@ -219,7 +219,7 @@ JSON-FORMAT:
   "appliedCorrections": []
 }
 
-TABELLEN-DATEN (kilometerstaende, zubehoer):
+TABELLEN-DATEN (kilometerstaende, zubehoer, manuelleTypklasse):
 - IMMER als Array von Objekten zurückgeben
 - Jedes Objekt MUSS eine "id" haben (generiere UUID-ähnlich)
 - Nutze die exakten Spalten-Keys aus der Konfiguration
@@ -238,6 +238,28 @@ Beispiel für kilometerstaende:
   "confidence": 0.9,
   "source": "Text-Bereich"
 }
+
+Beispiel für manuelleTypklasse (SINGLE-LINE-TABLE):
+"manuelleTypklasse": {
+  "value": [
+    {
+      "id": "1",
+      "grund": "",
+      "haftpflicht": 12,
+      "vollkasko": 0,
+      "teilkasko": 8
+    }
+  ],
+  "confidence": 0.9,
+  "source": "KH 12 und TK 8"
+}
+
+WICHTIG für manuelleTypklasse:
+- Bei "KH 12/TK 8" → haftpflicht: 12, teilkasko: 8, vollkasko: 0
+- Bei "VK 15/TK 10" → vollkasko: 15, teilkasko: 10, haftpflicht: 0
+- Bei "KH 14" → nur haftpflicht: 14, andere: 0
+- IMMER als Array mit einem Objekt (single-line-table)
+- grund kann leer bleiben wenn nicht angegeben
 
 ARTIFACT-INTEGRATION:
 - Domain-Daten verfügbar in Artifact "fahrzeug-domains.json"
@@ -322,7 +344,7 @@ JSON-FORMAT:
   "appliedCorrections": []
 }
 
-TABELLEN-DATEN (kilometerstaende, zubehoer):
+TABELLEN-DATEN (kilometerstaende, zubehoer, manuelleTypklasse):
 - IMMER als Array von Objekten zurückgeben
 - Jedes Objekt MUSS eine "id" haben (generiere UUID-ähnlich)
 - Nutze die exakten Spalten-Keys aus der Konfiguration
@@ -341,6 +363,28 @@ Beispiel für kilometerstaende:
   "confidence": 0.9,
   "source": "Text-Bereich"
 }
+
+Beispiel für manuelleTypklasse (SINGLE-LINE-TABLE):
+"manuelleTypklasse": {
+  "value": [
+    {
+      "id": "1",
+      "grund": "",
+      "haftpflicht": 12,
+      "vollkasko": 0,
+      "teilkasko": 8
+    }
+  ],
+  "confidence": 0.9,
+  "source": "KH 12 und TK 8"
+}
+
+WICHTIG für manuelleTypklasse:
+- Bei "KH 12/TK 8" → haftpflicht: 12, teilkasko: 8, vollkasko: 0
+- Bei "VK 15/TK 10" → vollkasko: 15, teilkasko: 10, haftpflicht: 0
+- Bei "KH 14" → nur haftpflicht: 14, andere: 0
+- IMMER als Array mit einem Objekt (single-line-table)
+- grund kann leer bleiben wenn nicht angegeben
 
 ARTIFACT-INTEGRATION:
 - Domain-Daten verfügbar in Artifact "fahrzeug-domains.json"

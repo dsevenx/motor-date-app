@@ -182,6 +182,9 @@ export const fetchContractDataDB = async (): Promise<Contract> => {
   return {
     id: 'contract_001',
     name: 'Rokoschütte AG Kollektivstruktur',
+    contractstate: '2',
+    contractAusfertigunsgrund: 'G01',
+    inceptionDate: new Date('2025-07-01'),
     header: createMockHeaderData(),
     tree: createMockTreeData(),
     ordnervereinbarungen: createMockOrdnervereinbarungen(),

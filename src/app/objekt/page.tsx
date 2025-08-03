@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PageTemplate } from '@/components/PageTemplate';
 import { Car, Info } from 'lucide-react';
 import { MotorEditNumber } from '@/components/MotorEditNumber';
@@ -13,22 +13,105 @@ import {
   TableRow,
   updateEchteEingabe
 } from '@/constants/fieldConfig';
+import { useGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
 
 // Force dynamic rendering to avoid SSR issues
 export const dynamic = 'force-dynamic';
 
 export default function ObjektPage() {
+  const { fieldDefinitions: globalFieldValues, updateFieldDefinitions } = useGlobalFieldDefinitions();
+  
   // Generiere State basierend auf echten Eingabewerten (nicht nur Defaults)
   const echteEingabeValues = useMemo(() => generateEchteEingabeValues(), []);
   const [fieldValues, setFieldValues] = useState(echteEingabeValues);
 
+  // Sync with global field values from Chat updates (avoid circular updates)
+  useEffect(() => {
+    if (globalFieldValues && Object.keys(globalFieldValues).length > 0) {
+      setFieldValues(prev => {
+        // Handle regular fields (non single-line-table)
+        const regularUpdates: Record<string, any> = {};
+        // Handle single-line-table fields separately
+        const singleLineUpdates: Record<string, any> = {};
+        
+        Object.keys(globalFieldValues).forEach(key => {
+          const field = getFieldByKey(key);
+          if (field?.type === 'single-line-table') {
+            singleLineUpdates[key] = globalFieldValues[key];
+          } else {
+            regularUpdates[key] = globalFieldValues[key];
+          }
+        });
+        
+        let hasChanges = false;
+        let updates = { ...prev };
+        
+        // Update regular fields
+        if (Object.keys(regularUpdates).length > 0) {
+          const regularChanges = Object.keys(regularUpdates).some(key => {
+            const currentValue = prev[key];
+            const newValue = regularUpdates[key];
+            
+            if (Array.isArray(currentValue) && Array.isArray(newValue)) {
+              return JSON.stringify(currentValue) !== JSON.stringify(newValue);
+            }
+            
+            return currentValue !== newValue;
+          });
+          
+          if (regularChanges) {
+            updates = { ...updates, ...regularUpdates };
+            hasChanges = true;
+          }
+        }
+        
+        // Update single-line-table fields with special handling
+        if (Object.keys(singleLineUpdates).length > 0) {
+          Object.keys(singleLineUpdates).forEach(key => {
+            const currentValue = prev[key];
+            const newValue = singleLineUpdates[key];
+            
+            // For single-line-table, always update to ensure AI changes are reflected
+            if (Array.isArray(newValue) && newValue.length > 0) {
+              updates = { ...updates, [key]: newValue };
+              hasChanges = true;
+              
+              // Update echteEingabe for single-line-table from AI Chat
+              updateEchteEingabe(key, newValue);
+              
+              console.log(`Single-line-table update for ${key}:`, newValue);
+            }
+          });
+        }
+        
+        return hasChanges ? updates : prev;
+      });
+    }
+  }, [globalFieldValues]);
+
   const handleFieldChange = (fieldKey: string, value: any) => {
-    setFieldValues(prev => ({
-      ...prev,
-      [fieldKey]: value
-    }));
-    // Echte Eingabe auch in globalen Field Definitions speichern
-    updateEchteEingabe(fieldKey, value);
+    setFieldValues(prev => {
+      // Only update if value actually changed
+      const currentValue = prev[fieldKey];
+      const hasChanged = Array.isArray(currentValue) && Array.isArray(value)
+        ? JSON.stringify(currentValue) !== JSON.stringify(value)
+        : currentValue !== value;
+        
+      if (!hasChanged) {
+        return prev;
+      }
+      
+      // Echte Eingabe auch in globalen Field Definitions speichern
+      updateEchteEingabe(fieldKey, value);
+      
+      // Propagate to global state for Chat component
+      updateFieldDefinitions({ [fieldKey]: value });
+      
+      return {
+        ...prev,
+        [fieldKey]: value
+      };
+    });
   };
 
   // Typ-/Regionalklasse Dummy-Daten (reine Anzeige)
@@ -182,7 +265,7 @@ export default function ObjektPage() {
                   label={manuelleTypklasseField.label}
                   columns={manuelleTypklasseField.table?.columns || []}
                   emptyText={manuelleTypklasseField.table?.emptyText}
-                  einzeiligeTabelle={true}
+                  fieldType={manuelleTypklasseField.type}
                 />
               )}
             </div>

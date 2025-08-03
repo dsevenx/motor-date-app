@@ -335,6 +335,53 @@ Bei den Produtktabellen werden nur die Felder gesendet, die eine KnotenID haben.
 
 Wenn diese FIELDDEINTION-XML snippet erstellt sind, dann kommen diese das <KRAFTBL> Tag.
 
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 15
+
+Ich habe gerade Fahrleistung und manuell Typklassen im KI Chat getestet :
+"Ich fahre im Jahr 12000 km und man hat mir gesagt, das meine Typklassen erstmal KH 12 und TK 8 sein".
+Die KI-Antwort mit "Verstanden! Ich habe folgende Daten aktualisiert: Aktuelle Fahrleistung (km): 12000, Manuelle Typklasse: 2 Einträge"
+ist eigentlich auch OK - aber die GUI Aktualisierung erfolgt nicht. Bitte prüfe ob FIELDDEFINTION korrekt aktualisiert wurde.
+
+------------------------------------------------------------------------------------------------------------
+
+Anfrage 16
+
+Wir möchten jetzt das Start- und Edit-Handling ausbauen:
+
+Wenn die Anwendung gestartet wird und wir aus fetchContractDataDB folgendes lesen:
+Fall1:
+    contractstate: '2',
+    contractAusfertigunsgrund: 'G01',
+    inceptionDate: '2025-07-01'
+dann bedeutet dies, das ist ein "Antrag" an dem jemand weiterarbeiten möchte. D.h. wenn man in den EditModus geht,
+dann übertragen wir 
+ contractAusfertigunsgrund in das FiledDefintion KraftBoGruppeAusfertigungsgrundABS
+ und
+ inceptionDate in das FieldDefintion KraftBoZefdatum.
+Wenn der Nutzer den EditModus wieder verlässt - wird die WebSite neu gestartet. D.h. man würde auf KB-TH keine Eingaben mehr sehen.
+
+Fall2:
+    contractstate: '3',
+    contractAusfertigunsgrund: 'G01',
+    inceptionDate: '2025-07-01'
+dann bedeutet dies, das ist ein "Vertrag" an dem jemand ein Vorgang beginnen könnte. D.h. wenn man in den EditModus geht,
+dann öffnen wir ein modales PopUp in der Bildschirmmitte , 
+wo der Nutzer KraftBoGruppeAusfertigungsgrundABS per MotorDropDonw und KraftBoZefdatum per MotorDate eingeben kann.
+Wenn der Nutzer auf dem PopUp OK klickt, dann gelangt der Nutzer in den globalen Edit Modus und KraftBoGruppeAusfertigungsgrundABS und KraftBoZefdatum in FieldDefintions werden aus den lokalen aktualisiert.
+Wenn der Nutzer auf Abbrechen klickt, dann ist der Nutzer wieder im Anzeigemodus und KraftBoGruppeAusfertigungsgrundABS und KraftBoZefdatum sind nicht in FieldDefintions aktualisiert worden.
+Wenn der Nutzer den EditModus wieder verlässt - wird die WebSite neu gestartet. D.h. man würde auf KB-TH keine Eingaben mehr sehen.
+
+Fall3:
+    contractstate: '',
+    contractAusfertigunsgrund: 'G01',
+    inceptionDate: '2025-07-01'
+dann bedeutet dies, das ist der Start eines Neuschgeschäfts. 
+Der Nutzer ist sofort im EditModus und kann auch nicht in den Anzeigemodus wechseln. Wir müssen den Anzeig-Button dann etwas grau machen.
+KraftBoGruppeAusfertigungsgrundABS in FieldDefintion wird mit G01 als eingegeben gesetzt.
+KraftBoZefdatum in FieldDefintions wird mit Tagesdatum als eingegeben gesetzt.
+
 
 
 

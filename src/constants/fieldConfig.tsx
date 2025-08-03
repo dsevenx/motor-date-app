@@ -1,6 +1,6 @@
 // fieldConfig.ts - Zentrale Feld-Konfiguration mit Tabellen-Unterstützung
 
-export type FieldType = 'date' | 'text' | 'number' | 'boolean' | 'select' | 'table' | 'tristate' | 'dropdown';
+export type FieldType = 'date' | 'text' | 'number' | 'boolean' | 'select' | 'table' | 'single-line-table' | 'tristate' | 'dropdown';
 
 export type NumberFormat = 'currency' | 'integer' | 'decimal' | 'percentage' | 'count';
 
@@ -146,6 +146,18 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
+    key: 'KraftBoZefdatum',
+    label: 'Gültig-Ab-Datum',
+    type: 'date',
+    defaultValue: '0001-01-01',
+    synonyms: ['vorgangsdatum', 'zef-datum', 'wirkbegdat', 'wirkbeginn'],
+    ai: {
+      priority: 'medium',
+      context: 'Vorgangsdatum ist das Datum, ab dem der Vorgang/usecase gültig ist',
+      correctionRules: ['Beginndatum ≤ Vorgangsdatum (sonst gleichsetzen)']
+    }
+  },
+  {
     key: 'urbeginn',
     label: 'Urbeginn',
     type: 'date',
@@ -251,6 +263,26 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   // DropDown-Felder
+   {
+    key: 'KraftBoGruppeAusfertigungsgrundABS',
+    label: 'Ausfertigungsgrund ABS',
+    type: 'dropdown',
+    defaultValue: '',
+    synonyms: [
+      'Vorgangsart', 'Use Case', 'Ausfertigungsgrund', 'Anlass', 'Grund für Ausfertigung',
+    ],
+    ai: {
+      priority: 'medium',
+      context: 'Was möchte der Nutzer von unserem Autoversicherungsverwaltungssystem wissen?',
+      correctionRules: [
+        'Bei Ändern im Zweifelsfall G80',
+        'Bei Beauskunften G01 von Neugschäft'
+      ]
+    },
+    dropdown: {
+      domainId: 'KraftBoGruppeMoeglAusfertigungsgrundABS'
+    }
+  },
   {
     key: 'fahrerkreis',
     label: 'Fahrerkreis',
@@ -728,7 +760,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   {
     key: 'manuelleTypklasse',
     label: 'Manuelle Typklasse',
-    type: 'table',
+    type: 'single-line-table',
     defaultValue: [{
       id: '1',
       grund: '',
@@ -738,7 +770,9 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }],
     synonyms: [
       'manuelle typklasse', 'typklasse manuell', 'manuelle einstufung',
-      'grund für typklasse', 'typklasse grund', 'abweichende typklasse'
+      'grund für typklasse', 'typklasse grund', 'abweichende typklasse',
+      'typklasse', 'typklassen', 'kh', 'tk', 'vk', 'teilkasko', 'vollkasko', 'haftpflicht',
+      'man hat mir gesagt', 'typklasse ist', 'klassiert', 'einstufung'
     ],
     ai: {
       priority: 'low',
@@ -881,7 +915,7 @@ const getSparteName = (sparte: string): string => {
 };
 
 export const getTableFields = (): FieldDefinition[] => {
-  return FIELD_DEFINITIONS.filter(field => field.type === 'table');
+  return FIELD_DEFINITIONS.filter(field => field.type === 'table' || field.type === 'single-line-table');
 };
 
 export const getDropdownFields = (): FieldDefinition[] => {
@@ -940,7 +974,7 @@ export const createEmptyTableRow = (tableField: FieldDefinition): TableRow => {
 
 export const addTableRow = (tableKey: string, currentRows: TableRow[]): TableRow[] => {
   const field = getFieldByKey(tableKey);
-  if (!field || field.type !== 'table') return currentRows;
+  if (!field || (field.type !== 'table' && field.type !== 'single-line-table')) return currentRows;
   
   const newRow = createEmptyTableRow(field);
   return [...currentRows, newRow];
@@ -1003,10 +1037,27 @@ export interface ClaudeResponse {
   };
 }
 
+// Stable caches to prevent infinite re-renders
+const _defaultValuesCache: Record<string, any> = {};
+const _echteEingabeCache: Record<string, any> = {};
+
 // Generiere Standardwerte für den State
 export const generateDefaultValues = (): Record<string, any> => {
   return FIELD_DEFINITIONS.reduce((acc, field) => {
-    acc[field.key] = field.defaultValue;
+    // Use cached value if available to maintain object identity
+    if (_defaultValuesCache[field.key] === undefined) {
+      // Deep clone arrays and objects to prevent mutation
+      if (Array.isArray(field.defaultValue)) {
+        _defaultValuesCache[field.key] = field.defaultValue.map(item => 
+          typeof item === 'object' && item !== null ? { ...item } : item
+        );
+      } else if (typeof field.defaultValue === 'object' && field.defaultValue !== null) {
+        _defaultValuesCache[field.key] = { ...(field.defaultValue as object) };
+      } else {
+        _defaultValuesCache[field.key] = field.defaultValue;
+      }
+    }
+    acc[field.key] = _defaultValuesCache[field.key];
     return acc;
   }, {} as Record<string, any>);
 };
@@ -1014,7 +1065,22 @@ export const generateDefaultValues = (): Record<string, any> => {
 // Generiere echte Eingabe Werte für KB-TH
 export const generateEchteEingabeValues = (): Record<string, any> => {
   return FIELD_DEFINITIONS.reduce((acc, field) => {
-    acc[field.key] = field.echteEingabe || field.defaultValue;
+    const value = field.echteEingabe || field.defaultValue;
+    
+    // Use cached value if available to maintain object identity
+    if (_echteEingabeCache[field.key] === undefined || field.echteEingabe !== undefined) {
+      // Deep clone arrays and objects to prevent mutation
+      if (Array.isArray(value)) {
+        _echteEingabeCache[field.key] = value.map(item => 
+          typeof item === 'object' && item !== null ? { ...item } : item
+        );
+      } else if (typeof value === 'object' && value !== null) {
+        _echteEingabeCache[field.key] = { ...(value as object) };
+      } else {
+        _echteEingabeCache[field.key] = value;
+      }
+    }
+    acc[field.key] = _echteEingabeCache[field.key];
     return acc;
   }, {} as Record<string, any>);
 };
@@ -1024,7 +1090,31 @@ export const updateEchteEingabe = (fieldKey: string, value: any): void => {
   const fieldIndex = FIELD_DEFINITIONS.findIndex(field => field.key === fieldKey);
   if (fieldIndex !== -1) {
     FIELD_DEFINITIONS[fieldIndex].echteEingabe = value;
+    // Invalidate cache for this field so it gets updated
+    delete _echteEingabeCache[fieldKey];
   }
+};
+
+// Markiere ein Feld als echte Eingabe (KI oder User)
+export const markAsEchteEingabe = (fieldKey: string, value: any, isFromAI: boolean = false): void => {
+  const field = getFieldByKey(fieldKey);
+  if (!field) return;
+  
+  // 1. Field-Level echteEingabe setzen
+  updateEchteEingabe(fieldKey, value);
+  
+  // 2. Für Tabellen: Auch Row-Level echteEingabe markieren
+  if ((field.type === 'table' || field.type === 'single-line-table') && Array.isArray(value)) {
+    const updatedValue = value.map(row => ({
+      ...row,
+      echteEingabe: true // Markiere als echte Eingabe (von KI oder User)
+    }));
+    
+    // Aktualisiere nochmal mit dem erweiterten Wert
+    updateEchteEingabe(fieldKey, updatedValue);
+  }
+  
+  console.log(`${isFromAI ? '🤖 KI' : '👤 User'} marked ${fieldKey} as echteEingabe:`, value);
 };
 
 // Generiere Field Configs für die Chat-Komponente

@@ -19,7 +19,8 @@ export interface MotorTableProps {
   emptyText?: string;
   disabled?: boolean;
   maxRows?: number; // Maximale Anzahl von Zeilen
-  einzeiligeTabelle?: boolean; // Keine Aktionen-Spalte und kein maxRows Hinweis
+  fieldType?: FieldType; // Feldtyp zur automatischen Erkennung von single-line-table
+  einzeiligeTabelle?: boolean; // DEPRECATED: Use fieldType instead
 }
 
 export const MotorTable: React.FC<MotorTableProps> = ({
@@ -31,6 +32,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
   emptyText = 'Keine Daten vorhanden',
   disabled = false,
   maxRows,
+  fieldType,
   einzeiligeTabelle = false
 }) => {
   const { isEditMode } = useEditMode();
@@ -39,11 +41,14 @@ export const MotorTable: React.FC<MotorTableProps> = ({
   // Stelle sicher, dass value immer ein Array ist
   const safeValue = Array.isArray(value) ? value : [];
   
+  // Automatische Erkennung von single-line-table basierend auf fieldType
+  const isSingleLineTable = fieldType === 'single-line-table' || einzeiligeTabelle;
+  
 
   // Neue Zeile erstellen
   const createNewRow = (): TableRow => {
     const newRow: TableRow = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
+      id: Date.now().toString() + Math.random().toString(36).substring(2, 11)
     };
     
     columns.forEach(column => {
@@ -77,24 +82,45 @@ export const MotorTable: React.FC<MotorTableProps> = ({
     if (disabled) return;
     if (maxRows && safeValue.length >= maxRows) return; // Verhindere Hinzufügen wenn maxRows erreicht
     const newRow = createNewRow();
-    onChange([...safeValue, newRow]);
+    const newRows = [...safeValue, newRow];
+    
+    // Only call onChange if this is actually a new row
+    if (newRows.length !== safeValue.length) {
+      onChange(newRows);
+    }
   };
 
   // Zeile löschen
   const deleteRow = (rowId: string) => {
     if (disabled) return;
-    onChange(safeValue.filter(row => row.id !== rowId));
+    const filteredRows = safeValue.filter(row => row.id !== rowId);
+    
+    // Only call onChange if we actually removed a row
+    if (filteredRows.length !== safeValue.length) {
+      onChange(filteredRows);
+    }
   };
 
   // Zellenwert aktualisieren
   const updateCell = (rowId: string, columnKey: string, newValue: any) => {
     if (disabled) return;
+    
+    // Find the row and check if value actually changed
+    const targetRow = safeValue.find(row => row.id === rowId);
+    if (!targetRow || targetRow[columnKey] === newValue) {
+      return; // No change needed
+    }
+    
     const updatedRows = safeValue.map(row => 
       row.id === rowId 
         ? { ...row, [columnKey]: newValue }
         : row
     );
-    onChange(updatedRows);
+    
+    // Only call onChange if the array actually changed
+    if (JSON.stringify(updatedRows) !== JSON.stringify(safeValue)) {
+      onChange(updatedRows);
+    }
   };
 
   // Render-Funktion für verschiedene Zelltypen
@@ -112,7 +138,6 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             label=""
             disabled={disabled}
             hideLabel={true}
-            allowInViewMode={false}
           />
         );
 
@@ -170,7 +195,6 @@ export const MotorTable: React.FC<MotorTableProps> = ({
             domainId={column.dropdown?.domainId || ''}
             placeholder={column.ui?.placeholder || 'Bitte auswählen...'}
             hideLabel={true}
-            allowInViewMode={false}
           />
         );
 
@@ -225,7 +249,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
                       {column.label}
                     </th>
                   ))}
-                  {!einzeiligeTabelle && isEditMode && (
+                  {!isSingleLineTable && isEditMode && (
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 tracking-wider w-16">
                       Aktionen
                     </th>
@@ -259,7 +283,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
                     ))}
                     
                     {/* Aktionen-Spalte (nur im Edit-Modus und nicht bei einzeiliger Tabelle) */}
-                    {!einzeiligeTabelle && isEditMode && (
+                    {!isSingleLineTable && isEditMode && (
                       <td className="px-4 py-3 text-center">
                         <button
                           onClick={() => deleteRow(row.id)}
@@ -291,7 +315,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
       </div>
 
       {/* Hinzufügen-Button (nur im Edit-Modus und nicht bei einzeiliger Tabelle) */}
-      {!einzeiligeTabelle && isEditMode && (!maxRows || safeValue.length < maxRows) && (
+      {!isSingleLineTable && isEditMode && (!maxRows || safeValue.length < maxRows) && (
         <button
           onClick={addRow}
           disabled={disabled}
@@ -310,7 +334,7 @@ export const MotorTable: React.FC<MotorTableProps> = ({
       )}
       
       {/* Info wenn maxRows erreicht (nicht bei einzeiliger Tabelle) */}
-      {!einzeiligeTabelle && maxRows && safeValue.length >= maxRows && (
+      {!isSingleLineTable && maxRows && safeValue.length >= maxRows && (
         <div className="text-center py-2 text-sm text-gray-500">
           Maximale Anzahl von {maxRows} Zeile(n) erreicht
         </div>

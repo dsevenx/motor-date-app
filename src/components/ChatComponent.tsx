@@ -11,6 +11,7 @@ import {
   formatValueForDisplay,
   convertValueToFieldType
 } from '@/constants';
+import { markAsEchteEingabe } from '@/constants/fieldConfig';
 import { ClaudeResponse } from '@/constants/fieldConfig';
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) => {
@@ -85,9 +86,38 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
           const convertedValue = convertValueToFieldType(typedExtractedValue.value, fieldConfig.type);
           
           // Bei Tabellen-Feldern den Wert direkt übernehmen (Array)
-          if (fieldConfig.type === 'table') {
+          if (fieldConfig.type === 'table' || fieldConfig.type === 'single-line-table') {
             newValue = convertedValue;
-            console.log(`Table data for ${fieldKey}:`, convertedValue);
+            
+            // Spezielle Behandlung für einzeilige Tabellen
+            if (fieldConfig.type === 'single-line-table' && Array.isArray(newValue) && newValue.length > 0) {
+              // Für einzeilige Tabellen: Aktualisiere die bestehende Zeile statt neue hinzuzufügen
+              const currentValue = fieldConfig.currentValue;
+              if (Array.isArray(currentValue) && currentValue.length > 0) {
+                // Merge AI data with existing row, preserve the existing ID
+                const existingRow = currentValue[0];
+                const aiRow = newValue[0];
+                
+                // Create stable merged object
+                const mergedRow = {
+                  ...existingRow, // Preserve existing ID and other properties
+                  ...aiRow,       // Override with AI extracted values
+                  id: existingRow.id || '1' // Ensure ID is preserved
+                };
+                
+                newValue = [mergedRow];
+                
+                console.log(`Single-line table update for ${fieldKey}:`, newValue);
+              } else {
+                // If no existing row, ensure the new row has proper ID
+                newValue = newValue.map((row: any, index: number) => ({
+                  ...row,
+                  id: row.id || (index + 1).toString()
+                }));
+              }
+            } else {
+              console.log(`Regular table data for ${fieldKey}:`, convertedValue);
+            }
           } else {
             newValue = String(convertedValue);
           }
@@ -95,7 +125,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
           console.error(`Fehler bei Typkonvertierung für ${fieldKey}:`, conversionError);
           
           // Fallback für Tabellen
-          if (fieldConfig.type === 'table') {
+          if (fieldConfig.type === 'table' || fieldConfig.type === 'single-line-table') {
             newValue = Array.isArray(typedExtractedValue.value) ? typedExtractedValue.value : [];
             console.log(`Table fallback for ${fieldKey}:`, newValue);
           } else {
@@ -104,7 +134,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         }
 
         // Artifact-basierte Domain-Validation für Tabellen (async handling)
-        if (fieldConfig.type === 'table' && Array.isArray(newValue)) {
+        if ((fieldConfig.type === 'table' || fieldConfig.type === 'single-line-table') && Array.isArray(newValue)) {
           // Note: Synchrone Verarbeitung für bessere Performance
           // Domain-Validation wird im Hintergrund über Artifact-Fallback abgehandelt
           newValue.forEach((row: any, rowIndex: number) => {
@@ -134,7 +164,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         }
 
         // Nur bei tatsächlicher Änderung zur Anzeige hinzufügen
-        const hasChanged = fieldConfig.type === 'table' 
+        const hasChanged = (fieldConfig.type === 'table' || fieldConfig.type === 'single-line-table')
           ? JSON.stringify(previousValue) !== JSON.stringify(newValue)
           : previousValue !== newValue;
           
@@ -143,13 +173,16 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
             // Feld aktualisieren
             fieldConfig.onChange(newValue);
             
+            // WICHTIG: Alle KI-Updates als echte Eingabe markieren
+            markAsEchteEingabe(fieldKey, newValue, true);  // true = isFromAI
+            
             // Formatierung für die Anzeige
             const formattedValue = formatValueForDisplay(newValue, fieldConfig.type);
             
             // Werte für die Antwort speichern (nur die geänderten Werte)
             updatedFieldsWithValues.push({
               label: fieldConfig.label,
-              value: fieldConfig.type === 'table' ? JSON.stringify(newValue) : String(newValue),
+              value: (fieldConfig.type === 'table' || fieldConfig.type === 'single-line-table') ? JSON.stringify(newValue) : String(newValue),
               formattedValue: formattedValue
             });
             
