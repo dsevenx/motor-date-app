@@ -189,7 +189,7 @@ export const fetchContractDataDB = async (): Promise<Contract> => {
     tree: createMockTreeData(),
     ordnervereinbarungen: createMockOrdnervereinbarungen(),
     createdAt: new Date('2024-01-01'),
-    updatedAt: new Date()
+    updatedAt: new Date('2023-12-11')
   };
 };
 

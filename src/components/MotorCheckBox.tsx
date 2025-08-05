@@ -45,9 +45,10 @@ export const MotorCheckBox: React.FC<MotorCheckBoxProps> = ({
 
   const isChecked = value === 'J';
 
-  if (isChecked) {
-    console.log('MotorCheckbox is checked' + label);
-  }
+  // Debug-Ausgabe nur bei State-Änderungen, nicht bei jedem Render
+  // if (isChecked) {
+  //   console.log('MotorCheckbox is checked' + label);
+  // }
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (disabled) return;

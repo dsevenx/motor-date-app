@@ -8,12 +8,25 @@ import { FIELD_DEFINITIONS } from '@/constants/fieldConfig';
 // Simuliert die Tardis-Vorbereitung
 export const TardisCallVorbereiten = async (
   contractFromDB: Contract, 
-  _fieldDefinitions: any[]
+  fieldDefinitions: any[]
 ): Promise<Contract> => {
   console.log('🚀 TardisCallVorbereiten: Bereite Contract für Tardis vor...');
+  console.log('🔧 FIELD_DEFINITIONS Anzahl:', fieldDefinitions.length);
   
-  // Simuliere Verarbeitung der FIELD_DEFINITIONS
-  // Hier würden normalerweise die FIELD_DEFINITIONS mit dem Contract kombiniert werden
+  // Suche nach Fahrleistung in FIELD_DEFINITIONS
+  const fahrleistungField = fieldDefinitions.find(f => 
+    f.key === 'kraftDmKfzVorfahrl' || f.key === 'fahrleistung' || f.key.includes('fahrleistung')
+  );
+  
+  if (fahrleistungField) {
+    console.log('🚗 Fahrleistung gefunden in FIELD_DEFINITIONS:', {
+      key: fahrleistungField.key,
+      value: fahrleistungField.value || fahrleistungField.defaultValue
+    });
+  } else {
+    console.log('❌ Keine Fahrleistung in FIELD_DEFINITIONS gefunden');
+    console.log('🔍 Verfügbare FIELD_DEFINITIONS Keys:', fieldDefinitions.map(f => f.key));
+  }
   
   // Simuliere Modifikation: Füge "vorbereitet" an Straße in der Header-Adresse an
   const preparedContract: Contract = {
@@ -99,29 +112,35 @@ export const fetchOrdnervereinbarungenBL = async (isEditMode: boolean): Promise<
 
 // Business Logic Layer - Hauptfunktion (für Rückwärtskompatibilität)
 export const fetchContractDataBL = async (isEditMode: boolean): Promise<Contract> => {
-  console.log(`📋 fetchContractDataBL: Starte Abfrage (EditMode: ${isEditMode})`);
+  const callId = Date.now();
+  console.log(`📋 ===== fetchContractDataBL CALL ${callId} =====`);
+  console.log(`📋 EditMode: ${isEditMode}`);
+  console.log(`📋 Call Stack:`, new Error().stack?.split('\n').slice(1, 4));
   
   if (!isEditMode) {
     // Anzeige-Modus: Direkt aus DB laden
-    console.log('👁️ Anzeige-Modus: Lade direkt aus DB');
+    console.log(`👁️ [${callId}] Anzeige-Modus: Lade direkt aus DB`);
     const contract = await fetchContractDataDB();
-    console.log('✅ fetchContractDataBL: DB-Daten geladen');
+    console.log(`👁️ [${callId}] DB-Contract Fahrleistung:`, contract.header.address.street); // Proxy für Daten-Check
+    console.log(`✅ [${callId}] fetchContractDataBL: DB-Daten geladen`);
     return contract;
   } else {
     // Edit-Modus: Tardis-Flow
-    console.log('✏️ Edit-Modus: Starte Tardis-Flow');
+    console.log(`✏️ [${callId}] Edit-Modus: Starte Tardis-Flow`);
     
     // 1. Basis-Daten aus DB laden
     const contractFromDB = await fetchContractDataDB();
-    console.log('📊 Basis-Daten aus DB geladen');
+    console.log(`📊 [${callId}] DB-Contract geladen`);
     
     // 2. Mit FIELD_DEFINITIONS vorbereiten
     const preparedContract = await TardisCallVorbereiten(contractFromDB, FIELD_DEFINITIONS);
+    console.log(`🔧 [${callId}] Contract vorbereitet`);
     
     // 3. Tardis WebService aufrufen
     const finalContract = await fetchContractTardis(preparedContract);
+    console.log(`🚀 [${callId}] Tardis-Contract Fahrleistung:`, finalContract.header.address.street); // Proxy für Daten-Check
     
-    console.log('✅ fetchContractDataBL: Tardis-Flow abgeschlossen');
+    console.log(`✅ [${callId}] fetchContractDataBL: Tardis-Flow abgeschlossen`);
     return finalContract;
   }
 };

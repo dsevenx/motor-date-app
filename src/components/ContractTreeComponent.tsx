@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TreeNode, ContractTree, ContextMenuAction } from '@/types/contractTypes';
 import { TreeNodeComponent } from './TreeNodeComponent';
 import { TreeContextMenu } from './TreeContextMenu';
@@ -14,7 +14,9 @@ interface ContractTreeComponentProps {
   contractName?: string;
 }
 
-export const ContractTreeComponent: React.FC<ContractTreeComponentProps> = ({ contractName }) => {
+const ContractTreeComponentInner: React.FC<ContractTreeComponentProps> = ({ contractName }) => {
+  console.log('🌳 ContractTreeComponent RENDER mit contractName:', contractName);
+  
   // Kein EditMode mehr benötigt - ContractTree ist EditMode-unabhängig!
   const [contractTree, setContractTree] = useState<ContractTree | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,17 @@ export const ContractTreeComponent: React.FC<ContractTreeComponentProps> = ({ co
   }, []);
 
   // KEINE Reload bei EditMode-Änderung - ContractTree bleibt gleich!
+
+  // Stabile Callback-Funktionen mit useCallback
+  const handleShowApplicationsChange = useCallback((value: 'J' | 'N') => {
+    console.log('📋 showApplications ändert sich zu:', value);
+    setShowApplications(value);
+  }, []);
+
+  const handleShowCancelledContractsChange = useCallback((value: 'J' | 'N') => {
+    console.log('📋 showCancelledContracts ändert sich zu:', value);
+    setShowCancelledContracts(value);
+  }, []);
 
   const loadContractTreeData = async () => {
     setLoading(true);
@@ -196,14 +209,14 @@ export const ContractTreeComponent: React.FC<ContractTreeComponentProps> = ({ co
           <div className="flex items-center gap-4 text-sm">
             <MotorCheckBox
               value={showApplications}
-              onChange={(value) => setShowApplications(value)}
+              onChange={handleShowApplicationsChange}
               label="Anträge anzeigen"
               hideLabel={false}
               allowInViewMode={true}
             />
             <MotorCheckBox
               value={showCancelledContracts}
-              onChange={(value) => setShowCancelledContracts(value)}
+              onChange={handleShowCancelledContractsChange}
               label="Stornierte Verträge anzeigen"
               hideLabel={false}
               allowInViewMode={true}
@@ -249,3 +262,6 @@ export const ContractTreeComponent: React.FC<ContractTreeComponentProps> = ({ co
     </div>
   );
 };
+
+// React.memo für Performance-Optimierung
+export const ContractTreeComponent = React.memo(ContractTreeComponentInner);

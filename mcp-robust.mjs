@@ -48,6 +48,9 @@ class McpServer {
   async handleRequest(request) {
     const { method, params, id } = request;
 
+    // Erweiterte Logging für Claude Desktop
+    console.error(`📥 Claude Desktop Anfrage: ${method}`, params ? JSON.stringify(params, null, 2) : '(keine Parameter)');
+
     try {
       switch (method) {
         case 'initialize':
@@ -63,6 +66,7 @@ class McpServer {
           return this.createErrorResponse(id, -32601, 'Method not found');
       }
     } catch (error) {
+      console.error(`❌ Fehler bei ${method}:`, error.message);
       return this.createErrorResponse(id, -32603, error.message);
     }
   }
@@ -114,17 +118,23 @@ class McpServer {
     try {
       const { chatInput, existingData = {} } = args || {};
       
+      console.error(`🎯 Tool-Aufruf: generate_serviceabs_xml`);
+      console.error(`📝 ChatInput: "${chatInput}"`);
+      console.error(`📋 ExistingData:`, JSON.stringify(existingData, null, 2));
+      
       if (!chatInput) {
         throw new Error('chatInput ist erforderlich');
       }
 
       // Datenextraktion
       const extractedData = this.extractDataFromChat(chatInput, existingData);
+      console.error(`🔍 Extrahierte Daten:`, JSON.stringify(extractedData, null, 2));
       
       // XML-Generierung
       const xml = this.generateXML(extractedData.fieldValues);
+      console.error(`📄 Generierte XML:`, xml);
       
-      return {
+      const response = {
         jsonrpc: '2.0',
         id,
         result: {
@@ -136,7 +146,11 @@ class McpServer {
           ]
         }
       };
+      
+      console.error(`📤 Antwort an Claude Desktop:`, JSON.stringify(response, null, 2));
+      return response;
     } catch (error) {
+      console.error(`❌ XML-Generierung fehlgeschlagen:`, error.message);
       return this.createErrorResponse(id, -32603, `XML-Generierung fehlgeschlagen: ${error.message}`);
     }
   }
@@ -168,13 +182,16 @@ class McpServer {
     const extractedFields = [];
     let confidence = 0.5;
     
-    // Jahreskilometer erkennen (12000 km)
-    const kmRegex = /(\d+)\s*(?:km|kilometer)\s*(?:pro\s+jahr|jährlich|im\s+jahr|jahr)/i;
+    // Jahreskilometer erkennen (Jahresfahrleistung 12000 km, 12000 km/Jahr, etc.)
+    const kmRegex = /(?:jahresfahrleistung|fahrleistung|jährlich|pro\s+jahr)?\s*(\d+)\s*(?:km|kilometer)/i;
     const kmMatch = chatInput.match(kmRegex);
     if (kmMatch) {
       fieldValues.jahreskilometer = parseInt(kmMatch[1]);
       extractedFields.push('jahreskilometer');
       confidence += 0.3;
+      console.error(`✅ Jahreskilometer erkannt: ${kmMatch[1]} km`);
+    } else {
+      console.error(`❌ Jahreskilometer nicht erkannt in: "${chatInput}"`);
     }
     
     // Typklassen erkennen (KH 12 und TK 8)
@@ -211,25 +228,25 @@ class McpServer {
   }
 
   generateXML(fieldValues) {
-    const timestamp = new Date().toISOString();
+    // Logging für Claude Desktop
+    console.error(`🔍 XML-Generierung gestartet mit Daten:`, JSON.stringify(fieldValues, null, 2));
     
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<ServiceABS_Einarbeiter>
-  <Header>
-    <Timestamp>${timestamp}</Timestamp>
-    <System>Claude Desktop MCP Integration</System>
-  </Header>
-  <Fahrzeugdaten>
-    ${fieldValues.jahreskilometer ? `<Jahreskilometer>${fieldValues.jahreskilometer}</Jahreskilometer>` : ''}
-    ${fieldValues.fahrzeugmarke ? `<Fahrzeugmarke>${fieldValues.fahrzeugmarke}</Fahrzeugmarke>` : ''}
-    ${fieldValues.typklasseHaftpflicht ? `<TypklasseHaftpflicht>${fieldValues.typklasseHaftpflicht}</TypklasseHaftpflicht>` : ''}
-    ${fieldValues.typklasseTeilkasko ? `<TypklasseTeilkasko>${fieldValues.typklasseTeilkasko}</TypklasseTeilkasko>` : ''}
-  </Fahrzeugdaten>
-  <Metadaten>
-    <GenerierungsZeitpunkt>${timestamp}</GenerierungsZeitpunkt>
-    <Quelle>KI-Extraktion aus natürlichsprachiger Eingabe</Quelle>
-  </Metadaten>
-</ServiceABS_Einarbeiter>`;
+    return `<ANTRAG>
+  <PERSONEN>
+  </PERSONEN>
+  <VERTRAG>
+    <KRAFTBL>
+      ${fieldValues.jahreskilometer ? `<KraftDmKfzVorfahrt_e>${fieldValues.jahreskilometer}</KraftDmKfzVorfahrt_e>` : ''}
+      ${fieldValues.typklasseHaftpflicht || fieldValues.typklasseTeilkasko ? `<manuelleTypklasse_e>
+        <zeile>
+          ${fieldValues.typklasseHaftpflicht ? `<haftpflicht>${fieldValues.typklasseHaftpflicht}</haftpflicht>` : '<haftpflicht>0</haftpflicht>'}
+          <vollkasko>0</vollkasko>
+          ${fieldValues.typklasseTeilkasko ? `<teilkasko>${fieldValues.typklasseTeilkasko}</teilkasko>` : '<teilkasko>0</teilkasko>'}
+        </zeile>
+      </manuelleTypklasse_e>` : ''}
+    </KRAFTBL>
+  </VERTRAG>
+</ANTRAG>`;
   }
 
   createErrorResponse(id, code, message) {
