@@ -3,6 +3,8 @@
  * Zentrale Logik für Sparten/Baustein State Management
  */
 
+import { FIELD_DEFINITIONS } from '@/constants/fieldConfig';
+
 // Interface für Sparten-Aktion von Claude AI
 interface SpartenAction {
   active: boolean;
@@ -215,11 +217,32 @@ export const updateBetragStatus = (
 
 /**
  * Initialisiert FIELD_DEFINITIONS mit Produkt-Daten
+ * WICHTIG: Überschreibt KEINE bestehenden User-Eingaben!
  * @param produktData - Die Daten aus fetchProduktData()
+ * @param currentFieldDefinitions - Aktuelle FIELD_DEFINITIONS (um User-Eingaben zu prüfen)
  * @returns Partial<FieldDefinitions> - Die initialisierten FIELD_DEFINITIONS
  */
-export const initializeProductFieldDefinitions = (produktData: any[]): Partial<FieldDefinitions> => {
+export const initializeProductFieldDefinitions = (
+  produktData: any[], 
+  currentFieldDefinitions?: FieldDefinitions
+): Partial<FieldDefinitions> => {
   console.log(`🚀 Initialisiere FIELD_DEFINITIONS mit ${produktData.length} Sparten`);
+  
+  // Prüfe ob bereits User-Eingaben für Produktsparten vorhanden sind (Row-Level + Field-Level)
+  const hasExistingSpartenRowData = currentFieldDefinitions?.produktSparten?.value && 
+    Array.isArray(currentFieldDefinitions.produktSparten.value) && 
+    currentFieldDefinitions.produktSparten.value.length > 0 &&
+    currentFieldDefinitions.produktSparten.value.some((s: any) => s.echteEingabe === true);
+  
+  // Prüfe auch Field-Level echteEingabe (wichtig für generateEchteEingabeValues)
+  const produktSpartenField = FIELD_DEFINITIONS.find(f => f.key === 'produktSparten');
+  const hasExistingSpartenFieldData = produktSpartenField?.echteEingabe !== undefined && 
+    produktSpartenField?.echteEingabe !== produktSpartenField?.defaultValue;
+  
+  if (hasExistingSpartenRowData || hasExistingSpartenFieldData) {
+    console.log(`⏭️ SKIP: Produktsparten bereits mit User-Eingaben vorhanden (Row: ${hasExistingSpartenRowData}, Field: ${hasExistingSpartenFieldData}) - überschreibe NICHT!`);
+    return {}; // Gebe leeres Update zurück - ändere nichts
+  }
   
   const updates: Partial<FieldDefinitions> = {};
   
@@ -233,7 +256,7 @@ export const initializeProductFieldDefinitions = (produktData: any[]): Partial<F
         beschreibung: sparte.beschreibung,
         check: isChecked,
         zustand: isChecked ? 'A' : ' ', // Bei angeixten Sparten "A" (Aktiv), sonst " " (Leerzeichen)
-        zustandsdetail: ' ', // Immer Leerzeichen als Standard
+        stornogrund: ' ', // Immer Leerzeichen als Standard
         beitragNetto: parseFloat(sparte.beitragNetto || '0'),
         beitragBrutto: parseFloat(sparte.beitragBrutto || '0'),
         echteEingabe: false // Initial: keine echte User-Eingabe
@@ -248,6 +271,17 @@ export const initializeProductFieldDefinitions = (produktData: any[]): Partial<F
     if (!sparte.sparte || !sparte.bausteine) return;
     
     const tableKey = `produktBausteine_${sparte.sparte}`;
+    
+    // Prüfe ob bereits User-Eingaben für diese Bausteine vorhanden sind
+    const hasExistingBausteineData = currentFieldDefinitions?.[tableKey]?.value && 
+      Array.isArray(currentFieldDefinitions[tableKey].value) && 
+      currentFieldDefinitions[tableKey].value.length > 0 &&
+      currentFieldDefinitions[tableKey].value.some((b: any) => b.echteEingabe === true);
+    
+    if (hasExistingBausteineData) {
+      console.log(`⏭️ SKIP: ${tableKey} bereits mit User-Eingaben vorhanden - überschreibe NICHT!`);
+      return; // Skip diese Sparte
+    }
     
     // Rekursive Funktion um alle Bausteine (auch Subbausteine) zu sammeln
     const collectAllBausteine = (bausteine: any[], level: number = 0): any[] => {
@@ -329,7 +363,7 @@ export const processSpartenActions = (
           check: newCheck,
           echteEingabe: true, // Markiere als echte Eingabe (von KI)
           zustand: newCheck ? 'A' : ' ', // Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leerzeichen)
-          zustandsdetail: ' ' // Zustandsdetail immer leer, da weder "A" noch " " = "S" (Storniert)
+          stornogrund: ' ' // Zustandsdetail immer leer, da weder "A" noch " " = "S" (Storniert)
         };
         
         console.log(`✅ Sparte ${sparteCode} aktualisiert: ${oldCheck} → ${newCheck}`, spartenData[sparteFieldIndex]);

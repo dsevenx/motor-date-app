@@ -488,6 +488,12 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     synonyms: ['produktsparten', 'sparten', 'versicherungssparten'],
     table: {
       columns: [
+          {
+          key: 'sparte',
+          label: 'sparte',
+          type: 'text',
+          width: '0px'
+        },
         {
           key: 'beschreibung',
           label: 'Sparte',
@@ -510,8 +516,8 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           }
         },
         {
-          key: 'zustandsdetail',
-          label: 'Zustandsdetail',
+          key: 'stornogrund',
+          label: 'Stornogrund',
           type: 'dropdown',
           width: '140px',
            dropdown: {

@@ -13,6 +13,7 @@ import {
 } from '@/constants';
 // echteEingabe wird automatisch durch setFieldValueWithEchteEingabe in Motor-Komponenten gesetzt
 import { ClaudeResponse } from '@/constants/fieldConfig';
+import { updateGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) => {
    
@@ -221,13 +222,23 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       try {
         // Verwende setTimeout für asynchrone Ausführung
         setTimeout(() => {
+          const globalUpdates: Record<string, any> = {};
+          
           pendingUpdates.forEach(({ fieldConfig, newValue }) => {
             try {
               fieldConfig.onChange(newValue);
+              // Sammle für direkte globale Synchronisation
+              globalUpdates[fieldConfig.fieldKey] = newValue;
             } catch (error) {
               console.error(`❌ Fehler bei UPDATE ${fieldConfig.fieldKey}:`, error);
             }
           });
+          
+          // ZUSÄTZLICHE DIREKTE SYNCHRONISATION (als Backup)
+          if (Object.keys(globalUpdates).length > 0) {
+            console.log('🔄 ChatComponent: Zusätzliche direkte Synchronisation zu globalFieldDefinitions:', globalUpdates);
+            updateGlobalFieldDefinitions(globalUpdates);
+          }
         }, 0);
       } catch (batchError) {
         console.error('❌ Fehler beim Batch-Update:', batchError);

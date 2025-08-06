@@ -194,10 +194,13 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
     console.log('📊 Total Prompt Length:', SYSTEM_PROMPT.length + userPrompt.length, 'Zeichen');
     
     // 🔍 DEBUG: Zeige nur relevante Teile der Prompts
-    console.log('🔍 System Prompt enthält Sparten-Regeln:', SYSTEM_PROMPT.includes('SPARTEN & BAUSTEIN ERKENNUNG'));
-    console.log('🔍 User Prompt enthält Test-Text:', `"${text}"`);
-    console.log('🔍 User Prompt enthält Tabellen:', userPrompt.includes('produktSparten-Tabelle'));
-    
+    //console.log('🔍 System Prompt enthält Sparten-Regeln:', SYSTEM_PROMPT.includes('SPARTEN & BAUSTEIN ERKENNUNG'));
+    //console.log('🔍 User Prompt enthält Test-Text:', `"${text}"`);
+    //console.log('🔍 User Prompt enthält Tabellen:', userPrompt.includes('produktSparten-Tabelle'));
+  
+    console.log('🔍 System Prompt für Steffen :', SYSTEM_PROMPT);
+    console.log('🔍 User Prompt für Steffen:', userPrompt);
+  
     // Zeige die größten Komponenten des User Prompts (vor und nach Optimierung)
     console.log('📊 USER PROMPT BREAKDOWN:');
     console.log('📊 - Base Text:', `"${text}"`.length, 'Zeichen');
@@ -327,11 +330,150 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
         throw new Error('Fehlende extractedData in Claude Response');
       }
 
-      // Stelle sicher, dass alle Tabellen-Daten eindeutige IDs haben (außer Sparten/Bausteine)
+      // 🔧 BAUSTEIN-ID-KORREKTUR: Ersetze Claude's erfundene IDs durch echte IDs basierend auf Beschreibung
       Object.keys(extractedData.extractedData).forEach(fieldKey => {
-        // Skip Sparten- und Baustein-Tabellen, da diese über MotorProduktSpartenTree verwaltet werden
-        if (fieldKey === 'produktSparten' || fieldKey.startsWith('produktBausteine_')) {
-          return;
+        if (fieldKey.startsWith('produktBausteine_')) {
+          const fieldData = extractedData.extractedData[fieldKey];
+          if (fieldData && Array.isArray(fieldData.value)) {
+            console.log(`🔧 Korrigiere Baustein-IDs für ${fieldKey}:`, fieldData.value);
+            
+            // Skip ID correction wenn Claude leere Arrays zurückgegeben hat
+            if (fieldData.value.length === 0) {
+              console.log(`⏭️ Überspringe ID-Korrektur für ${fieldKey} (leer)`);
+              return;
+            }
+            
+            // Hole die originalen Bausteine aus currentValues für ID-Mapping
+            const originalBausteineStr = currentValues[fieldKey];
+            let originalBausteine: any[] = [];
+            
+            try {
+              if (originalBausteineStr && originalBausteineStr !== '[]') {
+                originalBausteine = typeof originalBausteineStr === 'string' 
+                  ? JSON.parse(originalBausteineStr) 
+                  : originalBausteineStr;
+              }
+              
+              // Stelle sicher, dass originalBausteine ein Array ist
+              if (!Array.isArray(originalBausteine)) {
+                originalBausteine = [];
+              }
+            } catch (error) {
+              console.warn(`⚠️ Konnte originale Bausteine für ${fieldKey} nicht parsen:`, error);
+              originalBausteine = [];
+            }
+            
+            // Korrigiere IDs basierend auf Beschreibung mit verbesserter Logik
+            const usedOriginals = new Set(); // Verhindere doppelte Zuordnung
+            
+            console.log(`🔧 Verfügbare Original-Bausteine für ${fieldKey}:`, originalBausteine.map(b => ({ id: b.id, beschreibung: b.beschreibung, knotenId: b.knotenId })));
+            
+            // Spezielle Behandlung für kombinierte VK/TK Selbstbeteiligung
+            let expandedClaudeItems: any[] = [];
+            fieldData.value.forEach((claudeItem: any) => {
+              const desc = claudeItem.beschreibung?.toLowerCase() || '';
+              
+              // Erkenne kombinierte Selbstbeteiligung wie "VK 300 / TK 150"
+              if (desc.includes('selbstbeteiligung') && desc.includes('vk') && desc.includes('tk') && desc.includes('/')) {
+                console.log(`🔧 Erkenne kombinierte VK/TK SB: "${claudeItem.beschreibung}"`);
+                
+                // Extrahiere Beträge
+                const vkMatch = desc.match(/vk\s*(\d+)/);
+                const tkMatch = desc.match(/tk\s*(\d+)/);
+                const vkBetrag = vkMatch ? parseInt(vkMatch[1]) : (claudeItem.betrag || 300);
+                const tkBetrag = tkMatch ? parseInt(tkMatch[1]) : 150;
+                
+                // Erstelle zwei separate Bausteine
+                expandedClaudeItems.push({
+                  ...claudeItem,
+                  id: `${claudeItem.id}_VK`,
+                  beschreibung: `Selbstbeteiligung Vollkasko`,
+                  betrag: vkBetrag
+                });
+                
+                expandedClaudeItems.push({
+                  ...claudeItem,
+                  id: `${claudeItem.id}_TK`,
+                  beschreibung: `Selbstbeteiligung Teilkasko`,
+                  betrag: tkBetrag
+                });
+              } else {
+                expandedClaudeItems.push(claudeItem);
+              }
+            });
+            
+            fieldData.value = expandedClaudeItems.map((claudeItem: any) => {
+              if (claudeItem.beschreibung) {
+                // Verbesserte Suche mit spezifischen Regeln
+                let matchingOriginal = null;
+                
+                // Für Selbstbeteiligung: Unterscheide zwischen Vollkasko und Teilkasko
+                if (claudeItem.beschreibung.toLowerCase().includes('selbstbeteiligung')) {
+                  const desc = claudeItem.beschreibung.toLowerCase();
+                  
+                  // Erweiterte Erkennung: VK = Vollkasko, TK = Teilkasko
+                  if (desc.includes('vollkasko') || desc.includes(' vk ') || desc.includes('vk 300') || desc.includes('vk/')) {
+                    // Suche nach Vollkasko-SB
+                    matchingOriginal = originalBausteine.find((original: any) => 
+                      original.beschreibung && 
+                      (original.beschreibung.toLowerCase().includes('vollkasko') ||
+                       original.beschreibung.toLowerCase().includes('vk ')) &&
+                      original.beschreibung.toLowerCase().includes('selbstbeteiligung') &&
+                      !usedOriginals.has(original.id)
+                    );
+                    console.log(`🔧 Suche Vollkasko-SB für: "${claudeItem.beschreibung}"`);
+                  } else if (desc.includes('teilkasko') || desc.includes(' tk ') || desc.includes('tk 150') || desc.includes('tk/')) {
+                    // Suche nach Teilkasko-SB  
+                    matchingOriginal = originalBausteine.find((original: any) => 
+                      original.beschreibung && 
+                      (original.beschreibung.toLowerCase().includes('teilkasko') ||
+                       original.beschreibung.toLowerCase().includes('tk ')) &&
+                      original.beschreibung.toLowerCase().includes('selbstbeteiligung') &&
+                      !usedOriginals.has(original.id)
+                    );
+                    console.log(`🔧 Suche Teilkasko-SB für: "${claudeItem.beschreibung}"`);
+                  } else {
+                    // Fallback: Erste verfügbare Selbstbeteiligung
+                    matchingOriginal = originalBausteine.find((original: any) => 
+                      original.beschreibung && 
+                      original.beschreibung.toLowerCase().includes('selbstbeteiligung') &&
+                      !usedOriginals.has(original.id)
+                    );
+                    console.log(`🔧 Suche generische SB für: "${claudeItem.beschreibung}"`);
+                  }
+                } else {
+                  // Generische Beschreibungssuche für andere Bausteine
+                  const searchTerm = claudeItem.beschreibung.toLowerCase().substring(0, 15);
+                  matchingOriginal = originalBausteine.find((original: any) => 
+                    original.beschreibung && 
+                    original.beschreibung.toLowerCase().includes(searchTerm) &&
+                    !usedOriginals.has(original.id)
+                  );
+                }
+                
+                if (matchingOriginal && matchingOriginal.id) {
+                  usedOriginals.add(matchingOriginal.id);
+                  console.log(`✅ ID-Korrektur: ${claudeItem.id} → ${matchingOriginal.id} (${claudeItem.beschreibung})`);
+                  return { 
+                    ...claudeItem, 
+                    id: matchingOriginal.id,
+                    // Übernehme auch andere wichtige Felder aus original
+                    knotenId: matchingOriginal.knotenId,
+                    echteEingabe: matchingOriginal.echteEingabe || false
+                  };
+                } else {
+                  console.warn(`⚠️ Keine ID-Korrektur möglich für: ${claudeItem.beschreibung}`);
+                }
+              }
+              return claudeItem;
+            });
+          }
+          return; // Skip normal processing for baustein fields
+        }
+        
+        // Stelle sicher, dass alle anderen Tabellen-Daten eindeutige IDs haben
+        if (fieldKey === 'produktSparten') {
+          return; // Skip Sparten, handled separately
         }
         
         const fieldData = extractedData.extractedData[fieldKey];

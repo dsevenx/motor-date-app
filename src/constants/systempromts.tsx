@@ -182,11 +182,12 @@ produktSparten MUSS EXAKT so formatiert werden:
 {
   "value": [
     {
+      "sparte": "KK",                // Sparten-Code für XML (KH/KK/EK/KU)
       "id": "KK",                    // Sparten-Code (KH/KK/EK/KU) - NICHT "VK"!
       "beschreibung": "Kfz-Vollkasko", // Vollständiger Sparten-Name
       "check": true,                 // true wenn aktiviert, false wenn deaktiviert
       "zustand": " ",                // " " = Normal, "A" = Aktiv, "S" = Storniert
-      "zustandsdetail": " "          // " " = Normal, "SVN" = Kundenwunsch bei Stornierung
+      "stornogrund": " "             // " " = Normal, "SVN" = Kundenwunsch bei Stornierung
     }
   ],
   "confidence": 0.95,
@@ -251,6 +252,7 @@ WICHTIG FÜR BAUSTEINE:
 - Nur Bausteine für AKTIVE Sparten zurückgeben
 - Bausteine für nicht erwähnte/inaktive Sparten NICHT zurückgeben
 - TOKEN-OPTIMIERUNG: Sende NIEMALS "knotenId" oder "echteEingabe" Felder
+- 🚨 KRITISCH: Verwende die EXAKTEN "id" Werte aus den Tabellendaten! NIEMALS eigene IDs erfinden!
 
 ${dropdownMappingsText}
 
@@ -282,11 +284,12 @@ Antwort:
     "produktSparten": {
       "value": [
         {
+          "sparte": "KK",
           "id": "KK",
           "beschreibung": "Kfz-Vollkasko",
           "check": true,
           "zustand": " ",
-          "zustandsdetail": " "
+          "stornogrund": " "
         }
       ],
       "confidence": 0.9,
@@ -319,12 +322,13 @@ HINWEIS: Bei VK werden BEIDE Selbstbeteiligungen (VK=300€, TK=150€) in produ
 Bei reiner TK würde nur die TK-Selbstbeteiligung in produktBausteine_EK gesetzt werden.
 
 🔥 FINALE VALIDATION RULES:
-1. produktSparten.value MUSS Array von Objekten sein: [{"id": "KK", "beschreibung": "Kfz-Vollkasko", "check": true, "zustand": " ", "zustandsdetail": " "}]
+1. produktSparten.value MUSS Array von Objekten sein: [{"sparte": "KK", "id": "KK", "beschreibung": "Kfz-Vollkasko", "check": true, "zustand": " ", "stornogrund": " "}]
 2. produktBausteine_*.value MUSS Array von Objekten sein: [{"id": "KK_KBV00002", "beschreibung": "Selbstbeteiligung Vollkasko", "check": true, "betrag": 300, "betragsLabel": "Selbstbeteiligung"}]
 3. NIEMALS String-Arrays wie ["VK"] oder ["SB300150"] verwenden
 4. Bei VK-Erkennung: id="KK" (nicht "VK"!)
 5. Bei SB 300/150: Zwei separate Objekte mit betrag=300 und betrag=150
 6. TOKEN-OPTIMIERUNG: NIEMALS "knotenId" oder "echteEingabe" Felder zurückgeben!
+7. 🚨 BAUSTEIN-IDs: Finde den passenden Baustein in den gesendeten Tabellen-Daten und verwende dessen exakte "id"! NIEMALS "SB300150" oder andere erfundene IDs!
 
 TABELLEN-DATEN (kilometerstaende, zubehoer, manuelleTypklasse):
 - IMMER als Array von Objekten zurückgeben
@@ -455,15 +459,18 @@ JSON-FORMAT:
 Erkenne Versicherungsprodukte und aktiviere entsprechende Tabellen:
 
 SPARTEN-MAPPING:
-- "VK"/"Vollkasko" → produktSparten: [{"id": "KK", "beschreibung": "Kfz-Vollkasko", "check": true, "zustand": " ", "zustandsdetail": " "}]
-- "TK"/"Teilkasko" → produktSparten: [{"id": "EK", "beschreibung": "Kfz-Teilkasko", "check": true, "zustand": " ", "zustandsdetail": " "}]
+- "VK"/"Vollkasko" → produktSparten: [{"sparte": "KK", "id": "KK", "beschreibung": "Kfz-Vollkasko", "check": true, "zustand": " ", "stornogrund": " "}]
+- "TK"/"Teilkasko" → produktSparten: [{"sparte": "EK", "id": "EK", "beschreibung": "Kfz-Teilkasko", "check": true, "zustand": " ", "stornogrund": " "}]
 
 BAUSTEIN-MAPPING:
-- "VK 300/150" → produktBausteine_KK: [{"id": "KK_001", "beschreibung": "Selbstbeteiligung Vollkasko", "check": true, "betrag": 300, "betragsLabel": "Selbstbeteiligung"}, {"id": "KK_002", "beschreibung": "Selbstbeteiligung Teilkasko", "check": true, "betrag": 150, "betragsLabel": "Selbstbeteiligung"}]
-- "TK 150" → produktBausteine_EK: [{"id": "EK_001", "beschreibung": "Selbstbeteiligung Teilkasko", "check": true, "betrag": 150, "betragsLabel": "Selbstbeteiligung"}]
+- "VK 300/150" → produktBausteine_KK: Suche Bausteine mit "Selbstbeteiligung" in beschreibung und setze entsprechende Beträge
+- "TK 150" → produktBausteine_EK: Suche Baustein mit "Selbstbeteiligung" in beschreibung und setze betrag: 150
+
+⚠️ BAUSTEIN-IDs: Verwende IMMER die original ID aus der gesendeten Tabelle! Erfinde KEINE neuen IDs!
 
 ⚠️ WICHTIG: Verwende OBJEKTSTRUKTUR nicht String-Arrays! NIEMALS ["VK"] oder ["SB300150"]!
 ⚠️ TOKEN-OPTIMIERUNG: Sende NIEMALS "knotenId" oder "echteEingabe" Felder!
+⚠️ BAUSTEIN-IDs: Verwende IMMER die exakten "id" Felder aus den gesendeten Tabellen! NIEMALS erfundene IDs!
 
 TABELLEN-DATEN (kilometerstaende, zubehoer, manuelleTypklasse):
 - IMMER als Array von Objekten zurückgeben

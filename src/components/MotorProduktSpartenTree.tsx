@@ -21,7 +21,7 @@ interface SpartenRowState {
   sparte: Produktsparte; // Nur für Struktur-Daten (beschreibung, bausteine, etc.)
   isExpanded: boolean; // UI-State für Expand/Collapse
   zustandDomainId: string; // Domain-Mapping für Dropdowns
-  // check, zustand, zustandsdetail kommen NUR aus FIELD_DEFINITIONS!
+  // check, zustand, stornogrund kommen NUR aus FIELD_DEFINITIONS!
 }
 
 export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = ({
@@ -56,7 +56,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
           sparte: {
             ...sparte,
             // Entferne check - wird NUR aus FIELD_DEFINITIONS gelesen!
-            // check, zustand, zustandsdetail sind jetzt read-only aus FIELD_DEFINITIONS
+            // check, zustand, stornogrund sind jetzt read-only aus FIELD_DEFINITIONS
           },
           isExpanded: false, // User muss manuell öffnen
           zustandDomainId: getZustandDomainId(sparte.sparte)
@@ -65,10 +65,17 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
         setSpartenRows(initialRows);
         
         // Initialisiere FIELD_DEFINITIONS mit Produktdaten (Single Point of Truth)
+        // WICHTIG: Übergebe aktuelle fieldDefinitions um User-Eingaben zu schützen
         console.log(`🚀 Initialisiere FIELD_DEFINITIONS mit loadProduktData`);
-        const fieldDefinitionsUpdates = initializeProductFieldDefinitions(data);
-        onFieldDefinitionsChange(fieldDefinitionsUpdates);
-        console.log(`✅ FIELD_DEFINITIONS initialisiert:`, fieldDefinitionsUpdates);
+        const fieldDefinitionsUpdates = initializeProductFieldDefinitions(data, fieldDefinitions);
+        
+        // Nur updaten wenn tatsächlich Updates vorhanden sind
+        if (Object.keys(fieldDefinitionsUpdates).length > 0) {
+          onFieldDefinitionsChange(fieldDefinitionsUpdates);
+          console.log(`✅ FIELD_DEFINITIONS initialisiert:`, fieldDefinitionsUpdates);
+        } else {
+          console.log(`✅ FIELD_DEFINITIONS bereits mit User-Daten vorhanden - keine Initialisierung nötig`);
+        }
         
         // KEINE Initial-Callbacks - nur bei User-Interaktion
         
@@ -112,7 +119,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
         check: checked,
         echteEingabe: true, // Markiere als echte Eingabe
         zustand: checked ? 'A' : ' ', // Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leerzeichen)
-        zustandsdetail: ' ' // Zustandsdetail immer leer, da weder "A" noch " " = "S" (Storniert)
+        stornogrund: ' ' // Zustandsdetail immer leer, da weder "A" noch " " = "S" (Storniert)
       };
       
       onFieldDefinitionsChange({
@@ -153,7 +160,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
         ...spartenData[sparteFieldIndex], 
         zustand: value,
         // Zustandsdetail nur bei "S" (Storniert) erlaubt, sonst immer leer
-        zustandsdetail: value === 'S' ? spartenData[sparteFieldIndex].zustandsdetail : ' '
+        stornogrund: value === 'S' ? spartenData[sparteFieldIndex].stornogrund : ' '
       };
       onFieldDefinitionsChange({
         produktSparten: { value: spartenData }
@@ -177,7 +184,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
       if (currentZustand === 'S') {
         spartenData[sparteFieldIndex] = { 
           ...spartenData[sparteFieldIndex], 
-          zustandsdetail: value 
+          stornogrund: value 
         };
         onFieldDefinitionsChange({
           produktSparten: { value: spartenData }
@@ -308,7 +315,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
                 {/* Zustandsdetail Dropdown */}
                 <div className="col-span-2">
                   <MotorDropDown
-                    value={getSparteFromFieldDefinitions(row.sparte.sparte)?.zustandsdetail || ' '}
+                    value={getSparteFromFieldDefinitions(row.sparte.sparte)?.stornogrund || ' '}
                     onChange={(value) => handleSparteZustandsdetailChange(sparteIndex, value)}
                     label=""
                     domainId="KraftBoGruppeMoeglStornogruendeSparte"

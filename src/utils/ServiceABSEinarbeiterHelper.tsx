@@ -156,7 +156,9 @@ ${kraftblContent}
     // Bei Spartentabelle: nur Zeilen mit KnotenID (z.B. "KH", "KK", "EK", "KU")
     if (field.key === 'produktSparten') {
       const beschreibung = row.beschreibung as string;
-      if (beschreibung && ['KH', 'KK', 'EK', 'KU'].includes(beschreibung)) {
+      const id = row.id as string;
+      if (beschreibung && ['KH', 'KK', 'EK', 'KU'].includes(beschreibung)
+      ||id && ['KH', 'KK', 'EK', 'KU'].includes(id)) {
         field.table.columns.forEach(column => {
           const cellValue = row[column.key];
           if (cellValue !== undefined && cellValue !== null && cellValue !== '') {

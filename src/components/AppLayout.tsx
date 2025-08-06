@@ -76,6 +76,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           
           // Only propagate to global if not already updating from global
           if (!isUpdatingFromGlobal) {
+            console.log(`🔄 AppLayout Setter für ${field.key} ruft updateFieldDefinitions auf:`, value);
             updateFieldDefinitions({ [field.key]: value });
           }
           
@@ -104,14 +105,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   // Stelle fieldValues global für andere Komponenten zur Verfügung
   useEffect(() => {
-    if (!globalChatConfig && !isUpdatingFromGlobal) {
-      // Nur wenn nicht GUI-Test aktiv ist UND nicht von globalFieldValues kommend
+    if (!isUpdatingFromGlobal) {
+      // Propagiere IMMER zu globalFieldDefinitions (auch bei GUI-Test)
+      // Nur bei Rückwärts-Updates (isUpdatingFromGlobal) unterbrechen
+      console.log('🌍 AppLayout propagiert fieldValues zu globalFieldDefinitions');
       setGlobalFieldDefinitions(fieldValues);
-    } else if (isUpdatingFromGlobal) {
+    } else {
       // Reset flag nach Update von Global
       setIsUpdatingFromGlobal(false);
     }
-  }, [fieldValues, globalChatConfig, isUpdatingFromGlobal]);
+  }, [fieldValues, isUpdatingFromGlobal]);
 
   const renderContent = () => {
     // Nur der Seiteninhalt, da MotorHeader jetzt separat gerendert wird

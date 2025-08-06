@@ -21,7 +21,7 @@ export default function ObjektPage() {
   const { fieldDefinitions: globalFieldValues, updateFieldDefinitions } = useGlobalFieldDefinitions();
   
   // Generiere State basierend auf echten Eingabewerten (nicht nur Defaults)
-  const echteEingabeValues = useMemo(() => generateEchteEingabeValues(), []);
+  const echteEingabeValues = generateEchteEingabeValues();
   const [fieldValues, setFieldValues] = useState(echteEingabeValues);
 
   // Sync with global field values from Chat updates (avoid circular updates)
