@@ -54,12 +54,68 @@ ${kraftblContent}
       const echteEingabe = field.echteEingabe;
       
       // Prüfe ob Feld vom Nutzer oder KI eingegeben wurde (hat echteEingabe)
-      const istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
+      let istEingegeben: boolean;
+      
+      if (field.type === 'table' || field.type === 'single-line-table') {
+        // Für Tabellen: Prüfe ob mindestens eine Zeile echteEingabe hat
+        console.log(`🔍 DEBUG Tabelle ${field.key}:`, { fieldValue, type: typeof fieldValue, isArray: Array.isArray(fieldValue) });
+        
+        let actualTableData: any[] = [];
+        
+        // Extrahiere das echte Array aus verschiedenen möglichen Strukturen
+        if (Array.isArray(fieldValue)) {
+          actualTableData = fieldValue;
+        } else if (fieldValue && typeof fieldValue === 'object' && Array.isArray(fieldValue.value)) {
+          actualTableData = fieldValue.value;
+        } else if (fieldValue && typeof fieldValue === 'object' && fieldValue.data && Array.isArray(fieldValue.data)) {
+          actualTableData = fieldValue.data;
+        }
+        
+        console.log(`🔍 DEBUG actualTableData für ${field.key}:`, actualTableData);
+        
+        if (actualTableData.length > 0) {
+          // Prüfe Row-Level echteEingabe
+          const hasExplicitEchteEingabe = actualTableData.some((row: any) => row.echteEingabe === true);
+          
+          // Fallback: Wenn keine explizite echteEingabe, aber Daten vorhanden sind
+          // UND Daten unterscheiden sich von Defaults → als eingegeben betrachten
+          const hasNonDefaultData = actualTableData.some((row: any) => {
+            // Prüfe ob die Zeile Non-Default-Werte hat (außer id)
+            return Object.keys(row).some(key => {
+              if (key === 'id' || key === 'echteEingabe') return false;
+              const value = row[key];
+              return value !== undefined && value !== null && value !== '' && value !== 0;
+            });
+          });
+          
+          istEingegeben = hasExplicitEchteEingabe || hasNonDefaultData;
+          
+          console.log(`🔍 Tabelle ${field.key}: istEingegeben = ${istEingegeben} (${actualTableData.length} Zeilen, explicitEchteEingabe: ${hasExplicitEchteEingabe}, nonDefaultData: ${hasNonDefaultData})`);
+        } else {
+          istEingegeben = false;
+          console.log(`🔍 Tabelle ${field.key}: istEingegeben = false (keine Daten)`);
+        }
+      } else {
+        // Für normale Felder: Prüfe Field-Level echteEingabe
+        istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
+      }
       
       if (istEingegeben) {
         if (field.type === 'table' || field.type === 'single-line-table') {
-          // Tabellen-Behandlung
-          const tableXml = this.erzeugeTabellXML(field, fieldValue);
+          // Tabellen-Behandlung - extrahiere das echte Array
+          let actualTableData: any[] = [];
+          
+          if (Array.isArray(fieldValue)) {
+            actualTableData = fieldValue;
+          } else if (fieldValue && typeof fieldValue === 'object' && Array.isArray(fieldValue.value)) {
+            actualTableData = fieldValue.value;
+          } else if (fieldValue && typeof fieldValue === 'object' && fieldValue.data && Array.isArray(fieldValue.data)) {
+            actualTableData = fieldValue.data;
+          }
+          
+          console.log(`🔍 Übergebe an erzeugeTabellXML für ${field.key}:`, actualTableData);
+          
+          const tableXml = this.erzeugeTabellXML(field, actualTableData);
           if (tableXml) {
             xmlParts.push(tableXml);
           }

@@ -5,12 +5,42 @@ import { Database, Eye, User, MessageSquare, Code, Download, FileText, Settings 
 import { FIELD_DEFINITIONS, generateEchteEingabeValues } from '@/constants/fieldConfig';
 import { ServiceABSEinarbeiterHelper } from '@/utils/ServiceABSEinarbeiterHelper';
 import { PageTemplate } from '@/components/PageTemplate';
+import { useGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
 
 // Force dynamic rendering to avoid SSR issues
 export const dynamic = 'force-dynamic';
 
 export default function KbThPage() {
-  const echteEingabeValues = generateEchteEingabeValues();
+  const { fieldDefinitions: globalFieldValues } = useGlobalFieldDefinitions();
+  
+  // Verwende die gleiche Logik wie Objekt und Produkt Pages
+  const [fieldValues, setFieldValues] = useState(() => generateEchteEingabeValues());
+
+  // Sync with global field values from other pages (Chat updates, Objekt, Produkt)
+  useEffect(() => {
+    if (globalFieldValues && Object.keys(globalFieldValues).length > 0) {
+      setFieldValues(prev => {
+        let hasChanges = false;
+        const updates = { ...prev };
+        
+        Object.keys(globalFieldValues).forEach(key => {
+          const newValue = globalFieldValues[key];
+          const currentValue = prev[key];
+          
+          // Vergleiche auf JSON-Ebene für deep equality
+          if (JSON.stringify(currentValue) !== JSON.stringify(newValue)) {
+            console.log(`🔄 KB-TH-Page Update: ${key}`, { from: currentValue, to: newValue });
+            updates[key] = newValue;
+            hasChanges = true;
+          }
+        });
+        
+        return hasChanges ? updates : prev;
+      });
+    }
+  }, [globalFieldValues]);
+
+  const echteEingabeValues = fieldValues; // Verwende die aktuellen fieldValues statt generateEchteEingabeValues()
   const [showXmlDetails, setShowXmlDetails] = useState(false);
 
   // Formatiere Werte für die Anzeige
