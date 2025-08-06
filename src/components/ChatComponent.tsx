@@ -41,9 +41,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
   const processExtractedData = (aiData: ClaudeResponse): Array<{label: string, value: string, formattedValue: string}> => {
     const updatedFieldsWithValues: Array<{label: string, value: string, formattedValue: string}> = [];
     
-    console.log('🔍 ===== processExtractedData GESTARTET =====');
-    console.log('🔍 aiData:', JSON.stringify(aiData, null, 2));
-    console.log('🔍 fieldConfigs.length:', fieldConfigs.length);
+    // Entfernte überflüssige processExtractedData-Logs
     
     // Null-Check für extractedData
     if (!aiData.extractedData || typeof aiData.extractedData !== 'object') {
@@ -219,127 +217,24 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
     }
 
     // ALLE Updates in einem Batch ausführen (verhindert "maximum update depth exceeded")
-    console.log(`🔄 ===== BATCH-UPDATE SYSTEM =====`);
-    console.log(`🔄 Anzahl pendingUpdates: ${pendingUpdates.length}`);
-    console.log(`🔄 Pending Updates Details:`, pendingUpdates.map(u => ({ 
-      fieldKey: u.fieldConfig.fieldKey, 
-      type: u.fieldConfig.type,
-      newValue: JSON.stringify(u.newValue).substring(0, 100) + '...',
-      onChangeType: typeof u.fieldConfig.onChange
-    })));
-    
-    // React.startTransition für bessere Performance bei vielen Updates
     if (pendingUpdates.length > 0) {
       try {
-        console.log(`⏱️ ===== STARTE BATCH-VERARBEITUNG =====`);
-        console.log(`⏱️ Verwende setTimeout(0) für asynchrone Ausführung...`);
-        
-        // **WICHTIG:** Batch-Counter für Debugging
-        const batchId = Date.now();
-        console.log(`🆔 Batch-ID: ${batchId}`);
-        
         // Verwende setTimeout für asynchrone Ausführung
         setTimeout(() => {
-          console.log(`🚀 ===== BATCH ${batchId} AUSFÜHRUNG GESTARTET =====`);
-          console.log(`🚀 Anzahl Updates: ${pendingUpdates.length}`);
-          
-          pendingUpdates.forEach(({ fieldConfig, newValue }, index) => {
+          pendingUpdates.forEach(({ fieldConfig, newValue }) => {
             try {
-              console.log(`🔄 ===== UPDATE ${index + 1}/${pendingUpdates.length} (Batch ${batchId}) =====`);
-              console.log(`🔄 FieldKey: ${fieldConfig.fieldKey}`);
-              console.log(`🔄 Type: ${fieldConfig.type}`);
-              console.log(`🔄 NewValue:`, typeof newValue === 'object' ? JSON.stringify(newValue) : newValue);
-              console.log(`🔄 onChange-Function:`, typeof fieldConfig.onChange);
-              
-              console.log(`🚀 Rufe onChange für ${fieldConfig.fieldKey} auf...`);
-              
               fieldConfig.onChange(newValue);
-              
-              console.log(`✅ onChange für ${fieldConfig.fieldKey} ERFOLGREICH abgeschlossen`);
-              
-              // Prüfe ob weitere Updates ausgelöst wurden
-              console.log(`🔍 Prüfe ob ${fieldConfig.fieldKey} weitere Re-Renders auslöst...`);
-              
             } catch (error) {
-              console.error(`❌ ===== FEHLER bei UPDATE ${index + 1}/${pendingUpdates.length} =====`);
-              console.error(`❌ FieldKey: ${fieldConfig.fieldKey}`);
-              console.error(`❌ Error:`, error);
-              console.error(`❌ Stack:`, error.stack);
+              console.error(`❌ Fehler bei UPDATE ${fieldConfig.fieldKey}:`, error);
             }
           });
-          
-          console.log(`✅ ===== BATCH ${batchId} VOLLSTÄNDIG ABGESCHLOSSEN =====`);
-          console.log(`✅ Alle ${pendingUpdates.length} Updates verarbeitet`);
-          
-          // Warte kurz und prüfe auf weitere Re-Renders
-          setTimeout(() => {
-            console.log(`🔍 ===== POST-BATCH CHECK (Batch ${batchId}) =====`);
-            console.log(`🔍 Prüfe ob weitere Re-Renders durch Batch ausgelöst wurden...`);
-          }, 100);
-          
         }, 0);
       } catch (batchError) {
-        console.error('❌ ===== BATCH-SYSTEM FEHLER =====');
         console.error('❌ Fehler beim Batch-Update:', batchError);
-        console.error('❌ Stack:', batchError.stack);
       }
-    } else {
-      console.log(`ℹ️ ===== KEINE BATCH-UPDATES =====`);
-      console.log(`ℹ️ Keine pendingUpdates zu verarbeiten`);
     }
 
-    // Verarbeite Sparten- und Baustein-Aktionen separat über onFieldDefinitionsChange
-    if (aiData.spartenActions || aiData.bausteinActions) {
-      console.log('🔄 Verarbeite spartenActions/bausteinActions im ChatComponent:', {
-        spartenActions: aiData.spartenActions,
-        bausteinActions: aiData.bausteinActions
-      });
-      
-      try {
-        // Finde die onFieldDefinitionsChange Funktion
-        const produktSpartenField = fieldConfigs.find(config => config.fieldKey === 'produktSparten');
-        if (produktSpartenField && produktSpartenField.onFieldDefinitionsChange) {
-          // Beide Actions weiterleiten
-          const updateData: Record<string, any> = {};
-          if (aiData.spartenActions) updateData.spartenActions = aiData.spartenActions;
-          if (aiData.bausteinActions) updateData.bausteinActions = aiData.bausteinActions;
-          
-          console.log('🔄 Sende Actions an MotorProduktSpartenTree:', updateData);
-          produktSpartenField.onFieldDefinitionsChange(updateData);
-          
-          // Sparten-Aktivierungen zu den angezeigten Updates hinzufügen
-          if (aiData.spartenActions) {
-            Object.entries(aiData.spartenActions).forEach(([sparteKey, action]) => {
-              if (action.active) {
-                updatedFieldsWithValues.push({
-                  label: `Sparte ${sparteKey}`,
-                  value: 'aktiviert',
-                  formattedValue: `${sparteKey} aktiviert: ${action.reason}`
-                });
-              }
-            });
-          }
-          
-          // Baustein-Aktivierungen zu den angezeigten Updates hinzufügen
-          if (aiData.bausteinActions) {
-            aiData.bausteinActions.forEach(action => {
-              if (action.active) {
-                const betragText = action.betrag ? ` (${action.betrag}€)` : '';
-                updatedFieldsWithValues.push({
-                  label: `Baustein ${action.sparte}`,
-                  value: action.beschreibung,
-                  formattedValue: `${action.beschreibung}${betragText}: ${action.reason}`
-                });
-              }
-            });
-          }
-        } else {
-          console.warn('onFieldDefinitionsChange nicht gefunden für produktSparten');
-        }
-      } catch (error) {
-        console.error('Fehler beim Verarbeiten der spartenActions/bausteinActions:', error);
-      }
-    }
+    // Die Sparten- und Baustein-Daten kommen jetzt direkt als Tabellen-Updates in extractedData
 
     return updatedFieldsWithValues;
   };
@@ -466,19 +361,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       }
 
       const aiData = result.data;
-      console.log('🔮 aiData erhalten:', JSON.stringify(aiData, null, 2));
       
-      // Daten verarbeiten
-      console.log('🔮 Starte processExtractedData...');
+      // ===== KLARE KI-ANTWORT-AUSGABE =====
+      console.log('🤖 ===== KI-ANTWORT =====');  
+      console.log(JSON.stringify(aiData, null, 2));
+      console.log('🤖 ===== ENDE KI-ANTWORT =====');
+      
+      // Daten verarbeiten  
       const updatedFieldsWithValues = processExtractedData(aiData);
-      console.log('🔮 processExtractedData abgeschlossen, updatedFieldsWithValues:', updatedFieldsWithValues);
       
       // Response-Message generieren
-      console.log('🔮 Generiere Response Message...');
       const responseMessage = generateResponseMessage(updatedFieldsWithValues, aiData);
-      console.log('🔮 Response Message:', responseMessage);
-
-      console.log('🔮 ===== generateAIResponse ABGESCHLOSSEN =====');
       return responseMessage;
 
     } catch (error) {
@@ -559,7 +452,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -677,8 +570,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
             type="text"
             value={inputMessage}
             onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-            placeholder="Erzählen Sie mir von Ihren Fahrzeugdaten..."
+            onKeyDown={handleKeyDown}
+            placeholder="Erzählen Sie mir von Ihren Autoversicherungsdaten..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             disabled={isTyping}
             readOnly={isTyping}

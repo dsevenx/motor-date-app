@@ -13,7 +13,11 @@ export const setGlobalFieldDefinitions = (fieldDefinitions: Record<string, any>)
 };
 
 export const updateGlobalFieldDefinitions = (updates: Record<string, any>) => {
+  console.log('🌍 ===== updateFieldDefinitions AUFGERUFEN =====');
+  console.log('🌍 Updates:', JSON.stringify(updates, null, 2));
+  
   if (isUpdating) {
+    console.log('🌍 Abbruch: isUpdating=true (verhindert Zirkuläre Updates)');
     return; // Prevent circular updates
   }
   
@@ -30,22 +34,27 @@ export const updateGlobalFieldDefinitions = (updates: Record<string, any>) => {
   });
   
   if (!hasChanges) {
+    console.log('🌍 Keine Änderungen erkannt - Abbruch');
     return; // No changes to propagate
   }
   
+  console.log('🌍 Änderungen erkannt - Update globalFieldDefinitions');
   globalFieldDefinitions = { ...globalFieldDefinitions, ...updates };
   
   // Set flag and schedule listeners to run after current render cycle
   isUpdating = true;
+  console.log('🌍 Benachrichtige alle Listener...');
   
   if (typeof window !== 'undefined') {
     setTimeout(() => {
       globalFieldDefinitionsUpdateListeners.forEach(listener => listener());
       isUpdating = false; // Reset flag after notifications
+      console.log('🌍 ===== updateFieldDefinitions ABGESCHLOSSEN =====');
     }, 0);
   } else {
     globalFieldDefinitionsUpdateListeners.forEach(listener => listener());
     isUpdating = false; // Reset flag after notifications
+    console.log('🌍 ===== updateFieldDefinitions ABGESCHLOSSEN =====');
   }
 };
 

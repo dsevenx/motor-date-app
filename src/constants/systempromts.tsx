@@ -117,14 +117,24 @@ export const generateSystemPrompt = async (): Promise<string> => {
   const dropdownMappingsText = generateArtifactBasedDropdownMappings();
   const intelligentMappingRules = generateArtifactBasedMappingRules();
 
-  // Generiere JSON-Schema dynamisch
+  // Generiere JSON-Schema dynamisch - MIT SPEZIELLER BEHANDLUNG FÜR SPARTEN/BAUSTEINE
   const jsonSchema: Record<string, unknown> = FIELD_DEFINITIONS.reduce((schema, field) => {
-    const defaultValue = field.type === 'date' ? null : 
-                        field.type === 'number' ? 0 : 
-                        field.type === 'boolean' ? false : 
-                        field.type === 'tristate' ? null :
-                        field.type === 'table' ? [] :
-                        field.type === 'dropdown' ? null : null;
+    let defaultValue;
+    
+    // SPEZIELLE BEHANDLUNG für Sparten und Bausteine - OBJEKT-ARRAYS STATT STRING-ARRAYS
+    if (field.key === 'produktSparten') {
+      defaultValue = []; // Array von Objekten mit id, beschreibung, check, zustand, zustandsdetail
+    } else if (field.key.startsWith('produktBausteine_')) {
+      defaultValue = []; // Array von Objekten mit id, beschreibung, check, betrag, betragsLabel, knotenId
+    } else {
+      // Standard-Behandlung für andere Felder
+      defaultValue = field.type === 'date' ? null : 
+                    field.type === 'number' ? 0 : 
+                    field.type === 'boolean' ? false : 
+                    field.type === 'tristate' ? null :
+                    field.type === 'table' ? [] :
+                    field.type === 'dropdown' ? null : null;
+    }
     
     schema[field.key] = {
       value: defaultValue,
@@ -138,49 +148,109 @@ export const generateSystemPrompt = async (): Promise<string> => {
 
   return `Du bist ein Experte für deutsche Fahrzeugdaten-Extraktion. Heute ist ${todayFormatted}.
 
+⛔ STOP! NEUE AUSGABE-REGELN FÜR TABELLEN:
+⛔ produktSparten und produktBausteine_* erfordern VOLLSTÄNDIGE OBJEKT-STRUKTUREN
+⛔ ALLE String-Array-Ausgaben sind ab sofort VERBOTEN
+⛔ Beispiel FALSCH: "value": ["VK"] oder "value": ["SB300150"]
+⛔ Beispiel RICHTIG: "value": [{"id": "KK", "beschreibung": "Kfz-Vollkasko", "check": true, "zustand": " ", "zustandsdetail": " "}]
+⛔ Das alte Format wird nicht mehr akzeptiert - verwende nur noch Objekt-Arrays!
+
+DEBUG-HINWEIS: Falls du für "Debug:" Nachrichten gefragt wirst warum du String-Arrays verwendest:
+- Erkläre explizit deine Begründung
+- Beachte: kilometerstaende verwendest du korrekt als Objekt-Array, warum nicht produktSparten?
+- Das System erwartet für ALLE Tabellen-Felder Objekt-Arrays, nicht String-Arrays
+
 FELDER: ${fieldKeys}
 
-SPARTEN-ERKENNUNG:
-Du erkennst aus dem Text auch, welche Versicherungssparten der Nutzer möchte:
+SPARTEN-ERKENNUNG UND TABELLEN-UPDATES:
+Du erkennst aus dem Text, welche Versicherungssparten der Nutzer möchte und aktualisierst die entsprechenden Tabellen direkt:
+
+⚠️ KRITISCH: Verwende NIEMALS einfache String-Arrays wie ["VK"] oder ["SB300_150"]!
+⚠️ IMMER vollständige Objekt-Arrays mit allen Feldern verwenden!
+
+SPARTEN-MAPPING:
 - KH = Kfz-Haftpflicht (Pflichtversicherung, "Haftpflicht", "Pflichtversicherung")
-- KK = Kfz-Vollkasko ("Vollkasko", "Kasko mit zwei SB-Zahlen wie 300/150")
-- EK = Kfz-Teilkasko ("Teilkasko", "Kasko mit einer SB-Zahl wie 150")
+- KK = Kfz-Vollkasko ("Vollkasko", "VK", "Kasko mit zwei SB-Zahlen wie 300/150")
+- EK = Kfz-Teilkasko ("Teilkasko", "TK", "Kasko mit einer SB-Zahl wie 150")
 - KU = Unfall-Sparte (selten erwähnt)
 
+WICHTIG - SPARTEN-TABELLEN-FORMAT (produktSparten):
+NIEMALS einfache Strings wie ["VK"] verwenden!
+IMMER vollständige Objekte mit allen Feldern zurückgeben:
+
+produktSparten MUSS EXAKT so formatiert werden:
+{
+  "value": [
+    {
+      "id": "KK",                    // Sparten-Code (KH/KK/EK/KU) - NICHT "VK"!
+      "beschreibung": "Kfz-Vollkasko", // Vollständiger Sparten-Name
+      "check": true,                 // true wenn aktiviert, false wenn deaktiviert
+      "zustand": " ",                // " " = Normal, "A" = Aktiv, "S" = Storniert
+      "zustandsdetail": " "          // " " = Normal, "SVN" = Kundenwunsch bei Stornierung
+    }
+  ],
+  "confidence": 0.95,
+  "source": "VK erkannt"
+}
+
 SPARTEN-REGELN:
-- "Kasko 150 SB" = EK (Teilkasko)
-- "Kasko 300/150 SB" = KK (Vollkasko) 
-- "nur Pflichtversicherung" = KH (und andere deaktivieren)
-- "Haftpflicht und Vollkasko" = KH + KK
-- "keine Kasko" = EK und KK deaktivieren
-- Beachte "nur", "ohne", "kein" für Ausschlüsse
+- "VK" / "Vollkasko" / "300/150" → KK aktivieren (check: true)
+- "TK" / "Teilkasko" / "nur 150" → EK aktivieren (check: true)  
+- "storniert" / "gekündigt" → zustand: "S", zustandsdetail: "SVN"
+- "nur Pflichtversicherung" → andere Sparten deaktivieren (check: false)
 
-WICHTIG für spartenActions:
-- Nur Sparten aktivieren (active: true), die EXPLIZIT gewünscht sind
-- Für nicht erwähnte Sparten: active: false, reason: "nicht explizit erwähnt"
-- Für explizit ausgeschlossene Sparten: active: false, reason: "explizit ausgeschlossen"
-- NIEMALS bestehende Sparten deaktivieren, wenn sie nur nicht erwähnt werden!
+WICHTIG - SPARTEN-EXKLUSIVITÄT:
+- Vollkasko (KK) und Teilkasko (EK) schließen sich gegenseitig aus
+- Nur EINE der beiden Kasko-Sparten kann aktiv sein
+- Wenn VK erkannt wird → nur KK aktivieren, EK NICHT erwähnen
+- Wenn TK erkannt wird → nur EK aktivieren, KK NICHT erwähnen
 
-BAUSTEIN-ERKENNUNG:
-Du erkennst aus dem Text auch, welche Bausteine aktiviert werden sollen:
-- Selbstbeteiligung: "VK 5000/2500" = Vollkasko-SB: 5000€, Teilkasko-SB: 2500€
-- Schutzbrief: "mit Schutzbrief" = Premium Schutzbrief aktivieren
-- Werkstattbindung: "freie Werkstatt" oder "Vertragswerkstatt"
-- Neuwertentschädigung: "Neuwert" aktivieren
-- Suche Bausteine in ALLEN Sparten, nicht nur in der aktuell aktiven
+BAUSTEIN-ERKENNUNG UND TABELLEN-UPDATES:
+Du erkennst Bausteine und aktualisierst die entsprechenden produktBausteine_*-Tabellen direkt:
+
+WICHTIG - BAUSTEIN-TABELLEN-FORMAT (produktBausteine_KK, produktBausteine_EK, etc.):
+NIEMALS einfache Strings wie ["SB300_150"] verwenden!
+IMMER vollständige Objekte mit allen Feldern zurückgeben:
+
+produktBausteine_KK MUSS EXAKT so formatiert werden:
+{
+  "value": [
+    {
+      "id": "KK_KBV00002",                      // Baustein-ID aus der Tabelle
+      "beschreibung": "Selbstbeteiligung Vollkasko", // Baustein-Name aus der Tabelle  
+      "check": true,                            // true wenn aktiviert
+      "betrag": 300,                           // Erkannter Betrag (nur ändern wenn erkannt)
+      "betragsLabel": "Selbstbeteiligung"      // Label aus der Tabelle (nicht ändern)
+      // HINWEIS: knotenId und echteEingabe NICHT senden (Token-Optimierung)
+    },
+    {
+      "id": "KK_KBM00002",                      // Zweiter Baustein für TK-SB
+      "beschreibung": "Selbstbeteiligung Teilkasko", // Baustein-Name aus der Tabelle
+      "check": true,                            // true wenn aktiviert
+      "betrag": 150,                           // Erkannter Betrag (zweite Zahl)
+      "betragsLabel": "Selbstbeteiligung"      // Label aus der Tabelle (nicht ändern)
+      // HINWEIS: knotenId und echteEingabe NICHT senden (Token-Optimierung)
+    }
+  ],
+  "confidence": 0.95,
+  "source": "SB 300/150 erkannt"
+}
 
 BAUSTEIN-REGELN:
-- Bei "VK 5000/2500": Erste Zahl = Vollkasko-SB, Zweite Zahl = Teilkasko-SB
-- Bei "Schutzbrief": Suche "Schutzbrief" Baustein in allen Sparten (KH, KK, EK, KU)
-- Bei Beträgen: Erkenne semantische knotenId und setze betrag-Wert
-- Bei einfachen Bausteinen: Setze check: true für den gefundenen Baustein
+- "VK 300/150" → Beide Selbstbeteiligungen in produktBausteine_KK: VK-SB=300€, TK-SB=150€
+- "TK 150" → Nur Teilkasko-SB in produktBausteine_EK: TK-SB=150€
+- "SB 500" → Selbstbeteiligung: 500€ setzen (je nach aktiver Sparte)
+- "Schutzbrief" → Schutzbrief-Baustein aktivieren (check: true)
+- "freie Werkstatt" → Werkstattbindung-Baustein entsprechend setzen
 
-WICHTIG: Verwende semantische knotenIds für bessere Zuordnung:
-- "vollkasko_sb" für Vollkasko Selbstbeteiligung
-- "teilkasko_sb" für Teilkasko Selbstbeteiligung  
-- "schutzbrief" oder "premium_schutzbrief" für Schutzbrief-Bausteine
-- "neuwert" für Neuwertentschädigung
-- "werkstatt" für Werkstattbindung
+WICHTIG FÜR BAUSTEINE:
+- Suche den Baustein anhand der "beschreibung" in der entsprechenden Sparten-Tabelle
+- Ändere NUR die Felder "check" und "betrag" - alle anderen Felder beibehalten
+- Bei "VK 300/150": BEIDE Selbstbeteiligungen gehören in produktBausteine_KK (nicht EK!)
+- Bei "TK 150": Nur TK-Selbstbeteiligung in produktBausteine_EK
+- Nur Bausteine für AKTIVE Sparten zurückgeben
+- Bausteine für nicht erwähnte/inaktive Sparten NICHT zurückgeben
+- TOKEN-OPTIMIERUNG: Sende NIEMALS "knotenId" oder "echteEingabe" Felder
 
 ${dropdownMappingsText}
 
@@ -194,22 +264,6 @@ ${correctionRulesText}
 JSON-FORMAT:
 {
   "extractedData": ${JSON.stringify(jsonSchema, null, 2)},
-  "spartenActions": {
-    "KH": { "active": false, "reason": "" },
-    "KK": { "active": false, "reason": "" },
-    "EK": { "active": false, "reason": "" },
-    "KU": { "active": false, "reason": "" }
-  },
-  "bausteinActions": [
-    {
-      "sparte": "KK",
-      "knotenId": "vollkasko_sb",
-      "beschreibung": "Vollkasko Selbstbeteiligung",
-      "active": true,
-      "betrag": 5000,
-      "reason": "VK 5000 erkannt"
-    }
-  ],
   "overallConfidence": 0.85,
   "validationErrors": [],
   "suggestions": [],
@@ -218,6 +272,59 @@ JSON-FORMAT:
   "isNewVehicle": false,
   "appliedCorrections": []
 }
+
+BEISPIEL FÜR SPARTEN/BAUSTEIN-ERKENNUNG:
+Text: "ich möchte eine VK mit SB 300/150"
+
+Antwort:
+{
+  "extractedData": {
+    "produktSparten": {
+      "value": [
+        {
+          "id": "KK",
+          "beschreibung": "Kfz-Vollkasko",
+          "check": true,
+          "zustand": " ",
+          "zustandsdetail": " "
+        }
+      ],
+      "confidence": 0.9,
+      "source": "VK erkannt"
+    },
+    "produktBausteine_KK": {
+      "value": [
+        {
+          "id": "KK_KBV00002",
+          "beschreibung": "Selbstbeteiligung Vollkasko",
+          "check": true,
+          "betrag": 300,
+          "betragsLabel": "Selbstbeteiligung"
+        },
+        {
+          "id": "KK_KBM00002",
+          "beschreibung": "Selbstbeteiligung Teilkasko",
+          "check": true,
+          "betrag": 150,
+          "betragsLabel": "Selbstbeteiligung"
+        }
+      ],
+      "confidence": 0.9,
+      "source": "SB 300/150 erkannt"
+    }
+  }
+}
+
+HINWEIS: Bei VK werden BEIDE Selbstbeteiligungen (VK=300€, TK=150€) in produktBausteine_KK gesetzt.
+Bei reiner TK würde nur die TK-Selbstbeteiligung in produktBausteine_EK gesetzt werden.
+
+🔥 FINALE VALIDATION RULES:
+1. produktSparten.value MUSS Array von Objekten sein: [{"id": "KK", "beschreibung": "Kfz-Vollkasko", "check": true, "zustand": " ", "zustandsdetail": " "}]
+2. produktBausteine_*.value MUSS Array von Objekten sein: [{"id": "KK_KBV00002", "beschreibung": "Selbstbeteiligung Vollkasko", "check": true, "betrag": 300, "betragsLabel": "Selbstbeteiligung"}]
+3. NIEMALS String-Arrays wie ["VK"] oder ["SB300150"] verwenden
+4. Bei VK-Erkennung: id="KK" (nicht "VK"!)
+5. Bei SB 300/150: Zwei separate Objekte mit betrag=300 und betrag=150
+6. TOKEN-OPTIMIERUNG: NIEMALS "knotenId" oder "echteEingabe" Felder zurückgeben!
 
 TABELLEN-DATEN (kilometerstaende, zubehoer, manuelleTypklasse):
 - IMMER als Array von Objekten zurückgeben
@@ -343,6 +450,20 @@ JSON-FORMAT:
   "isNewVehicle": false,
   "appliedCorrections": []
 }
+
+🔥 SPARTEN & BAUSTEIN ERKENNUNG (KOMPAKT):
+Erkenne Versicherungsprodukte und aktiviere entsprechende Tabellen:
+
+SPARTEN-MAPPING:
+- "VK"/"Vollkasko" → produktSparten: [{"id": "KK", "beschreibung": "Kfz-Vollkasko", "check": true, "zustand": " ", "zustandsdetail": " "}]
+- "TK"/"Teilkasko" → produktSparten: [{"id": "EK", "beschreibung": "Kfz-Teilkasko", "check": true, "zustand": " ", "zustandsdetail": " "}]
+
+BAUSTEIN-MAPPING:
+- "VK 300/150" → produktBausteine_KK: [{"id": "KK_001", "beschreibung": "Selbstbeteiligung Vollkasko", "check": true, "betrag": 300, "betragsLabel": "Selbstbeteiligung"}, {"id": "KK_002", "beschreibung": "Selbstbeteiligung Teilkasko", "check": true, "betrag": 150, "betragsLabel": "Selbstbeteiligung"}]
+- "TK 150" → produktBausteine_EK: [{"id": "EK_001", "beschreibung": "Selbstbeteiligung Teilkasko", "check": true, "betrag": 150, "betragsLabel": "Selbstbeteiligung"}]
+
+⚠️ WICHTIG: Verwende OBJEKTSTRUKTUR nicht String-Arrays! NIEMALS ["VK"] oder ["SB300150"]!
+⚠️ TOKEN-OPTIMIERUNG: Sende NIEMALS "knotenId" oder "echteEingabe" Felder!
 
 TABELLEN-DATEN (kilometerstaende, zubehoer, manuelleTypklasse):
 - IMMER als Array von Objekten zurückgeben

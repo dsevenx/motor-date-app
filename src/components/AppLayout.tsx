@@ -19,8 +19,6 @@ interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  console.log('🏗️ AppLayout RENDER');
-  
   const globalChatConfig = useGlobalChatConfig();
   const { fieldDefinitions: globalFieldValues, updateFieldDefinitions } = useGlobalFieldDefinitions();
   
@@ -31,15 +29,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   // Sync with global field values from other pages (avoid circular updates)
   useEffect(() => {
-    console.log('🏗️ AppLayout useEffect: globalFieldValues geändert');
-    console.log('🏗️ globalFieldValues Keys:', Object.keys(globalFieldValues || {}));
-    console.log('🏗️ globalFieldValues:', globalFieldValues);
-    
     if (globalFieldValues && Object.keys(globalFieldValues).length > 0) {
       setFieldValues(prev => {
-        console.log('🏗️ setFieldValues aufgerufen in AppLayout');
-        console.log('🏗️ Previous fieldValues:', prev);
-        
         // Filter out single-line-table fields to prevent loops
         const filteredUpdates: Record<string, any> = {};
         Object.keys(globalFieldValues).forEach(key => {
@@ -49,47 +40,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           }
         });
         
-        console.log('🏗️ Filtered updates:', filteredUpdates);
-        
         if (Object.keys(filteredUpdates).length === 0) {
-          console.log('🏗️ Keine Updates für AppLayout - return prev');
           return prev; // No updates for this component
         }
         
         // Only update if values have actually changed
-        const changedKeys: string[] = [];
-        const unchangedKeys: string[] = [];
-        
-        Object.keys(filteredUpdates).forEach(key => {
+        const hasChanges = Object.keys(filteredUpdates).some(key => {
           const prevValue = prev[key];
           const newValue = filteredUpdates[key];
-          const isEqual = prevValue === newValue;
-          const prevType = typeof prevValue;
-          const newType = typeof newValue;
-          
-          if (!isEqual) {
-            changedKeys.push(`${key}: ${JSON.stringify(prevValue)} (${prevType}) → ${JSON.stringify(newValue)} (${newType})`);
-          } else {
-            unchangedKeys.push(key);
-          }
+          return prevValue !== newValue;
         });
         
-        const hasChanges = changedKeys.length > 0;
-        
         if (hasChanges) {
-          console.log('🏗️ ===== ÄNDERUNGEN ERKANNT =====');
-          console.log('🏗️ Geänderte Felder:', changedKeys);
-          console.log('🏗️ Unveränderte Felder:', unchangedKeys);
-          const newValues = { ...prev, ...filteredUpdates };
-          console.log('🏗️ Neue fieldValues:', newValues);
-          
           // Markiere als Update von Global (verhindert Rückkopplung)
           setIsUpdatingFromGlobal(true);
-          
-          return newValues;
+          return { ...prev, ...filteredUpdates };
         } else {
-          console.log('🏗️ ===== KEINE ÄNDERUNGEN =====');
-          console.log('🏗️ Alle Felder unverändert:', unchangedKeys.length);
           return prev;
         }
       });
@@ -110,10 +76,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           
           // Only propagate to global if not already updating from global
           if (!isUpdatingFromGlobal) {
-            console.log(`🔄 AppLayout setter: ${field.key} changed by user, propagating to global`);
             updateFieldDefinitions({ [field.key]: value });
-          } else {
-            console.log(`🔄 AppLayout setter: ${field.key} changed from global, not propagating back`);
           }
           
           return {
@@ -143,11 +106,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   useEffect(() => {
     if (!globalChatConfig && !isUpdatingFromGlobal) {
       // Nur wenn nicht GUI-Test aktiv ist UND nicht von globalFieldValues kommend
-      console.log('🔄 AppLayout: Propagiere fieldValues zu global (User-initiated change)');
       setGlobalFieldDefinitions(fieldValues);
     } else if (isUpdatingFromGlobal) {
       // Reset flag nach Update von Global
-      console.log('🔄 AppLayout: Reset isUpdatingFromGlobal flag');
       setIsUpdatingFromGlobal(false);
     }
   }, [fieldValues, globalChatConfig, isUpdatingFromGlobal]);

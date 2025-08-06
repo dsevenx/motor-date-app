@@ -356,6 +356,60 @@ stehen. Wie sollten wir vorgehen, um in dem Kunden-ChatGPT mit unserer Logik akt
 Testsatz :
 Kannst Du mir das ServiceABS Einarbeiter XML für eine Fahrleistung von 9000 und eine manuelle Typklasse KH mit dem Wert 8 anzeigen 
 
+--
+
+Das Problem ist, das die KI so antwortet :
+"produktBausteine_KK": {
+      "value": [
+        {
+          "id": "vk_001",
+          "baustein": "VK_SB_300_150",
+          "wert": true
+        }
+      ],
+ Kannst du bitte das Systemprompt so anpassen, das wir Ihr sagen, wenn Sie eine Sparte erkennt und dann ein Zustand zu dieser Sparte raushört, 
+ dann soll sie bitte in dieser Form liefern :
+
+        {
+          "id": "KK",
+          "beschreibung": "Kfz-Vollkasko",
+          "check": false,  --> hier auf True - weil auf VK rausgehört
+          "zustand": " ",  --> wenn jemand VK storiniert sagen würde , dann hierfür ein "S" ableiten 
+          "zustandsdetail": " ",  --> jemand VK storiniert sagen würde, dann erstmal SVN - das bedeutet Kundenwunsch
+        },
+ Wir würden dann genau diese Info nach FIELDDEFINTION übertragen könenen.   
+ Für unsere Beispielsazu wäre die gewünschte Antwort so :
+      {
+          "id": "KK",
+          "beschreibung": "Kfz-Vollkasko",
+          "check": true,  
+          "zustand": " ",  
+          "zustandsdetail": " ",  
+        },   
+
+Ferner müssne wir der KI sagen, das es zu einem Baustein nur ein Betragsfeld gibt, d.h. er muss in den übergeben Produktbausteintabellen nach diesem Baustein vom Namen suchen und dann dort den Betrag ändern.
+Die KI soll immer nur die erkannten Bausteine zurückmelden. Also bei unserem Beispielsatz wäre dies :        
+        {
+          "id": "KK_KBV00002",
+          "beschreibung": "Selbstbeteiligung Vollkasko",
+          "check": true,
+          "betrag": 300,   // <-- hier war im Sende-SJON ein 500
+          "betragsLabel": "Selbstbeteiligung",
+          "knotenId": "KBV00002",
+
+        },
+        {
+          "id": "KK_KBM00002",
+          "beschreibung": "Selbstbeteiligung Teilkasko",
+          "check": true,
+          "betrag": 150,  // <-- hier war im Sende-SJON ein 300
+          "betragsLabel": "Selbstbeteiligung",
+          "knotenId": "KBM00002",
+  
+        },
+Wir würden dann genau diese Info nach FIELDDEFINTION übertragen könenen. 
+Dies müsste helfen oder hast Du eine andere Idee ?
+
 ------------------------------------------------------------------------------------------------------------
 
 Anfrage 16
@@ -397,8 +451,6 @@ Wenn der Nutzer auf dem PopUp OK klickt, dann gelangt der Nutzer in den globalen
 Dies muss als echte Eingabe zählen.
 Der Abbrechen Button macht hier nicht viel sinn - wir blenden dies generell aus.
 Aus das Verlassen des EditModus danach macht nicht viel Sinn. wir würden den "Anzeige" Button ebenfalls disablen.
-
-
 
 
 

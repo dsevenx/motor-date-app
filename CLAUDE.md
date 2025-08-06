@@ -47,7 +47,7 @@ This is a **Next.js 15** vehicle data management application with AI-powered cha
    - Next.js API route handling Claude AI requests
    - Processes user text and current field values
    - Returns structured data extraction with confidence scores
-   - Includes retry logic for JSON parsing reliability
+   - **TOKEN OPTIMIZATION**: Intelligent table data reduction to prevent token limit issues
 
 4. **Component System**
    - Reusable Motor components for different field types (MotorDate, MotorEditText, etc.)
@@ -80,6 +80,44 @@ The application requires `ANTHROPIC_API_KEY` for Claude AI functionality.
 - **Dropdown integration** with domain data fetching
 - **German localization** throughout the interface
 - **Responsive design** with two-column layout (form + chat)
+
+### Token Optimization System
+
+**Problem Analysis:**
+- System Prompt (Async): 16,074 characters (~4,000 tokens)
+- System Prompt (Sync): 7,736 characters (~2,000 tokens)
+- User Prompt with full tables: 26,372+ characters (~6,600+ tokens)
+- **Total with full data: 42,446+ characters (~10,600+ tokens)**
+
+**Solutions Implemented:**
+
+1. **Smart Table Data Optimization** (`src/app/api/extract-dates/route.ts:74-109`)
+   - For Sparten: Send all entries (only 4 items)
+   - For Bausteine: Send active entries + first 3 inactive as examples
+   - Reduces token usage by 60-80% for large Baustein tables
+   - Claude still returns complete tables using provided structure as template
+
+2. **Token Usage Monitoring**
+   - Real-time token counting and breakdown analysis
+   - Warnings when approaching limits (8k/10k tokens)
+   - Error handling for incomplete responses due to token limits
+   - Automatic fallback recommendations (SYNC vs ASYNC prompts)
+
+3. **Increased Response Capacity**
+   - `max_tokens` increased from 1,500 to 2,500 for full table responses
+   - Better error messages when token limits are hit
+   - Debug logging for prompt size analysis
+
+4. **System Prompt Management**
+   - SYNC version: 7,736 chars for simple requests
+   - ASYNC version: 16,074 chars with full Sparten/Baustein rules
+   - Automatic selection based on request complexity
+
+**Best Practices:**
+- Use `SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC` for standard requests
+- Monitor token usage in console for optimization opportunities  
+- Test with realistic data sizes during development
+- Consider table data optimization for production deployments
 
 ### Sparten (Insurance Product Lines) System
 
@@ -114,6 +152,7 @@ The application uses sophisticated system prompts (`src/constants/systempromts.t
 - Handle complex date patterns and vehicle data extraction
 - Support dropdown value mapping via artifact system
 - Implement Sparten recognition rules for insurance products
+- **Optimize token usage** with selective table data transmission
 
 ### Important Patterns
 
@@ -122,6 +161,7 @@ The application uses sophisticated system prompts (`src/constants/systempromts.t
 - **Leverage fieldDefinitionsHelper functions** for consistent state management
 - **Test AI responses** with various German insurance terminology
 - **Maintain synchronization** between UI state and FIELD_DEFINITIONS data
+- **Monitor token usage** to prevent incomplete AI responses
 
 ## Advanced Architecture Patterns
 
@@ -231,3 +271,27 @@ Strong typing across all architectural layers:
 - **Component Props**: Interfaces for all component prop patterns
 - **API Types**: Request/response type definitions for all endpoints
 - **Field Configuration**: Typed field definitions with validation rules
+
+## Token Limit Troubleshooting
+
+### Symptoms
+- "Claude Antwort wurde durch max_tokens abgeschnitten" errors
+- Incomplete JSON responses in API logs
+- Missing table data in AI responses
+
+### Debugging Steps
+1. Check console for token usage breakdown: `📊 TOKEN USAGE ANALYSE`
+2. Look for table optimization logs: `🔧 Token-Optimierung`
+3. Monitor total prompt size vs. limits (aim for <8k tokens)
+
+### Quick Fixes
+- Use sync system prompt: `SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC` instead of async version
+- Clear excessive table data before testing
+- Increase `max_tokens` if needed (currently 2500)
+- Check optimization is working in logs
+
+### Prevention
+- Test with realistic production data sizes
+- Monitor token counts during development
+- Use table optimization for large datasets
+- Consider breaking large requests into smaller chunks

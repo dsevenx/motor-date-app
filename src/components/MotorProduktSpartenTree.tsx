@@ -91,6 +91,9 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     })));
   }, [spartenRows]);
 
+  // AI-Updates kommen jetzt direkt über die normale Tabellen-Synchronisation
+  // Spezielle spartenActions/bausteinActions-Verarbeitung nicht mehr nötig
+
   // Sparten-Checkbox ändern (NUR FIELD_DEFINITIONS - kein lokaler State!)
   const handleSparteCheckChange = (sparteIndex: number, value: 'J' | 'N') => {
     const checked = value === 'J';
