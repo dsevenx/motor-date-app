@@ -77,20 +77,24 @@ ${kraftblContent}
           // Prüfe Row-Level echteEingabe
           const hasExplicitEchteEingabe = actualTableData.some((row: any) => row.echteEingabe === true);
           
-          // Fallback: Wenn keine explizite echteEingabe, aber Daten vorhanden sind
-          // UND Daten unterscheiden sich von Defaults → als eingegeben betrachten
-          const hasNonDefaultData = actualTableData.some((row: any) => {
-            // Prüfe ob die Zeile Non-Default-Werte hat (außer id)
-            return Object.keys(row).some(key => {
-              if (key === 'id' || key === 'echteEingabe') return false;
-              const value = row[key];
-              return value !== undefined && value !== null && value !== '' && value !== 0;
+          // Für Produkttabellen: NUR explizite echteEingabe zählt (keine Fallback-Logik)
+          if (field.key === 'produktSparten' || field.key.startsWith('produktBausteine_')) {
+            istEingegeben = hasExplicitEchteEingabe;
+            console.log(`🔍 Produkttabelle ${field.key}: istEingegeben = ${istEingegeben} (NUR explicitEchteEingabe, kein Fallback)`);
+          } else {
+            // Für normale Tabellen: Fallback-Logik für Non-Default-Daten
+            const hasNonDefaultData = actualTableData.some((row: any) => {
+              // Prüfe ob die Zeile Non-Default-Werte hat (außer id)
+              return Object.keys(row).some(key => {
+                if (key === 'id' || key === 'echteEingabe') return false;
+                const value = row[key];
+                return value !== undefined && value !== null && value !== '' && value !== 0;
+              });
             });
-          });
-          
-          istEingegeben = hasExplicitEchteEingabe || hasNonDefaultData;
-          
-          console.log(`🔍 Tabelle ${field.key}: istEingegeben = ${istEingegeben} (${actualTableData.length} Zeilen, explicitEchteEingabe: ${hasExplicitEchteEingabe}, nonDefaultData: ${hasNonDefaultData})`);
+            
+            istEingegeben = hasExplicitEchteEingabe || hasNonDefaultData;
+            console.log(`🔍 Normale Tabelle ${field.key}: istEingegeben = ${istEingegeben} (explicitEchteEingabe: ${hasExplicitEchteEingabe}, nonDefaultData: ${hasNonDefaultData})`);
+          }
         } else {
           istEingegeben = false;
           console.log(`🔍 Tabelle ${field.key}: istEingegeben = false (keine Daten)`);
@@ -199,13 +203,19 @@ ${kraftblContent}
   }
 
   /**
-   * Erzeugt XML für eine Produkttabellen-Zeile (nur Felder mit KnotenID)
+   * Erzeugt XML für eine Produkttabellen-Zeile (nur Felder mit KnotenID und echteEingabe)
    * @param field - FieldDefinition der Tabelle
    * @param row - Zeilen-Daten
    * @returns XML-String für die Zeile
    */
   private static erzeugeProduktZeileXML(field: FieldDefinition, row: TableRow): string | null {
     if (!field.table) return null;
+
+    // 🔥 WICHTIG: Für Produkttabellen NUR Zeilen mit expliziter echteEingabe verarbeiten
+    if (row.echteEingabe !== true) {
+      console.log(`🚫 Produktzeile übersprungen (keine echteEingabe): ${field.key}`, row);
+      return null;
+    }
 
     const zellXml: string[] = [];
 
@@ -221,6 +231,7 @@ ${kraftblContent}
             zellXml.push(`<${column.key}>${this.escapeXML(cellValue.toString())}</${column.key}>`);
           }
         });
+        console.log(`✅ Produktsparte verarbeitet: ${id || beschreibung}`, { zellXml });
       }
     }
     // Bei Bausteintabellen: nur Zeilen mit KnotenID (z.B. "KBM00087")
@@ -233,6 +244,7 @@ ${kraftblContent}
             zellXml.push(`<${column.key}>${this.escapeXML(cellValue.toString())}</${column.key}>`);
           }
         });
+        console.log(`✅ Produktbaustein verarbeitet: ${knotenId}`, { zellXml });
       }
     }
 
@@ -362,7 +374,7 @@ ${kraftblContent}
   }
 
   /**
-   * Zählt die Anzahl der zu sendenden Felder
+   * Zählt die Anzahl der zu sendenden Felder (verwendet dieselbe Logik wie XML-Generierung)
    * @param fieldValues - Aktuelle Feldwerte
    * @returns Anzahl der Felder mit echten Eingaben
    */
@@ -370,8 +382,50 @@ ${kraftblContent}
     let count = 0;
 
     FIELD_DEFINITIONS.forEach(field => {
+      const fieldValue = fieldValues[field.key];
       const echteEingabe = field.echteEingabe;
-      const istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
+      
+      // Verwende dieselbe Logik wie in erzeugeKRAFTBLContent
+      let istEingegeben: boolean;
+      
+      if (field.type === 'table' || field.type === 'single-line-table') {
+        // Für Tabellen: Prüfe ob mindestens eine Zeile echteEingabe hat
+        let actualTableData: any[] = [];
+        
+        // Extrahiere das echte Array aus verschiedenen möglichen Strukturen
+        if (Array.isArray(fieldValue)) {
+          actualTableData = fieldValue;
+        } else if (fieldValue && typeof fieldValue === 'object' && Array.isArray(fieldValue.value)) {
+          actualTableData = fieldValue.value;
+        } else if (fieldValue && typeof fieldValue === 'object' && fieldValue.data && Array.isArray(fieldValue.data)) {
+          actualTableData = fieldValue.data;
+        }
+        
+        if (actualTableData.length > 0) {
+          // Prüfe Row-Level echteEingabe
+          const hasExplicitEchteEingabe = actualTableData.some((row: any) => row.echteEingabe === true);
+          
+          // Für Produkttabellen: NUR explizite echteEingabe zählt
+          if (field.key === 'produktSparten' || field.key.startsWith('produktBausteine_')) {
+            istEingegeben = hasExplicitEchteEingabe;
+          } else {
+            // Für normale Tabellen: Fallback-Logik für Non-Default-Daten
+            const hasNonDefaultData = actualTableData.some((row: any) => {
+              return Object.keys(row).some(key => {
+                if (key === 'id' || key === 'echteEingabe') return false;
+                const value = row[key];
+                return value !== undefined && value !== null && value !== '' && value !== 0;
+              });
+            });
+            istEingegeben = hasExplicitEchteEingabe || hasNonDefaultData;
+          }
+        } else {
+          istEingegeben = false;
+        }
+      } else {
+        // Für normale Felder: Prüfe Field-Level echteEingabe
+        istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
+      }
       
       if (istEingegeben) {
         count++;
@@ -382,7 +436,7 @@ ${kraftblContent}
   }
 
   /**
-   * Erstellt eine Zusammenfassung der zu sendenden Daten
+   * Erstellt eine Zusammenfassung der zu sendenden Daten (verwendet dieselbe Logik wie XML-Generierung)
    * @param fieldValues - Aktuelle Feldwerte
    * @returns Zusammenfassung als Array von Strings
    */
@@ -390,16 +444,59 @@ ${kraftblContent}
     const zusammenfassung: string[] = [];
 
     FIELD_DEFINITIONS.forEach(field => {
+      const fieldValue = fieldValues[field.key];
       const echteEingabe = field.echteEingabe;
-      const istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
       
-      if (istEingegeben) {
-        if (field.type === 'table') {
-          const tableData = fieldValues[field.key] as TableRow[];
-          if (Array.isArray(tableData) && tableData.length > 0) {
-            zusammenfassung.push(`${field.label}: ${tableData.length} Zeile(n)`);
+      // Verwende dieselbe Logik wie in erzeugeKRAFTBLContent
+      let istEingegeben: boolean;
+      
+      if (field.type === 'table' || field.type === 'single-line-table') {
+        // Für Tabellen: Prüfe ob mindestens eine Zeile echteEingabe hat
+        let actualTableData: any[] = [];
+        
+        // Extrahiere das echte Array aus verschiedenen möglichen Strukturen
+        if (Array.isArray(fieldValue)) {
+          actualTableData = fieldValue;
+        } else if (fieldValue && typeof fieldValue === 'object' && Array.isArray(fieldValue.value)) {
+          actualTableData = fieldValue.value;
+        } else if (fieldValue && typeof fieldValue === 'object' && fieldValue.data && Array.isArray(fieldValue.data)) {
+          actualTableData = fieldValue.data;
+        }
+        
+        if (actualTableData.length > 0) {
+          // Prüfe Row-Level echteEingabe
+          const hasExplicitEchteEingabe = actualTableData.some((row: any) => row.echteEingabe === true);
+          
+          // Für Produkttabellen: NUR explizite echteEingabe zählt
+          if (field.key === 'produktSparten' || field.key.startsWith('produktBausteine_')) {
+            istEingegeben = hasExplicitEchteEingabe;
+            if (istEingegeben) {
+              // Zähle nur Zeilen mit echteEingabe für Produkttabellen
+              const eingegbeneZeilen = actualTableData.filter((row: any) => row.echteEingabe === true);
+              zusammenfassung.push(`${field.label}: ${eingegbeneZeilen.length} eingegeben Zeile(n)`);
+            }
+          } else {
+            // Für normale Tabellen: Fallback-Logik für Non-Default-Daten
+            const hasNonDefaultData = actualTableData.some((row: any) => {
+              return Object.keys(row).some(key => {
+                if (key === 'id' || key === 'echteEingabe') return false;
+                const value = row[key];
+                return value !== undefined && value !== null && value !== '' && value !== 0;
+              });
+            });
+            istEingegeben = hasExplicitEchteEingabe || hasNonDefaultData;
+            if (istEingegeben) {
+              zusammenfassung.push(`${field.label}: ${actualTableData.length} Zeile(n)`);
+            }
           }
         } else {
+          istEingegeben = false;
+        }
+      } else {
+        // Für normale Felder: Prüfe Field-Level echteEingabe
+        istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
+        
+        if (istEingegeben) {
           let displayValue = echteEingabe;
           if (field.type === 'date' && displayValue !== '0001-01-01') {
             displayValue = new Date(displayValue as string).toLocaleDateString('de-DE');
