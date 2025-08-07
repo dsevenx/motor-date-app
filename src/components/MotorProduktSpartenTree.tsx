@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ChevronRight, ChevronDown } from 'lucide-react';
 import { Produktsparte } from '@/constants';
-import { fetchProduktData } from '@/app/api/FetchProduktData';
 import { MotorProduktBausteinTree } from './MotorProduktBausteinTree';
 import { MotorDropDown } from './MotorDropDown';
 import { MotorEditNumber } from './MotorEditNumber';
 import { MotorEditText } from './MotorEditText';
 import { MotorCheckBox } from './MotorCheckBox';
-import { isChecked, initializeProductFieldDefinitions } from '@/utils/fieldDefinitionsHelper';
+import { isChecked } from '@/utils/fieldDefinitionsHelper';
+import { useGlobalProductData } from '@/hooks/useGlobalProductData';
 
 export interface MotorProduktSpartenTreeProps {
   // FIELD_DEFINITIONS für Single Point of Truth
@@ -30,8 +30,9 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
 }) => {
   const [spartenRows, setSpartenRows] = useState<SpartenRowState[]>([]);
   const [filterText, setFilterText] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  // forceRender nicht mehr nötig - FIELD_DEFINITIONS Updates automatisch
+  
+  // 🌐 Verwende globale Produktdaten statt lokaler Ladung
+  const { productData, isLoaded: isProductDataLoaded, isLoading: isProductDataLoading } = useGlobalProductData();
   
   // Domain-Mapping für Zustandsdetail pro Sparte
   const getZustandDomainId = (sparte: string): string => {
@@ -44,50 +45,26 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     }
   };
 
-  // Produktdaten beim Mount laden
+  // 🌐 Initialisiere lokale Sparten-Rows wenn globale Produktdaten verfügbar sind
   useEffect(() => {
-    const loadProduktData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchProduktData();
-        
-        // Initialisiere Sparten-Rows mit Struktur-Daten (OHNE check/zustand - kommt aus FIELD_DEFINITIONS)
-        const initialRows: SpartenRowState[] = data.map(sparte => ({
-          sparte: {
-            ...sparte,
-            // Entferne check - wird NUR aus FIELD_DEFINITIONS gelesen!
-            // check, zustand, stornogrund sind jetzt read-only aus FIELD_DEFINITIONS
-          },
-          isExpanded: false, // User muss manuell öffnen
-          zustandDomainId: getZustandDomainId(sparte.sparte)
-        }));
-        
-        setSpartenRows(initialRows);
-        
-        // Initialisiere FIELD_DEFINITIONS mit Produktdaten (Single Point of Truth)
-        // WICHTIG: Übergebe aktuelle fieldDefinitions um User-Eingaben zu schützen
-        console.log(`🚀 Initialisiere FIELD_DEFINITIONS mit loadProduktData`);
-        const fieldDefinitionsUpdates = initializeProductFieldDefinitions(data, fieldDefinitions);
-        
-        // Nur updaten wenn tatsächlich Updates vorhanden sind
-        if (Object.keys(fieldDefinitionsUpdates).length > 0) {
-          onFieldDefinitionsChange(fieldDefinitionsUpdates);
-          console.log(`✅ FIELD_DEFINITIONS initialisiert:`, fieldDefinitionsUpdates);
-        } else {
-          console.log(`✅ FIELD_DEFINITIONS bereits mit User-Daten vorhanden - keine Initialisierung nötig`);
-        }
-        
-        // KEINE Initial-Callbacks - nur bei User-Interaktion
-        
-      } catch (error) {
-        console.error('Fehler beim Laden der Produktdaten:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProduktData();
-  }, []);
+    if (isProductDataLoaded && productData.length > 0) {
+      console.log(`🎯 MotorProduktSpartenTree: Verwende globale Produktdaten (${productData.length} Sparten)`);
+      
+      // Initialisiere Sparten-Rows mit Struktur-Daten (OHNE check/zustand - kommt aus FIELD_DEFINITIONS)
+      const initialRows: SpartenRowState[] = productData.map(sparte => ({
+        sparte: {
+          ...sparte,
+          // Entferne check - wird NUR aus FIELD_DEFINITIONS gelesen!
+          // check, zustand, stornogrund sind jetzt read-only aus FIELD_DEFINITIONS
+        },
+        isExpanded: false, // User muss manuell öffnen
+        zustandDomainId: getZustandDomainId(sparte.sparte)
+      }));
+      
+      setSpartenRows(initialRows);
+      console.log(`✅ MotorProduktSpartenTree: ${initialRows.length} Sparten-Rows initialisiert`);
+    }
+  }, [isProductDataLoaded, productData]);
 
   // Debug: Überwache spartenRows State-Änderungen (nur UI-State - check kommt aus FIELD_DEFINITIONS)
   useEffect(() => {
@@ -215,7 +192,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
 
 
 
-  if (isLoading) {
+  if (isProductDataLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>

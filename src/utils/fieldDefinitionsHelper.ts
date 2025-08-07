@@ -322,123 +322,6 @@ export const initializeProductFieldDefinitions = (
   return updates;
 };
 
-/**
- * Intelligente Merge-Funktion: Kombiniert neue API-Strukturdaten mit bestehenden User-Eingaben
- * @param produktData - Neue API-Daten mit vollständiger Struktur
- * @param currentFieldDefinitions - Bestehende User-Eingaben
- * @returns Merged Update für FIELD_DEFINITIONS
- */
-function mergeProductDataWithExistingUserData(
-  produktData: any[], 
-  currentFieldDefinitions: FieldDefinitions
-): Partial<FieldDefinitions> {
-  console.log(`🔄 Starte intelligente Merge-Operation...`);
-  
-  const updates: Partial<FieldDefinitions> = {};
-  
-  // 1. MERGE SPARTEN: Neue Struktur + bestehende User-Eingaben
-  const existingSparten = currentFieldDefinitions.produktSparten?.value || [];
-  const existingSpartenMap = new Map(
-    existingSparten.map((sparte: any) => [sparte.id, sparte])
-  );
-  
-  const mergedSparten = produktData
-    .filter(sparte => sparte.sparte && sparte.beschreibung)
-    .map(apiSparte => {
-      const existingSparte = existingSpartenMap.get(apiSparte.sparte);
-      
-      if (existingSparte && existingSparte.echteEingabe === true) {
-        // User hat diese Sparte bearbeitet - behalte User-Daten, aber update strukturelle Felder
-        console.log(`🔄 MERGE Sparte ${apiSparte.sparte}: Behalte User-Eingaben, update Struktur`);
-        return {
-          ...existingSparte, // User-Eingaben (check, zustand, stornogrund)
-          // Update nur strukturelle/API-Felder
-          beschreibung: apiSparte.beschreibung,
-          beitragNetto: parseFloat(apiSparte.beitragNetto || '0'),
-          beitragBrutto: parseFloat(apiSparte.beitragBrutto || '0')
-        };
-      } else {
-        // Neue Sparte oder keine User-Eingaben - verwende API-Defaults
-        console.log(`🆕 NEW Sparte ${apiSparte.sparte}: Verwende API-Defaults`);
-        return {
-          id: apiSparte.sparte,
-          beschreibung: apiSparte.beschreibung,
-          check: apiSparte.check || false,
-          zustand: apiSparte.check ? 'A' : ' ',
-          stornogrund: ' ',
-          beitragNetto: parseFloat(apiSparte.beitragNetto || '0'),
-          beitragBrutto: parseFloat(apiSparte.beitragBrutto || '0'),
-          echteEingabe: false
-        };
-      }
-    });
-  
-  updates.produktSparten = { value: mergedSparten };
-  console.log(`✅ ${mergedSparten.length} Sparten gemerged`);
-  
-  // 2. MERGE BAUSTEINE: Gleiche Logik für jede Sparte
-  produktData.forEach(sparte => {
-    if (!sparte.sparte || !sparte.bausteine) return;
-    
-    const tableKey = `produktBausteine_${sparte.sparte}`;
-    const existingBausteine = currentFieldDefinitions[tableKey]?.value || [];
-    const existingBausteineMap = new Map(
-      existingBausteine.map((baustein: any) => [baustein.knotenId, baustein])
-    );
-    
-    // Sammle alle API-Bausteine (rekursiv)
-    const collectAllBausteine = (bausteine: any[]): any[] => {
-      const result: any[] = [];
-      bausteine.forEach(baustein => {
-        if (baustein.knotenId && baustein.knotenId.trim() !== '') {
-          result.push(baustein);
-        }
-        if (baustein.subBausteine && baustein.subBausteine.length > 0) {
-          result.push(...collectAllBausteine(baustein.subBausteine));
-        }
-      });
-      return result;
-    };
-    
-    const apiBausteine = collectAllBausteine(sparte.bausteine);
-    
-    const mergedBausteine = apiBausteine.map(apiBaustein => {
-      const existingBaustein = existingBausteineMap.get(apiBaustein.knotenId);
-      
-      if (existingBaustein && existingBaustein.echteEingabe === true) {
-        // User hat diesen Baustein bearbeitet
-        console.log(`🔄 MERGE Baustein ${apiBaustein.knotenId}: Behalte User-Eingaben`);
-        return {
-          ...existingBaustein, // User-Eingaben (check, betrag)
-          // Update strukturelle Felder
-          id: `${sparte.sparte}_${apiBaustein.knotenId}`,
-          beschreibung: apiBaustein.beschreibung,
-          betragsLabel: apiBaustein.betragsLabel || '',
-          knotenId: apiBaustein.knotenId
-        };
-      } else {
-        // Neuer Baustein oder keine User-Eingaben
-        return {
-          id: `${sparte.sparte}_${apiBaustein.knotenId}`,
-          beschreibung: apiBaustein.beschreibung,
-          check: apiBaustein.check || false,
-          betrag: parseFloat(apiBaustein.betrag || '0'),
-          betragsLabel: apiBaustein.betragsLabel || '',
-          knotenId: apiBaustein.knotenId,
-          echteEingabe: false
-        };
-      }
-    });
-    
-    if (mergedBausteine.length > 0) {
-      updates[tableKey] = { value: mergedBausteine };
-      console.log(`✅ ${mergedBausteine.length} Bausteine für ${sparte.sparte} gemerged`);
-    }
-  });
-  
-  return updates;
-}
-
 
 /**
  * Verarbeitet spartenActions von Claude AI und aktualisiert FIELD_DEFINITIONS
@@ -755,3 +638,123 @@ export const processBausteinActions = (
     return {};
   }
 };
+
+/**
+ * Intelligente Merge-Operation: Kombiniert neue Produktdaten mit bestehenden User-Eingaben
+ * WICHTIG: Überschreibt NIEMALS echteEingabe=true Markierungen!
+ * @param produktData - Neue Produktdaten aus fetchProduktData()
+ * @param currentFieldDefinitions - Bestehende FIELD_DEFINITIONS mit User-Eingaben
+ * @returns Partial<FieldDefinitions> - Gemergete Daten mit User-Eingaben geschützt
+ */
+export function mergeProductDataWithExistingUserData(
+  produktData: any[], 
+  currentFieldDefinitions?: FieldDefinitions
+): Partial<FieldDefinitions> {
+  console.log(`🔄 Starte intelligente Merge-Operation...`);
+  console.log(`📊 Produktdaten:`, produktData.length, `Sparten`);
+  console.log(`📊 Bestehende FieldDefinitions:`, Object.keys(currentFieldDefinitions || {}));
+  
+  const updates: Partial<FieldDefinitions> = {};
+  
+  // 1. MERGE PRODUKTSPARTEN: Kombiniere neue Struktur mit bestehenden User-Eingaben
+  console.log(`🔄 Merge Produktsparten...`);
+  const existingSpartenData = currentFieldDefinitions?.produktSparten?.value || [];
+  const newSpartenEntries = produktData
+    .filter(sparte => sparte.sparte && sparte.beschreibung)
+    .map(sparte => {
+      // Suche bestehende User-Eingabe für diese Sparte
+      const existingSparte = existingSpartenData.find((s: any) => s.id === sparte.sparte);
+      
+      if (existingSparte && existingSparte.echteEingabe === true) {
+        console.log(`🔒 PRESERVE User-Eingabe: Sparte ${sparte.sparte} (echteEingabe: true)`);
+        // Behalte User-Eingaben, aktualisiere nur Struktur-Daten
+        return {
+          ...existingSparte, // User-Eingaben bleiben erhalten (check, zustand, stornogrund, echteEingabe)
+          beschreibung: sparte.beschreibung, // Struktur-Update
+          beitragNetto: parseFloat(sparte.beitragNetto || '0'), // Struktur-Update
+          beitragBrutto: parseFloat(sparte.beitragBrutto || '0') // Struktur-Update
+          // echteEingabe bleibt true!
+        };
+      } else {
+        console.log(`🆕 NEW/UPDATE Struktur: Sparte ${sparte.sparte} (keine User-Eingabe)`);
+        // Neue Sparte oder keine User-Eingabe vorhanden
+        const isChecked = sparte.check || false;
+        return {
+          id: sparte.sparte,
+          beschreibung: sparte.beschreibung,
+          check: isChecked,
+          zustand: isChecked ? 'A' : ' ',
+          stornogrund: ' ',
+          beitragNetto: parseFloat(sparte.beitragNetto || '0'),
+          beitragBrutto: parseFloat(sparte.beitragBrutto || '0'),
+          echteEingabe: false // Keine User-Eingabe vorhanden
+        };
+      }
+    });
+  
+  updates.produktSparten = { value: newSpartenEntries };
+  console.log(`✅ ${newSpartenEntries.length} Sparten gemerged`);
+  
+  // 2. MERGE PRODUKTBAUSTEINE: Für jede Sparte, kombiniere neue Struktur mit User-Eingaben
+  console.log(`🔄 Merge Produktbausteine...`);
+  produktData.forEach(sparte => {
+    if (!sparte.sparte || !sparte.bausteine) return;
+    
+    const tableKey = `produktBausteine_${sparte.sparte}`;
+    const existingBausteineData = currentFieldDefinitions?.[tableKey]?.value || [];
+    
+    console.log(`🔍 Merge ${tableKey}: ${existingBausteineData.length} bestehende vs ${sparte.bausteine.length} neue`);
+    
+    // Rekursive Sammlung aller neuen Bausteine
+    const collectAllBausteine = (bausteine: any[], level: number = 0): any[] => {
+      const result: any[] = [];
+      
+      bausteine.forEach(baustein => {
+        if (baustein.knotenId && baustein.knotenId.trim() !== '') {
+          // Suche bestehende User-Eingabe für diesen Baustein
+          const existingBaustein = existingBausteineData.find((b: any) => b.knotenId === baustein.knotenId);
+          
+          if (existingBaustein && existingBaustein.echteEingabe === true) {
+            console.log(`🔒 PRESERVE User-Eingabe: Baustein ${baustein.knotenId} (echteEingabe: true)`);
+            // Behalte User-Eingaben, aktualisiere nur Struktur
+            result.push({
+              ...existingBaustein, // User-Eingaben bleiben (check, betrag, echteEingabe)
+              beschreibung: baustein.beschreibung, // Struktur-Update
+              betragsLabel: baustein.betragsLabel || '', // Struktur-Update
+              // echteEingabe bleibt true!
+            });
+          } else {
+            console.log(`🆕 NEW/UPDATE Struktur: Baustein ${baustein.knotenId} (keine User-Eingabe)`);
+            // Neuer Baustein oder keine User-Eingabe
+            result.push({
+              id: `${sparte.sparte}_${baustein.knotenId}`,
+              beschreibung: baustein.beschreibung,
+              check: baustein.check || false,
+              betrag: parseFloat(baustein.betrag || '0'),
+              betragsLabel: baustein.betragsLabel || '',
+              knotenId: baustein.knotenId,
+              echteEingabe: false // Keine User-Eingabe
+            });
+          }
+        }
+        
+        // Rekursiv für Subbausteine
+        if (baustein.subBausteine && baustein.subBausteine.length > 0) {
+          result.push(...collectAllBausteine(baustein.subBausteine, level + 1));
+        }
+      });
+      
+      return result;
+    };
+    
+    const mergedBausteineEntries = collectAllBausteine(sparte.bausteine);
+    
+    if (mergedBausteineEntries.length > 0) {
+      updates[tableKey] = { value: mergedBausteineEntries };
+      console.log(`✅ ${mergedBausteineEntries.length} Bausteine für ${sparte.sparte} gemerged`);
+    }
+  });
+  
+  console.log(`✅ Merge-Operation abgeschlossen. Updates:`, Object.keys(updates));
+  return updates;
+}

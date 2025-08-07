@@ -14,8 +14,12 @@ import {
 // echteEingabe wird automatisch durch setFieldValueWithEchteEingabe in Motor-Komponenten gesetzt
 import { ClaudeResponse } from '@/constants/fieldConfig';
 import { updateGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
+import { useGlobalProductData } from '@/hooks/useGlobalProductData';
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) => {
+  
+  // 🌐 Globale Produktdaten für Chat-Integration
+  const { ensureProductDataLoaded, isLoaded: isProductDataLoaded } = useGlobalProductData();
    
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -421,6 +425,16 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
     console.log('🔄 States aktualisiert, starte AI Response...');
 
     try {
+      // 🌐 Stelle sicher, dass Produktdaten geladen sind für AI-Verarbeitung
+      console.log('🌐 Prüfe und lade Produktdaten für AI-Request...');
+      if (!isProductDataLoaded) {
+        console.log('⏳ Produktdaten noch nicht geladen - lade jetzt...');
+        await ensureProductDataLoaded();
+        console.log('✅ Produktdaten für Chat-AI bereit');
+      } else {
+        console.log('✅ Produktdaten bereits geladen für Chat-AI');
+      }
+      
       // AI Response generieren
       console.log('🤖 Rufe generateAIResponse auf...');
       const aiResponseText = await generateAIResponse(currentInput);

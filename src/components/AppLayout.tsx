@@ -8,6 +8,7 @@ import MotorAktenMenueleiste from '@/components/MotorAktenMenueleiste';
 import { EditModeProvider } from '@/contexts/EditModeContext';
 import { useGlobalChatConfig } from '@/hooks/useGlobalChatConfig';
 import { setGlobalFieldDefinitions, useGlobalFieldDefinitions } from '@/hooks/useGlobalFieldDefinitions';
+import { useGlobalProductData } from '@/hooks/useGlobalProductData';
 import { 
   FIELD_DEFINITIONS, 
   generateDefaultValues, 
@@ -21,6 +22,24 @@ interface AppLayoutProps {
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const globalChatConfig = useGlobalChatConfig();
   const { fieldDefinitions: globalFieldValues, updateFieldDefinitions } = useGlobalFieldDefinitions();
+  
+  // 🌐 Globale Produktdaten-Initialisierung - lädt einmalig beim App-Start
+  const { ensureProductDataLoaded, isLoaded: isProductDataLoaded } = useGlobalProductData();
+  
+  // Produktdaten beim App-Start laden
+  useEffect(() => {
+    const initializeProductData = async () => {
+      try {
+        console.log(`🚀 AppLayout: Initialisiere globale Produktdaten...`);
+        await ensureProductDataLoaded();
+        console.log(`✅ AppLayout: Globale Produktdaten initialisiert`);
+      } catch (error) {
+        console.error('❌ AppLayout: Fehler beim Laden der Produktdaten:', error);
+      }
+    };
+    
+    initializeProductData();
+  }, []); // Nur einmal beim Mount ausführen
   
   // Standard State für normale Seiten
   const defaultValues = useMemo(() => generateDefaultValues(), []);
