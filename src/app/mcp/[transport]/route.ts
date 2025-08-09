@@ -1,6 +1,7 @@
 import { createMcpHandler } from '@vercel/mcp-adapter';
 import { ServiceABSEinarbeiterHelper } from '@/utils/ServiceABSEinarbeiterHelper';
 import { FIELD_DEFINITIONS, generateDefaultValues, generateEchteEingabeValues } from '@/constants/fieldConfig';
+import { ensureGlobalProductDataLoaded } from '@/hooks/useGlobalProductData';
 
 // MCP Server für ServiceABS-Einarbeiter XML Generation
 const handler = createMcpHandler((server) => {
@@ -20,16 +21,39 @@ const handler = createMcpHandler((server) => {
       const { chatInput, existingData = {} } = args as { chatInput: string; existingData?: Record<string, any> };
       
       try {
+        // 🌐 Stelle sicher, dass globale Produktdaten geladen sind
+        console.log('🌐 MCP: Lade globale Produktdaten...');
+        await ensureGlobalProductDataLoaded();
+        console.log('✅ MCP: Globale Produktdaten bereit');
+        
         // 1. KI-Extraktion der Daten aus Chat-Input
         const extractedData = await extractDataFromChat(chatInput, existingData);
       
       // 2. XML-Generierung mit extrahierten Daten
+      console.log('🔍 ===== MCP XML GENERIERUNG =====');
+      console.log('🔍 FieldValues für XML:', JSON.stringify(extractedData.fieldValues, null, 2));
+      console.log('🔍 FIELD_DEFINITIONS echteEingabe Status:');
+      FIELD_DEFINITIONS.filter(f => f.echteEingabe !== undefined && f.echteEingabe !== f.defaultValue)
+        .forEach(f => console.log(`🔍 - ${f.key}: ${JSON.stringify(f.echteEingabe)}`));
+      console.log('🔍 ===== ENDE XML GENERIERUNG VORBEREITUNG =====');
+      
       const xml = ServiceABSEinarbeiterHelper.erzeugeSendeXML(extractedData.fieldValues);
       const formattedXml = ServiceABSEinarbeiterHelper.formatXML(xml);
+      
+      console.log('🔍 ===== GENERIERTES XML =====');
+      console.log(formattedXml);
+      console.log('🔍 ===== ENDE GENERIERTES XML =====');
       
       // 3. Statistiken und Zusammenfassung
       const fieldCount = ServiceABSEinarbeiterHelper.zaehleEingegebeneFelder(extractedData.fieldValues);
       const summary = ServiceABSEinarbeiterHelper.erstelleZusammenfassung(extractedData.fieldValues);
+      
+      console.log('🔍 ===== MCP STATISTIKEN =====');
+      console.log('🔍 Field Count:', fieldCount);
+      console.log('🔍 Summary:', summary);
+      console.log('🔍 Extracted Fields:', extractedData.extractedFields);
+      console.log('🔍 Confidence:', extractedData.confidence);
+      console.log('🔍 ===== ENDE MCP STATISTIKEN =====');
       
         return {
           content: [{
@@ -104,71 +128,189 @@ export const POST = handler;
 
 /**
  * Extrahiert Fahrzeugdaten aus natürlichsprachigem Text
+ * VERWENDET DIESELBE CLAUDE AI LOGIK WIE DER WEB-CHAT
  */
 async function extractDataFromChat(chatInput: string, existingData: Record<string, any>) {
-  // Standardwerte und echte Eingaben initialisieren
-  const defaultValues = generateDefaultValues();
-  const echteEingabeValues = generateEchteEingabeValues();
+  console.log('🚀 MCP: Starte Claude AI Extraktion...');
+  console.log('🚀 MCP Input:', chatInput);
+  console.log('🚀 MCP existingData:', Object.keys(existingData));
   
-  // Bestehende Daten übernehmen
-  const fieldValues = { ...defaultValues, ...existingData };
-  
-  // Einfache Datenextraktion (hier könnte Claude API integriert werden)
-  const extractedFields: string[] = [];
-  let confidence = 0.5;
-  
-  // Beispiel-Extraktion für Demo-Zwecke
-  const text = chatInput.toLowerCase();
-  
-  // Fahrzeugmarke erkennen
-  const markenRegex = /(bmw|mercedes|audi|volkswagen|vw|porsche|ford|opel)/i;
-  const markeMatch = chatInput.match(markenRegex);
-  if (markeMatch) {
-    fieldValues.fahrzeugmarke = markeMatch[1];
-    // FIELD_DEFINITIONS finden und echteEingabe setzen
-    const fieldDef = FIELD_DEFINITIONS.find(f => f.key === 'fahrzeugmarke');
-    if (fieldDef) {
-      fieldDef.echteEingabe = markeMatch[1];
+  try {
+    // 1. Aktuelle Feldwerte mit existierenden Daten erstellen (wie Web-Chat)
+    const currentValues: Record<string, string> = {};
+    
+    // FIELD_DEFINITIONS durchgehen und aktuelle Werte sammeln
+    FIELD_DEFINITIONS.forEach(field => {
+      // Prüfe existingData first, dann echteEingabe, dann defaultValue
+      if (existingData[field.key] !== undefined) {
+        currentValues[field.key] = String(existingData[field.key]);
+      } else if (field.echteEingabe !== undefined) {
+        currentValues[field.key] = String(field.echteEingabe);
+      } else {
+        currentValues[field.key] = String(field.defaultValue || '');
+      }
+    });
+    
+    console.log('🚀 MCP currentValues für Claude API:', currentValues);
+    
+    // 2. DIREKTER AUFRUF DER CLAUDE API (wie Web-Chat)
+    // Dynamische URL-Erstellung für Flexibilität
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const apiUrl = `${baseUrl}/api/extract-dates`;
+    
+    console.log('🚀 MCP: Rufe Claude API auf:', apiUrl);
+    
+    // 🔍 VOLLSTÄNDIGE REQUEST-LOGGING
+    const requestBody = {
+      text: chatInput,
+      currentValues: currentValues
+    };
+    console.log('📤 ===== MCP REQUEST AN CLAUDE API =====');
+    console.log('📤 URL:', apiUrl);
+    console.log('📤 Text:', JSON.stringify(chatInput, null, 2));
+    console.log('📤 CurrentValues Anzahl:', Object.keys(currentValues).length);
+    console.log('📤 CurrentValues Sample:', JSON.stringify(Object.fromEntries(Object.entries(currentValues).slice(0, 5)), null, 2));
+    console.log('📤 Vollständiger Request Body:', JSON.stringify(requestBody, null, 2));
+    console.log('📤 ===== ENDE MCP REQUEST =====');
+    
+    const extractResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!extractResponse.ok) {
+      const errorText = await extractResponse.text();
+      console.error('❌ MCP Claude API HTTP Error:', extractResponse.status, extractResponse.statusText);
+      console.error('❌ MCP Claude API Error Body:', errorText);
+      throw new Error(`Claude API Error: ${extractResponse.status} - ${errorText}`);
     }
-    extractedFields.push('fahrzeugmarke');
-    confidence += 0.2;
-  }
-  
-  // Baujahr erkennen
-  const jahrRegex = /baujahr\s*(\d{4})|(\d{4})\s*baujahr|jahr\s*(\d{4})/i;
-  const jahrMatch = chatInput.match(jahrRegex);
-  if (jahrMatch) {
-    const jahr = jahrMatch[1] || jahrMatch[2] || jahrMatch[3];
-    fieldValues.erstzulassungsdatum = `${jahr}-01-01`;
-    const fieldDef = FIELD_DEFINITIONS.find(f => f.key === 'erstzulassungsdatum');
-    if (fieldDef) {
-      fieldDef.echteEingabe = `${jahr}-01-01`;
+    
+    const result = await extractResponse.json();
+    
+    // 🔍 VOLLSTÄNDIGE RESPONSE-LOGGING
+    console.log('📥 ===== MCP CLAUDE API RESPONSE =====');
+    console.log('📥 Success:', result.success);
+    console.log('📥 Data verfügbar:', !!result.data);
+    if (result.data) {
+      console.log('📥 ExtractedData verfügbar:', !!result.data.extractedData);
+      console.log('📥 ExtractedData Keys:', result.data.extractedData ? Object.keys(result.data.extractedData) : 'none');
+      console.log('📥 Vollständige Claude Response:', JSON.stringify(result, null, 2));
     }
-    extractedFields.push('erstzulassungsdatum');
-    confidence += 0.2;
-  }
-  
-  // Versicherungsarten erkennen
-  if (text.includes('vollkasko') || text.includes('kasko')) {
-    const fieldDef = FIELD_DEFINITIONS.find(f => f.key === 'produktSparten');
-    if (fieldDef && fieldDef.table) {
-      // Vollkasko (KK) aktivieren
-      const vollkaskoRow = {
-        id: 'KK',
-        beschreibung: 'KK',
-        deckungssumme: '50000',
-        selbstbeteiligung: '300'
-      };
-      fieldValues.produktSparten = [vollkaskoRow];
-      fieldDef.echteEingabe = [vollkaskoRow];
-      extractedFields.push('produktSparten');
-      confidence += 0.3;
+    if (result.error) {
+      console.error('📥 Claude API Error:', result.error);
     }
+    console.log('📥 ===== ENDE MCP CLAUDE RESPONSE =====');
+    
+    if (!result.success || !result.data) {
+      throw new Error('Claude API returned no data');
+    }
+    
+    const aiData = result.data;
+    
+    // 3. DATEN VERARBEITUNG (wie Web-Chat processExtractedData)
+    const fieldValues = { ...generateEchteEingabeValues(), ...existingData };
+    const extractedFields: string[] = [];
+    let totalConfidence = 0;
+    let fieldCount = 0;
+    
+    if (aiData.extractedData && typeof aiData.extractedData === 'object') {
+      // Verarbeite alle extrahierten Felder (wie Web-Chat)
+      Object.entries(aiData.extractedData).forEach(([fieldKey, extractedValue]: [string, any]) => {
+        console.log(`🔍 MCP: Verarbeite Feld ${fieldKey}:`, extractedValue);
+        
+        if (!extractedValue || typeof extractedValue !== 'object') {
+          console.warn(`❌ MCP: Ungültiger extractedValue für ${fieldKey}`);
+          return;
+        }
+        
+        // Confidence-Check (wie Web-Chat)
+        if (!extractedValue.value || extractedValue.confidence <= 0.5) {
+          console.log(`⏭️ MCP: Überspringe ${fieldKey} - niedrige Confidence`);
+          return;
+        }
+        
+        // FIELD_DEFINITIONS finden und echteEingabe setzen
+        const fieldDef = FIELD_DEFINITIONS.find(f => f.key === fieldKey);
+        if (fieldDef) {
+          console.log(`✅ MCP: Update ${fieldKey} = ${extractedValue.value}`);
+          console.log(`✅ MCP: Field type = ${fieldDef.type}`);
+          
+          // Korrekte Datenstruktur je nach Feldtyp
+          let processedValue = extractedValue.value;
+          
+          // Für Tabellen: Stelle sicher, dass es ein Array ist
+          if (fieldDef.type === 'table' || fieldDef.type === 'single-line-table') {
+            if (!Array.isArray(processedValue)) {
+              console.log(`🔧 MCP: Konvertiere Tabellenwert zu Array für ${fieldKey}`);
+              processedValue = Array.isArray(extractedValue.value) ? extractedValue.value : [];
+            }
+            
+            // Spezielle Behandlung für Kilometerstände
+            if (fieldKey === 'kilometerstaende' && Array.isArray(processedValue)) {
+              processedValue = processedValue.map((row: any) => ({
+                ...row,
+                echteEingabe: true // Markiere jede Zeile als echte Eingabe
+              }));
+              console.log(`🔧 MCP: Kilometerstand-Struktur:`, processedValue);
+            }
+            
+            // Spezielle Behandlung für Produktsparten
+            if (fieldKey === 'produktSparten' && Array.isArray(processedValue)) {
+              processedValue = processedValue.map((row: any) => ({
+                ...row,
+                echteEingabe: true, // Markiere als echte Eingabe
+                // Stelle sicher, dass alle erforderlichen Felder vorhanden sind
+                id: row.id || row.beschreibung || 'KK',
+                beschreibung: row.beschreibung || 'Kfz-Vollkasko',
+                check: row.check !== undefined ? row.check : true,
+                zustand: row.zustand || 'A',
+                stornogrund: row.stornogrund || ' ',
+                beitragNetto: row.beitragNetto || 0,
+                beitragBrutto: row.beitragBrutto || 0
+              }));
+              console.log(`🔧 MCP: Produktsparten-Struktur:`, processedValue);
+            }
+          }
+          
+          // Setze echteEingabe in FIELD_DEFINITIONS (WICHTIG!)
+          fieldDef.echteEingabe = processedValue;
+          
+          // Setze auch in fieldValues für XML-Generierung
+          fieldValues[fieldKey] = processedValue;
+          
+          extractedFields.push(fieldKey);
+          totalConfidence += extractedValue.confidence;
+          fieldCount++;
+        } else {
+          console.warn(`❌ MCP: Keine FieldDefinition gefunden für ${fieldKey}`);
+        }
+      });
+    }
+    
+    const avgConfidence = fieldCount > 0 ? totalConfidence / fieldCount : 0;
+    
+    console.log('✅ MCP: Claude AI Extraktion abgeschlossen');
+    console.log(`✅ MCP: ${extractedFields.length} Felder extrahiert: ${extractedFields.join(', ')}`);
+    console.log(`✅ MCP: Durchschnittliche Konfidenz: ${Math.round(avgConfidence * 100)}%`);
+    
+    return {
+      fieldValues,
+      extractedFields,
+      confidence: avgConfidence
+    };
+    
+  } catch (error) {
+    console.error('❌ ===== MCP CLAUDE API FEHLER =====');
+    console.error('❌ Error Type:', error.constructor.name);
+    console.error('❌ Error Message:', error.message);
+    console.error('❌ Full Error:', error);
+    console.error('❌ Stack Trace:', error.stack);
+    console.error('❌ ===== ENDE MCP FEHLER =====');
+    
+    // KEINEN Fallback - werfe Fehler weiter, um das Problem zu identifizieren
+    throw new Error(`MCP Claude API Integration fehlgeschlagen: ${error.message}`);
   }
-  
-  return {
-    fieldValues,
-    extractedFields,
-    confidence: Math.min(confidence, 1.0)
-  };
 }

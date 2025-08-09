@@ -4,6 +4,9 @@
 // Low-Level Implementation ohne komplexe SDK-Dependencies
 
 import { createServer } from 'node:http';
+import http from 'node:http';
+import https from 'node:https';
+import { URL } from 'node:url';
 import process from 'node:process';
 
 // Simple JSON-RPC Handler für STDIO
@@ -74,7 +77,7 @@ class McpServer {
   handleInitialize(id) {
     return {
       jsonrpc: '2.0',
-      id,
+      id: id || 0,
       result: {
         protocolVersion: '2025-06-18',
         capabilities: {
@@ -93,7 +96,7 @@ class McpServer {
   handleToolsList(id) {
     return {
       jsonrpc: '2.0',
-      id,
+      id: id || 0,
       result: {
         tools: this.tools
       }
@@ -104,7 +107,7 @@ class McpServer {
     const { name, arguments: args } = params;
 
     if (name === 'generate_serviceabs_xml') {
-      return this.generateServiceAbsXml(args, id);
+      return await this.generateServiceAbsXml(args, id);
     }
 
     if (name === 'get_field_definitions') {
@@ -114,7 +117,7 @@ class McpServer {
     return this.createErrorResponse(id, -32602, `Unknown tool: ${name}`);
   }
 
-  generateServiceAbsXml(args, id) {
+  async generateServiceAbsXml(args, id) {
     try {
       const { chatInput, existingData = {} } = args || {};
       
@@ -127,7 +130,7 @@ class McpServer {
       }
 
       // Datenextraktion
-      const extractedData = this.extractDataFromChat(chatInput, existingData);
+      const extractedData = await this.extractDataFromChat(chatInput, existingData);
       console.error(`🔍 Extrahierte Daten:`, JSON.stringify(extractedData, null, 2));
       
       // XML-Generierung
@@ -136,7 +139,7 @@ class McpServer {
       
       const response = {
         jsonrpc: '2.0',
-        id,
+        id: id || 0,
         result: {
           content: [
             {
@@ -165,7 +168,7 @@ class McpServer {
 
     return {
       jsonrpc: '2.0',
-      id,
+      id: id || 0,
       result: {
         content: [
           {
@@ -177,82 +180,303 @@ class McpServer {
     };
   }
 
-  extractDataFromChat(chatInput, existingData) {
-    const fieldValues = { ...existingData };
-    const extractedFields = [];
-    let confidence = 0.5;
+  async extractDataFromChat(chatInput, existingData) {
+    console.error('🚀 MCP-Robust: Starte Claude AI Extraktion...');
+    console.error('🚀 MCP-Robust Input:', chatInput);
+    console.error('🚀 MCP-Robust existingData:', Object.keys(existingData));
     
-    // Jahreskilometer erkennen (Jahresfahrleistung 12000 km, 12000 km/Jahr, etc.)
-    const kmRegex = /(?:jahresfahrleistung|fahrleistung|jährlich|pro\s+jahr)?\s*(\d+)\s*(?:km|kilometer)/i;
-    const kmMatch = chatInput.match(kmRegex);
-    if (kmMatch) {
-      fieldValues.jahreskilometer = parseInt(kmMatch[1]);
-      extractedFields.push('jahreskilometer');
-      confidence += 0.3;
-      console.error(`✅ Jahreskilometer erkannt: ${kmMatch[1]} km`);
-    } else {
-      console.error(`❌ Jahreskilometer nicht erkannt in: "${chatInput}"`);
-    }
-    
-    // Typklassen erkennen (KH 12 und TK 8)
-    const typklasseRegex = /(?:typklasse[n]?[^0-9]*)?(?:kh|haftpflicht)\s*(\d+)\s*(?:und|,)?\s*(?:tk|teilkasko)?\s*(\d+)?/i;
-    const typklasseMatch = chatInput.match(typklasseRegex);
-    if (typklasseMatch) {
-      const haftpflicht = parseInt(typklasseMatch[1]) || 0;
-      const teilkasko = parseInt(typklasseMatch[2]) || 0;
+    try {
+      // 1. Aktuelle Feldwerte erstellen (vereinfacht für MCP)
+      const currentValues = {
+        beginndatum: '0001-01-01',
+        ablaufdatum: '0001-01-01',
+        anmeldedatum: '0001-01-01',
+        erstzulassungsdatum: '0001-01-01',
+        fahrzeugmarke: '',
+        fahrgestellnummer: '',
+        amtlKennzeichen: '',
+        KraftDmKfzVorfahrl: '0',
+        kilometerstaende: '[]',
+        produktSparten: '[]',
+        ...existingData // Überschreibe mit bestehenden Daten
+      };
       
-      fieldValues.typklasseHaftpflicht = haftpflicht;
-      extractedFields.push('typklasseHaftpflicht');
+      console.error('🚀 MCP-Robust: Rufe Claude API auf...');
       
-      if (teilkasko > 0) {
-        fieldValues.typklasseTeilkasko = teilkasko;
-        extractedFields.push('typklasseTeilkasko');
+      // 2. DIREKTER AUFRUF DER CLAUDE API (mit Node.js http module)
+      const apiUrl = 'http://localhost:3000/api/extract-dates';
+      
+      const requestBody = {
+        text: chatInput,
+        currentValues: currentValues
+      };
+      
+      console.error('📤 ===== MCP-ROBUST REQUEST =====');
+      console.error('📤 URL:', apiUrl);
+      console.error('📤 Text:', JSON.stringify(chatInput, null, 2));
+      console.error('📤 CurrentValues Anzahl:', Object.keys(currentValues).length);
+      console.error('📤 ===== ENDE REQUEST =====');
+      
+      // HTTP Request mit Node.js nativem http module
+      const result = await this.makeHttpRequest(apiUrl, requestBody);
+      
+      console.error('📥 ===== MCP-ROBUST CLAUDE RESPONSE =====');
+      console.error('📥 Success:', result.success);
+      console.error('📥 Data verfügbar:', !!result.data);
+      if (result.data) {
+        console.error('📥 ExtractedData verfügbar:', !!result.data.extractedData);
+        console.error('📥 ExtractedData Keys:', result.data.extractedData ? Object.keys(result.data.extractedData) : 'none');
+        console.error('📥 Vollständige Claude Response:', JSON.stringify(result, null, 2));
+        
+        // 🔍 DETAILANALYSE DER CLAUDE-ANTWORT
+        if (result.data.extractedData) {
+          Object.entries(result.data.extractedData).forEach(([key, value]) => {
+            console.error(`📥 FELD-ANALYSE: ${key}`, {
+              type: typeof value,
+              value: value,
+              isArray: Array.isArray(value?.value),
+              confidence: value?.confidence
+            });
+          });
+        }
       }
-      confidence += 0.4;
+      console.error('📥 ===== ENDE RESPONSE =====');
+      
+      if (!result.success || !result.data) {
+        throw new Error('Claude API returned no data');
+      }
+      
+      const aiData = result.data;
+      
+      // 3. DATEN VERARBEITUNG
+      const fieldValues = { ...existingData };
+      const extractedFields = [];
+      let totalConfidence = 0;
+      let fieldCount = 0;
+      
+      if (aiData.extractedData && typeof aiData.extractedData === 'object') {
+        // Verarbeite alle extrahierten Felder
+        Object.entries(aiData.extractedData).forEach(([fieldKey, extractedValue]) => {
+          console.error(`🔍 MCP-Robust: Verarbeite Feld ${fieldKey}:`, extractedValue);
+          
+          if (!extractedValue || typeof extractedValue !== 'object') {
+            console.error(`❌ MCP-Robust: Ungültiger extractedValue für ${fieldKey}`);
+            return;
+          }
+          
+          // Confidence-Check
+          if (!extractedValue.value || extractedValue.confidence <= 0.5) {
+            console.error(`⏭️ MCP-Robust: Überspringe ${fieldKey} - niedrige Confidence (${extractedValue.confidence})`);
+            return;
+          }
+          
+          console.error(`✅ MCP-Robust: Update ${fieldKey} = ${JSON.stringify(extractedValue.value)}`);
+          console.error(`✅ MCP-Robust: Typ-Check für ${fieldKey}:`, {
+            isArray: Array.isArray(extractedValue.value),
+            type: typeof extractedValue.value,
+            keys: typeof extractedValue.value === 'object' ? Object.keys(extractedValue.value) : 'not object'
+          });
+          
+          // Setze Wert in fieldValues
+          fieldValues[fieldKey] = extractedValue.value;
+          
+          extractedFields.push(fieldKey);
+          totalConfidence += extractedValue.confidence;
+          fieldCount++;
+        });
+      }
+      
+      const avgConfidence = fieldCount > 0 ? totalConfidence / fieldCount : 0;
+      
+      console.error('✅ MCP-Robust: Claude AI Extraktion abgeschlossen');
+      console.error(`✅ MCP-Robust: ${extractedFields.length} Felder extrahiert: ${extractedFields.join(', ')}`);
+      console.error(`✅ MCP-Robust: Durchschnittliche Konfidenz: ${Math.round(avgConfidence * 100)}%`);
+      
+      return {
+        fieldValues,
+        extractedFields,
+        confidence: avgConfidence
+      };
+      
+    } catch (error) {
+      console.error('❌ ===== MCP-ROBUST CLAUDE API FEHLER =====');
+      console.error('❌ Error Type:', error.constructor.name);
+      console.error('❌ Error Message:', error.message);
+      console.error('❌ Full Error:', error);
+      console.error('❌ ===== ENDE FEHLER =====');
+      
+      // Fallback zur alten Regex-Logik falls Claude API nicht erreichbar
+      console.error('⚠️ MCP-Robust: Fallback zu Regex-Extraktion...');
+      
+      const fieldValues = { ...existingData };
+      const extractedFields = [];
+      let confidence = 0.5;
+      
+      // Jahreskilometer erkennen
+      const kmRegex = /(?:jahresfahrleistung|fahrleistung|jährlich|pro\s+jahr)?\s*(\d+)\s*(?:km|kilometer)/i;
+      const kmMatch = chatInput.match(kmRegex);
+      if (kmMatch) {
+        fieldValues.jahreskilometer = parseInt(kmMatch[1]);
+        extractedFields.push('jahreskilometer');
+        confidence += 0.3;
+        console.error(`✅ Fallback: Jahreskilometer erkannt: ${kmMatch[1]} km`);
+      }
+      
+      return {
+        fieldValues,
+        extractedFields,
+        confidence: Math.min(confidence, 1.0)
+      };
     }
-    
-    // Fahrzeugmarke erkennen
-    const markenRegex = /(bmw|mercedes|audi|volkswagen|vw|porsche|ford|opel|toyota|nissan|honda|skoda|seat)/i;
-    const markeMatch = chatInput.match(markenRegex);
-    if (markeMatch) {
-      fieldValues.fahrzeugmarke = markeMatch[1].toUpperCase();
-      extractedFields.push('fahrzeugmarke');
-      confidence += 0.2;
-    }
-    
-    return {
-      fieldValues,
-      extractedFields,
-      confidence: Math.min(confidence, 1.0)
-    };
   }
 
   generateXML(fieldValues) {
-    // Logging für Claude Desktop
-    console.error(`🔍 XML-Generierung gestartet mit Daten:`, JSON.stringify(fieldValues, null, 2));
+    console.error(`🔍 ===== MCP-ROBUST XML-GENERIERUNG START =====`);
+    console.error(`🔍 FieldValues Input:`, JSON.stringify(fieldValues, null, 2));
     
-    return `<ANTRAG>
+    let xmlContent = [];
+    
+    // 1. Kilometerstände Tabelle
+    console.error(`🔍 Prüfe kilometerstaende:`, {
+      exists: !!fieldValues.kilometerstaende,
+      type: typeof fieldValues.kilometerstaende,
+      isArray: Array.isArray(fieldValues.kilometerstaende),
+      length: Array.isArray(fieldValues.kilometerstaende) ? fieldValues.kilometerstaende.length : 'not array',
+      value: fieldValues.kilometerstaende
+    });
+    
+    if (fieldValues.kilometerstaende && Array.isArray(fieldValues.kilometerstaende) && fieldValues.kilometerstaende.length > 0) {
+      console.error(`✅ Verarbeite Kilometerstände:`, fieldValues.kilometerstaende);
+      let kmRows = fieldValues.kilometerstaende.map(row => `        <zeile>
+          <datum>${row.datum || new Date().toISOString().split('T')[0]}</datum>
+          <art>${row.art || '1'}</art>
+          <kmstand>${row.kmstand || '0'}</kmstand>
+        </zeile>`).join('\n');
+      xmlContent.push(`      <kilometerstaende_e>
+${kmRows}
+      </kilometerstaende_e>`);
+    } else {
+      console.error(`❌ Kilometerstände nicht verarbeitet - Bedingungen nicht erfüllt`);
+    }
+    
+    // 2. Produktsparten Tabelle
+    console.error(`🔍 Prüfe produktSparten:`, {
+      exists: !!fieldValues.produktSparten,
+      type: typeof fieldValues.produktSparten,
+      isArray: Array.isArray(fieldValues.produktSparten),
+      length: Array.isArray(fieldValues.produktSparten) ? fieldValues.produktSparten.length : 'not array',
+      value: fieldValues.produktSparten
+    });
+    
+    if (fieldValues.produktSparten && Array.isArray(fieldValues.produktSparten) && fieldValues.produktSparten.length > 0) {
+      console.error(`✅ Verarbeite Produktsparten:`, fieldValues.produktSparten);
+      let spartenRows = fieldValues.produktSparten.map(row => `        <zeile>
+          <beschreibung>${row.beschreibung || 'Kfz-Vollkasko'}</beschreibung>
+          <check>${row.check === true ? 'true' : 'false'}</check>
+          <zustand>${row.zustand || 'A'}</zustand>
+          <stornogrund>${row.stornogrund || ' '}</stornogrund>
+          <beitragNetto>${row.beitragNetto || '0'}</beitragNetto>
+          <beitragBrutto>${row.beitragBrutto || '0'}</beitragBrutto>
+        </zeile>`).join('\n');
+      xmlContent.push(`      <produktSparten_e>
+${spartenRows}
+      </produktSparten_e>`);
+    } else {
+      console.error(`❌ Produktsparten nicht verarbeitet - Bedingungen nicht erfüllt`);
+    }
+    
+    // 3. Einzelfelder
+    if (fieldValues.KraftDmKfzVorfahrl && fieldValues.KraftDmKfzVorfahrl !== '0') {
+      console.error(`🔍 Verarbeite Fahrleistung:`, fieldValues.KraftDmKfzVorfahrl);
+      xmlContent.push(`      <KraftDmKfzVorfahrl_e>${fieldValues.KraftDmKfzVorfahrl}</KraftDmKfzVorfahrl_e>`);
+    }
+    
+    // Legacy-Unterstützung für alte Feldnamen
+    if (fieldValues.jahreskilometer && fieldValues.jahreskilometer !== 0) {
+      console.error(`🔍 Legacy: jahreskilometer → KraftDmKfzVorfahrl:`, fieldValues.jahreskilometer);
+      xmlContent.push(`      <KraftDmKfzVorfahrl_e>${fieldValues.jahreskilometer}</KraftDmKfzVorfahrl_e>`);
+    }
+    
+    console.error(`🔍 ===== FINALE XML-GENERIERUNG =====`);
+    console.error(`🔍 XML Content Teile:`, xmlContent.length);
+    console.error(`🔍 XML Content Details:`, xmlContent);
+    console.error(`🔍 ===== ENDE XML-GENERIERUNG =====`);
+    
+    const finalXml = `<ANTRAG>
   <PERSONEN>
   </PERSONEN>
   <VERTRAG>
     <KRAFTBL>
-      ${fieldValues.jahreskilometer ? `<KraftDmKfzVorfahrt_e>${fieldValues.jahreskilometer}</KraftDmKfzVorfahrt_e>` : ''}
-      ${fieldValues.typklasseHaftpflicht || fieldValues.typklasseTeilkasko ? `<manuelleTypklasse_e>
-        <zeile>
-          ${fieldValues.typklasseHaftpflicht ? `<haftpflicht>${fieldValues.typklasseHaftpflicht}</haftpflicht>` : '<haftpflicht>0</haftpflicht>'}
-          <vollkasko>0</vollkasko>
-          ${fieldValues.typklasseTeilkasko ? `<teilkasko>${fieldValues.typklasseTeilkasko}</teilkasko>` : '<teilkasko>0</teilkasko>'}
-        </zeile>
-      </manuelleTypklasse_e>` : ''}
+${xmlContent.join('\n')}
     </KRAFTBL>
   </VERTRAG>
 </ANTRAG>`;
+
+    console.error(`🔍 ===== FINALE XML =====`);
+    console.error(finalXml);
+    console.error(`🔍 ===== ENDE FINALE XML =====`);
+    
+    return finalXml;
+  }
+
+  // Native HTTP Request ohne fetch dependency
+  async makeHttpRequest(url, body) {
+    return new Promise((resolve, reject) => {
+      const parsedUrl = new URL(url);
+      const postData = JSON.stringify(body);
+      
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port,
+        path: parsedUrl.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+      
+      console.error(`🌐 HTTP Request: ${options.method} ${parsedUrl.hostname}:${options.port}${options.path}`);
+      
+      const req = http.request(options, (res) => {
+        let data = '';
+        
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        
+        res.on('end', () => {
+          console.error(`🌐 HTTP Response Status: ${res.statusCode}`);
+          
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            try {
+              const jsonData = JSON.parse(data);
+              resolve(jsonData);
+            } catch (parseError) {
+              console.error('❌ JSON Parse Fehler:', parseError.message);
+              reject(new Error(`JSON Parse Fehler: ${parseError.message}`));
+            }
+          } else {
+            console.error(`❌ HTTP Error ${res.statusCode}:`, data);
+            reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+          }
+        });
+      });
+      
+      req.on('error', (err) => {
+        console.error('❌ HTTP Request Fehler:', err.message);
+        reject(err);
+      });
+      
+      req.write(postData);
+      req.end();
+    });
   }
 
   createErrorResponse(id, code, message) {
     return {
       jsonrpc: '2.0',
-      id,
+      id: id || 0,
       error: {
         code,
         message

@@ -25,6 +25,7 @@ Ich möchte ab 1.8 eine Versicherung mit Schutzbrief.
 
 Ich fahre im Jahr 12000 km und man hat mir gesagt, das meine Typklassen erstmal KH 12 und TK 8 sein.
 
-Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilomterstand zum Beginn mit 123 KM, fahre im Jahr 12000 und möchte eine VK.
-Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilomterstand zum Beginn mit 123 KM, fahre im Jahr 9000 und möchte eine VK mit SB 300/150.
+Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilometerstand zum Beginn mit 123 KM, fahre im Jahr 12000 und möchte eine VK.
+Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilometerstand zum Beginn mit 123 KM, fahre im Jahr 9000 und möchte eine VK mit SB 300/150.
 
+Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilometerstand zum Beginn mit 433 KM, fahre im Jahr 12002 und möchte eine VK

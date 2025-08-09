@@ -48,12 +48,28 @@ function extractJsonFromText(text: string): { json: string; explanation?: string
 }
 
 export async function POST(request: NextRequest) {
-  console.log('API Route wurde aufgerufen!');
+  const startTime = Date.now();
+  const userAgent = request.headers.get('user-agent') || '';
+  const referer = request.headers.get('referer') || '';
+  const isWebChat = referer.includes('localhost') && !userAgent.includes('node');
+  const isMCP = userAgent.includes('node') || referer === '';
+  
+  console.log(`🚀 ===== API-ROUTE START =====`);
+  console.log(`🚀 Typ: ${isWebChat ? 'WEB-CHAT' : isMCP ? 'MCP-CALL' : 'UNKNOWN'}`);
+  console.log(`🚀 Timestamp: ${new Date().toISOString()}`);
+  console.log(`🚀 User-Agent: ${userAgent}`);
+  console.log(`🚀 Referer: ${referer}`);
+  console.log(`🚀 ===== API-ROUTE INFO =====`);
 
   try {
-    const { text, currentValues } = await request.json();
+    const requestBody = await request.json();
+    const { text, currentValues } = requestBody;
 
-    console.log('Empfangene Daten:', { text, currentValues });
+    console.log(`📥 ===== API-ROUTE REQUEST =====`);
+    console.log(`📥 Text Input: "${text}"`);
+    console.log(`📥 CurrentValues Keys: ${Object.keys(currentValues || {}).length}`);
+    console.log(`📥 CurrentValues Sample:`, JSON.stringify(Object.fromEntries(Object.entries(currentValues || {}).slice(0, 5)), null, 2));
+    console.log(`📥 ===== ENDE REQUEST =====`);
 
     // WICHTIG: System Prompt asynchron laden!
     const SYSTEM_PROMPT = SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC;
@@ -535,7 +551,28 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
       timestamp: new Date().toISOString()
     };
 
-    console.log('Sende finale Antwort:', result);
+    console.log(`📤 ===== API-ROUTE RESPONSE =====`);
+    console.log(`📤 Success:`, result.success);
+    console.log(`📤 Data verfügbar:`, !!result.data);
+    if (result.data) {
+      console.log(`📤 ExtractedData Keys:`, result.data.extractedData ? Object.keys(result.data.extractedData) : 'none');
+      
+      // Detailanalyse für MCP-Debugging
+      if (isMCP && result.data.extractedData) {
+        Object.entries(result.data.extractedData).forEach(([key, value]: [string, any]) => {
+          console.log(`📤 API-RESPONSE FELD: ${key}`, {
+            confidence: value?.confidence,
+            valueType: typeof value?.value,
+            isArray: Array.isArray(value?.value),
+            valuePreview: Array.isArray(value?.value) ? `Array[${value.value.length}]` : JSON.stringify(value?.value).substring(0, 100)
+          });
+        });
+      }
+      
+      console.log(`📤 Vollständige Response Data:`, JSON.stringify(result.data, null, 2));
+    }
+    console.log(`📤 Processing Time: ${Date.now() - startTime}ms`);
+    console.log(`📤 ===== ENDE API-ROUTE RESPONSE =====`);
 
     return NextResponse.json(result);
   } catch (error: unknown) {
