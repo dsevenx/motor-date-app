@@ -38,15 +38,32 @@ export const isChecked = (knotenId: string, sparte: string, fieldDefinitions: Fi
   try {
     // 1. Sparten-Check: Wenn knotenId === sparte, dann ist es eine Sparten-Abfrage
     if (knotenId === sparte) {
-      const spartenData = fieldDefinitions.produktSparten?.value || [];
+      // Robuste Extraktion der Sparten-Daten - kann Array oder {value: Array} sein
+      let spartenData: any[] = [];
+      
+      if (Array.isArray(fieldDefinitions.produktSparten)) {
+        // Direktes Array (von AI-Updates)
+        spartenData = fieldDefinitions.produktSparten;
+        console.log(`🔧 produktSparten ist direktes Array für ${sparte}:`, spartenData.length);
+      } else if (fieldDefinitions.produktSparten?.value && Array.isArray(fieldDefinitions.produktSparten.value)) {
+        // Objekt mit value Property (Standard-Format)
+        spartenData = fieldDefinitions.produktSparten.value;
+        console.log(`🔧 produktSparten hat .value Property für ${sparte}:`, spartenData.length);
+      } else {
+        // Fallback: Leeres Array
+        console.log(`⚠️ produktSparten Format unbekannt für ${sparte}:`, fieldDefinitions.produktSparten);
+        spartenData = [];
+      }
+      
       const sparteEntry = spartenData.find((s: any) => s.id === sparte);
       const result = sparteEntry?.check === true;
       
-      // Weniger Debug-Spam, nur bei wichtigen Sparten-Checks
+      // Debug-Logs für wichtige Sparten
       if (sparte === 'KH' || sparte === 'KK') {
         console.log(`🔍 isChecked Sparte [${sparte}]:`, { 
           'fieldDefinitions.produktSparten': fieldDefinitions.produktSparten,
-          sparteEntry, 
+          'spartenData.length': spartenData.length,
+          'sparteEntry': sparteEntry,
           result 
         });
       }
@@ -55,7 +72,18 @@ export const isChecked = (knotenId: string, sparte: string, fieldDefinitions: Fi
     
     // 2. Baustein-Check: Suche in der entsprechenden Bausteine-Tabelle
     const tableKey = `produktBausteine_${sparte}`;
-    const bausteineData = fieldDefinitions[tableKey]?.value || [];
+    
+    // Robuste Extraktion der Baustein-Daten
+    let bausteineData: any[] = [];
+    const bausteineField = fieldDefinitions[tableKey];
+    
+    if (Array.isArray(bausteineField)) {
+      bausteineData = bausteineField;
+    } else if (bausteineField?.value && Array.isArray(bausteineField.value)) {
+      bausteineData = bausteineField.value;
+    } else {
+      bausteineData = [];
+    }
     const bausteinEntry = bausteineData.find((b: any) => b.knotenId === knotenId);
     const result = bausteinEntry?.check === true;
     
@@ -93,7 +121,19 @@ export const updateCheckStatus = (
     
     // 1. Sparten-Update
     if (knotenId === sparte) {
-      const spartenData = [...(fieldDefinitions.produktSparten?.value || [])];
+      // Robuste Extraktion der Sparten-Daten (gleiche Logik wie isChecked)
+      let currentSpartenData: any[] = [];
+      
+      if (Array.isArray(fieldDefinitions.produktSparten)) {
+        currentSpartenData = fieldDefinitions.produktSparten;
+      } else if (fieldDefinitions.produktSparten?.value && Array.isArray(fieldDefinitions.produktSparten.value)) {
+        currentSpartenData = fieldDefinitions.produktSparten.value;
+      } else {
+        currentSpartenData = [];
+      }
+      
+      const spartenData = [...currentSpartenData]; // Kopie für Update
+      
       console.log(`🔍 Sparten-Update Debug:`, {
         knotenId,
         sparte, 
@@ -130,7 +170,20 @@ export const updateCheckStatus = (
     
     // 2. Baustein-Update
     const tableKey = `produktBausteine_${sparte}`;
-    const bausteineData = [...(fieldDefinitions[tableKey]?.value || [])];
+    
+    // Robuste Extraktion der Baustein-Daten
+    let currentBausteineData: any[] = [];
+    const bausteineField = fieldDefinitions[tableKey];
+    
+    if (Array.isArray(bausteineField)) {
+      currentBausteineData = bausteineField;
+    } else if (bausteineField?.value && Array.isArray(bausteineField.value)) {
+      currentBausteineData = bausteineField.value;
+    } else {
+      currentBausteineData = [];
+    }
+    
+    const bausteineData = [...currentBausteineData]; // Kopie für Update
     const bausteinIndex = bausteineData.findIndex((b: any) => b.knotenId === knotenId);
     
     if (bausteinIndex >= 0) {
@@ -162,7 +215,19 @@ export const updateCheckStatus = (
 export const getBetrag = (knotenId: string, sparte: string, fieldDefinitions: FieldDefinitions): number => {
   try {
     const tableKey = `produktBausteine_${sparte}`;
-    const bausteineData = fieldDefinitions[tableKey]?.value || [];
+    
+    // Robuste Extraktion der Baustein-Daten
+    let bausteineData: any[] = [];
+    const bausteineField = fieldDefinitions[tableKey];
+    
+    if (Array.isArray(bausteineField)) {
+      bausteineData = bausteineField;
+    } else if (bausteineField?.value && Array.isArray(bausteineField.value)) {
+      bausteineData = bausteineField.value;
+    } else {
+      bausteineData = [];
+    }
+    
     const bausteinEntry = bausteineData.find((b: any) => b.knotenId === knotenId);
     const betrag = parseFloat(bausteinEntry?.betrag || '0');
     
@@ -193,7 +258,20 @@ export const updateBetragStatus = (
     console.log(`💰 updateBetragStatus: ${knotenId} in ${sparte} = ${betrag}`);
     
     const tableKey = `produktBausteine_${sparte}`;
-    const bausteineData = [...(fieldDefinitions[tableKey]?.value || [])];
+    
+    // Robuste Extraktion der Baustein-Daten  
+    let currentBausteineData: any[] = [];
+    const bausteineField = fieldDefinitions[tableKey];
+    
+    if (Array.isArray(bausteineField)) {
+      currentBausteineData = bausteineField;
+    } else if (bausteineField?.value && Array.isArray(bausteineField.value)) {
+      currentBausteineData = bausteineField.value;
+    } else {
+      currentBausteineData = [];
+    }
+    
+    const bausteineData = [...currentBausteineData]; // Kopie für Update
     const bausteinIndex = bausteineData.findIndex((b: any) => b.knotenId === knotenId);
     
     if (bausteinIndex >= 0) {

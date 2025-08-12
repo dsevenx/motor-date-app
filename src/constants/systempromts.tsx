@@ -200,11 +200,17 @@ SPARTEN-REGELN:
 - "storniert" / "gekündigt" → zustand: "S", zustandsdetail: "SVN"
 - "nur Pflichtversicherung" → andere Sparten deaktivieren (check: false)
 
+🚨 KRITISCH - BESTEHENDE WERTE ERHALTEN:
+- WENN eine Sparte im User-Input NICHT ERWÄHNT wird → BESTEHENDE Werte der produktSparten-Tabelle BEIBEHALTEN!
+- NUR explizit erwähnte Sparten in der Antwort ändern/setzen
+- Beispiel: User sagt "VK" → Nur KK-Eintrag zurückgeben, KH/EK/KU aus existierenden Tabellen NICHT verändern
+- Die produktSparten-Tabelle enthält bereits vorhandene Einstellungen - diese NICHT überschreiben!
+
 WICHTIG - SPARTEN-EXKLUSIVITÄT:
 - Vollkasko (KK) und Teilkasko (EK) schließen sich gegenseitig aus
 - Nur EINE der beiden Kasko-Sparten kann aktiv sein
-- Wenn VK erkannt wird → nur KK aktivieren, EK NICHT erwähnen
-- Wenn TK erkannt wird → nur EK aktivieren, KK NICHT erwähnen
+- Wenn VK erkannt wird → nur KK aktivieren, EK deaktivieren (check: false) falls in Tabelle vorhanden
+- Wenn TK erkannt wird → nur EK aktivieren, KK deaktivieren (check: false) falls in Tabelle vorhanden
 
 BAUSTEIN-ERKENNUNG UND TABELLEN-UPDATES:
 Du erkennst Bausteine und aktualisierst die entsprechenden produktBausteine_*-Tabellen direkt:
@@ -249,8 +255,10 @@ WICHTIG FÜR BAUSTEINE:
 - Ändere NUR die Felder "check" und "betrag" - alle anderen Felder beibehalten
 - Bei "VK 300/150": BEIDE Selbstbeteiligungen gehören in produktBausteine_KK (nicht EK!)
 - Bei "TK 150": Nur TK-Selbstbeteiligung in produktBausteine_EK
-- Nur Bausteine für AKTIVE Sparten zurückgeben
-- Bausteine für nicht erwähnte/inaktive Sparten NICHT zurückgeben
+- 🚨 KRITISCH - BESTEHENDE BAUSTEIN-WERTE ERHALTEN:
+  - NUR explizit erwähnte Bausteine in der Antwort ändern/setzen
+  - NICHT erwähnte Bausteine aus existierenden Tabellen NICHT verändern
+  - Beispiel: User sagt "SB 300" → Nur Selbstbeteiligung-Baustein zurückgeben, andere Bausteine NICHT überschreiben
 - TOKEN-OPTIMIERUNG: Sende NIEMALS "knotenId" oder "echteEingabe" Felder
 - 🚨 KRITISCH: Verwende die EXAKTEN "id" Werte aus den Tabellendaten! NIEMALS eigene IDs erfinden!
 

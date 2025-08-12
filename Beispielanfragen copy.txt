@@ -1,0 +1,30 @@
+Mein Versicherung soll am 1.7.2025 beginnen und am 1.12.2025 enden. Das Auto habe ich am 24.3.2024 gekauft.
+
+Ich benötige meine Autoversicherung für mein Tesla ab 1.7., da habe ich mein 3 Jahre altes Auto gekauft.
+
+Wir haben ab nächste Jahr ein Neues Auto. Der Auto-Hersteller hat 5. Januar versprochen. 
+Ok Ablaufdatum wäre der 1.7.2027
+
+Mein Versicherung soll am 12.7.2025 beginnen und am 1.1.2026 ablaufen. Das Auto habe ich am 24.3.2024 gekauft, es ist März 2014 erstmalig zugelassen worden.
+
+Das Fahrzeug wurde am 15.6. zugelassen und hatte 2 Wochen später schon ein Totalschaden
+
+Meine erstes Fahrzeug hatte ich mit vor 10 Jahren, mein aktuelles Fahrzeug beginnt am 1.6., obwohl der Vertrag bis 1.1.2026 gelaufen wäre, musste ich es am 14.7 bereits aufgrund eines Unfalls abmelden
+
+Meine erstes Fahrzeug hatte ich mit vor 10 Jahren, mein aktuelles Fahrzeug ein BMW - Neupreis 51000 Euro - bekommem ich am 1.8. - es hat bestimmt den Kilometerstand schon bei 85.
+
+Ich bin alleiniger Fahrer und arbeite in einem Unternehmen, das Tische herstellt. Ich möchte ab dem Beginn 1.8. mein Geld überweisen wollen.
+
+Der Kilometerstand zum Beginn am 15.7. war 22000, aber schon 1 Monat später hatte 30400.
+
+Ich hätte gern ab 1.8. für mein Tesla normale Haftpflicht und eine TK 1200
+
+Mein Porsche kommt ab 1.9.2025 und ich hätte gern eine VK 5000/2500.
+
+Ich möchte ab 1.8 eine Versicherung mit Schutzbrief.
+
+Ich fahre im Jahr 12000 km und man hat mir gesagt, das meine Typklassen erstmal KH 12 und TK 8 sein.
+
+Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilometerstand zum Beginn mit 123 KM, fahre im Jahr 12000 und möchte eine VK.
+Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilometerstand zum Beginn mit 123 KM, fahre im Jahr 9000 und möchte eine VK mit SB 300/150.
+Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilometerstand zum Beginn mit 433 KM, fahre im Jahr 12002 und möchte eine VK

@@ -42,6 +42,111 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
     return currentValues;
   };
 
+  // Intelligente Merge-Funktion für Tabellen-Updates
+  const mergeTableData = (currentValue: any, aiValue: any[], fieldKey: string): any[] => {
+    // Normalisiere die Eingabewerte zu Arrays
+    let currentArray: any[] = [];
+    let aiArray: any[] = [];
+    
+    // currentValue kann sowohl Array als auch {value: Array} sein
+    if (Array.isArray(currentValue)) {
+      currentArray = currentValue;
+    } else if (currentValue && Array.isArray(currentValue.value)) {
+      currentArray = currentValue.value;
+      console.log(`🔧 currentValue hat .value Property für ${fieldKey}:`, currentArray.length);
+    }
+    
+    // aiValue ist normalerweise ein Array
+    if (Array.isArray(aiValue)) {
+      aiArray = aiValue;
+    } else {
+      console.log(`⚠️ aiValue ist kein Array für ${fieldKey}:`, aiValue);
+      aiArray = [];
+    }
+    
+    console.log(`🔧 Normalisierte Werte für ${fieldKey}:`, {
+      currentArray: currentArray.length,
+      aiArray: aiArray.length
+    });
+
+    console.log(`🔄 Merge Table Data für ${fieldKey}:`, { 
+      currentCount: currentArray.length, 
+      aiCount: aiArray.length 
+    });
+
+    // Für Sparten- und Baustein-Tabellen: Intelligente Merge-Logik
+    if (fieldKey === 'produktSparten' || fieldKey.startsWith('produktBausteine_')) {
+      console.log(`🔧 PRODUKTSPARTEN/BAUSTEIN MERGE - START`);
+      console.log(`🔧 Current ${fieldKey}:`, currentArray.map(row => ({ id: row.id, beschreibung: row.beschreibung, check: row.check })));
+      console.log(`🔧 AI ${fieldKey}:`, aiArray.map(row => ({ id: row.id, beschreibung: row.beschreibung, check: row.check })));
+      
+      // Merge-Strategie: AI-Updates überschreiben nur die spezifischen Einträge
+      const mergedTable = [...currentArray]; // Start mit bestehenden Werten (normalisiert)
+      
+      aiArray.forEach((aiRow: any) => {
+        // Mehrere Matching-Strategien für robustes Matching
+        let existingIndex = mergedTable.findIndex(row => row.id === aiRow.id);
+        
+        // Fallback 1: Suche nach beschreibung falls id nicht matched
+        if (existingIndex < 0 && aiRow.beschreibung) {
+          existingIndex = mergedTable.findIndex(row => 
+            row.beschreibung?.toLowerCase().includes(aiRow.beschreibung?.toLowerCase()) ||
+            aiRow.beschreibung?.toLowerCase().includes(row.beschreibung?.toLowerCase())
+          );
+          console.log(`🔧 Fallback Match by beschreibung: ${aiRow.beschreibung} → Index ${existingIndex}`);
+        }
+        
+        // Fallback 2: Spezielle Behandlung für Vollkasko/VK
+        if (existingIndex < 0 && fieldKey === 'produktSparten') {
+          if (aiRow.beschreibung?.toLowerCase().includes('vollkasko') || 
+              aiRow.beschreibung?.toLowerCase().includes('vk') ||
+              aiRow.id === 'KK') {
+            existingIndex = mergedTable.findIndex(row => 
+              row.id === 'KK' || 
+              row.beschreibung?.toLowerCase().includes('vollkasko')
+            );
+            console.log(`🔧 VK/Vollkasko Match → Index ${existingIndex} (${mergedTable[existingIndex]?.id})`);
+          }
+        }
+        
+        if (existingIndex >= 0) {
+          const beforeUpdate = { ...mergedTable[existingIndex] };
+          // Update bestehende Zeile - NUR check und echteEingabe, behalte ALLE anderen Felder
+          mergedTable[existingIndex] = {
+            ...mergedTable[existingIndex], // Bestehende Felder behalten (KRITISCH!)
+            check: aiRow.check !== undefined ? aiRow.check : mergedTable[existingIndex].check,
+            echteEingabe: true // Markiere als User-Eingabe
+          };
+          console.log(`🔄 Merged existing row in ${fieldKey}:`, {
+            beforeUpdate: { id: beforeUpdate.id, check: beforeUpdate.check },
+            afterUpdate: { id: mergedTable[existingIndex].id, check: mergedTable[existingIndex].check }
+          });
+        } else {
+          // Neue Zeile hinzufügen (sollte bei Standard-Sparten normalerweise nicht passieren)
+          console.log(`⚠️ Neue Zeile hinzufügen (ungewöhnlich) in ${fieldKey}:`, aiRow);
+          mergedTable.push({
+            ...aiRow,
+            echteEingabe: true // Markiere als User-Eingabe
+          });
+        }
+      });
+      
+      console.log(`✅ MERGE ERGEBNIS ${fieldKey}:`, mergedTable.map(row => ({ 
+        id: row.id, 
+        beschreibung: row.beschreibung?.substring(0, 20),
+        check: row.check, 
+        echteEingabe: row.echteEingabe 
+      })));
+      return mergedTable;
+    }
+    
+    // Für andere Tabellen: Standard-Merge (AI überschreibt komplett)
+    return aiArray.map((row: any) => ({
+      ...row,
+      echteEingabe: row.echteEingabe !== undefined ? row.echteEingabe : true
+    }));
+  };
+
   // Sichere Extraktion der Daten mit Null-Checks
   const processExtractedData = (aiData: ClaudeResponse): Array<{label: string, value: string, formattedValue: string}> => {
     const updatedFieldsWithValues: Array<{label: string, value: string, formattedValue: string}> = [];
@@ -104,38 +209,34 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         try {
           const convertedValue = convertValueToFieldType(typedExtractedValue.value, fieldConfig.type);
           
-          // Bei Tabellen-Feldern den Wert direkt übernehmen (Array)
+          // Bei Tabellen-Feldern mit intelligenter Merge-Logik
           if (fieldConfig.type === 'table' || fieldConfig.type === 'single-line-table') {
-            newValue = convertedValue;
+            // Verwende Merge-Logik für Tabellen
+            const currentTableValue = fieldConfig.currentValue || [];
+            const aiTableValue = Array.isArray(convertedValue) ? convertedValue : [];
             
-            // Spezielle Behandlung für einzeilige Tabellen
-            if (fieldConfig.type === 'single-line-table' && Array.isArray(newValue) && newValue.length > 0) {
-              // Für einzeilige Tabellen: Aktualisiere die bestehende Zeile statt neue hinzuzufügen
-              const currentValue = fieldConfig.currentValue;
-              if (Array.isArray(currentValue) && currentValue.length > 0) {
-                // Merge AI data with existing row, preserve the existing ID
-                const existingRow = currentValue[0];
-                const aiRow = newValue[0];
+            if (fieldConfig.type === 'single-line-table' && aiTableValue.length > 0) {
+              // Spezielle Behandlung für einzeilige Tabellen (existing logic)
+              if (Array.isArray(currentTableValue) && currentTableValue.length > 0) {
+                const existingRow = currentTableValue[0];
+                const aiRow = aiTableValue[0];
                 
-                // Create stable merged object
-                const mergedRow = {
+                newValue = [{
                   ...existingRow, // Preserve existing ID and other properties
                   ...aiRow,       // Override with AI extracted values
                   id: existingRow.id || '1' // Ensure ID is preserved
-                };
-                
-                newValue = [mergedRow];
-                
+                }];
                 console.log(`Single-line table update for ${fieldKey}:`, newValue);
               } else {
-                // If no existing row, ensure the new row has proper ID
-                newValue = newValue.map((row: any, index: number) => ({
+                newValue = aiTableValue.map((row: any, index: number) => ({
                   ...row,
                   id: row.id || (index + 1).toString()
                 }));
               }
             } else {
-              console.log(`Regular table data for ${fieldKey}:`, convertedValue);
+              // Verwende intelligente Merge-Funktion für normale Tabellen
+              newValue = mergeTableData(currentTableValue, aiTableValue, fieldKey);
+              console.log(`Merged table data for ${fieldKey}:`, newValue.length, 'rows');
             }
           } else {
             newValue = String(convertedValue);
