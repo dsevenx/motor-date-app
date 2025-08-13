@@ -78,6 +78,33 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
   // AI-Updates kommen jetzt direkt über die normale Tabellen-Synchronisation
   // Spezielle spartenActions/bausteinActions-Verarbeitung nicht mehr nötig
 
+  // Robuste Sparten-Extraktion aus FIELD_DEFINITIONS (wie in fieldDefinitionsHelper)
+  const getSparteFromFieldDefinitions = (sparteCode: string) => {
+    // Robuste Extraktion der Sparten-Daten - kann Array oder {value: Array} sein
+    let spartenData: any[] = [];
+    
+    if (Array.isArray(fieldDefinitions.produktSparten)) {
+      spartenData = fieldDefinitions.produktSparten;
+    } else if (fieldDefinitions.produktSparten?.value && Array.isArray(fieldDefinitions.produktSparten.value)) {
+      spartenData = fieldDefinitions.produktSparten.value;
+    } else {
+      spartenData = [];
+    }
+    
+    const sparteEntry = spartenData.find((s: any) => s.id === sparteCode);
+    
+    // Debug für wichtige Sparten
+    if ((sparteCode === 'KH' || sparteCode === 'KK') && sparteEntry) {
+      console.log(`🔍 getSparteFromFieldDefinitions [${sparteCode}]:`, {
+        zustand: sparteEntry.zustand,
+        stornogrund: sparteEntry.stornogrund,
+        check: sparteEntry.check
+      });
+    }
+    
+    return sparteEntry;
+  };
+
   // Sparten-Checkbox ändern (NUR FIELD_DEFINITIONS - kein lokaler State!)
   const handleSparteCheckChange = (sparteIndex: number, value: 'J' | 'N') => {
     const checked = value === 'J';
@@ -111,10 +138,7 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     };
 
   // Helper-Funktionen für FIELD_DEFINITIONS Lookups
-  const getSparteFromFieldDefinitions = (sparteCode: string) => {
-    const spartenData = fieldDefinitions.produktSparten?.value || [];
-    return spartenData.find((s: any) => s.id === sparteCode);
-  };
+  // (Die robuste Version ist bereits oben definiert - diese doppelte Version entfernt)
 
   // Sparten-Zustand Dropdown ändern (FIELD_DEFINITIONS Update)
   const handleSparteZustandChange = (sparteIndex: number, value: string) => {
