@@ -8,7 +8,7 @@ import { MotorDropDown } from './MotorDropDown';
 import { MotorEditNumber } from './MotorEditNumber';
 import { MotorEditText } from './MotorEditText';
 import { MotorCheckBox } from './MotorCheckBox';
-import { isChecked } from '@/utils/fieldDefinitionsHelper';
+import { isChecked, updateCheckStatus } from '@/utils/fieldDefinitionsHelper';
 import { useGlobalProductData } from '@/hooks/useGlobalProductData';
 
 export interface MotorProduktSpartenTreeProps {
@@ -86,23 +86,16 @@ export const MotorProduktSpartenTree: React.FC<MotorProduktSpartenTreeProps> = (
     console.log(`🔍 Sparten-Checkbox geändert: ${sparteCode} = ${checked}`);
     console.log(`🎯 UPDATE NUR FIELD_DEFINITIONS - kein lokaler State!`);
     
-    // Update FIELD_DEFINITIONS (Single Point of Truth) - Check UND Zustand in einem Aufruf
-    const spartenData = [...(fieldDefinitions.produktSparten?.value || [])];
-    const sparteFieldIndex = spartenData.findIndex((s: any) => s.id === sparteCode);
-    
-    if (sparteFieldIndex >= 0) {
-      spartenData[sparteFieldIndex] = { 
-        ...spartenData[sparteFieldIndex], 
-        check: checked,
-        echteEingabe: true, // Markiere als echte Eingabe
-        zustand: checked ? 'A' : ' ', // Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leerzeichen)
-        stornogrund: ' ' // Zustandsdetail immer leer, da weder "A" noch " " = "S" (Storniert)
-      };
-      
-      onFieldDefinitionsChange({
-        produktSparten: { value: spartenData }
-      });
-    }
+    // Update FIELD_DEFINITIONS (Single Point of Truth) über zentrale Funktion
+    // Die Zustand-Logik (zustand: 'A'/'', stornogrund: ' ') ist jetzt in updateCheckStatus integriert
+    updateCheckStatus(
+      sparteCode, // knotenId
+      sparteCode, // sparte (bei Sparten-Updates sind beide gleich)
+      checked,    // neuer Check-Status
+      fieldDefinitions,
+      onFieldDefinitionsChange,
+      true        // isUserInput = true (echte User-Interaktion)
+    );
     
     
     // Update NUR UI-State für Expand-Verhalten (nicht check!)

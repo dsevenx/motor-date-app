@@ -112,21 +112,29 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         if (existingIndex >= 0) {
           const beforeUpdate = { ...mergedTable[existingIndex] };
           // Update bestehende Zeile - NUR check und echteEingabe, behalte ALLE anderen Felder
+          const newCheckValue = aiRow.check !== undefined ? aiRow.check : mergedTable[existingIndex].check;
           mergedTable[existingIndex] = {
             ...mergedTable[existingIndex], // Bestehende Felder behalten (KRITISCH!)
-            check: aiRow.check !== undefined ? aiRow.check : mergedTable[existingIndex].check,
-            echteEingabe: true // Markiere als User-Eingabe
+            check: newCheckValue,
+            echteEingabe: true, // Markiere als User-Eingabe
+            // Zustand-Logik: Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leer) - wie in updateCheckStatus
+            zustand: newCheckValue ? 'A' : ' ',
+            // Stornogrund (zustandsdetail) immer leer
+            stornogrund: ' '
           };
           console.log(`🔄 Merged existing row in ${fieldKey}:`, {
-            beforeUpdate: { id: beforeUpdate.id, check: beforeUpdate.check },
-            afterUpdate: { id: mergedTable[existingIndex].id, check: mergedTable[existingIndex].check }
+            beforeUpdate: { id: beforeUpdate.id, check: beforeUpdate.check, zustand: beforeUpdate.zustand },
+            afterUpdate: { id: mergedTable[existingIndex].id, check: mergedTable[existingIndex].check, zustand: mergedTable[existingIndex].zustand }
           });
         } else {
           // Neue Zeile hinzufügen (sollte bei Standard-Sparten normalerweise nicht passieren)
           console.log(`⚠️ Neue Zeile hinzufügen (ungewöhnlich) in ${fieldKey}:`, aiRow);
           mergedTable.push({
             ...aiRow,
-            echteEingabe: true // Markiere als User-Eingabe
+            echteEingabe: true, // Markiere als User-Eingabe
+            // Zustand-Logik auch für neue Zeilen
+            zustand: aiRow.check ? 'A' : ' ',
+            stornogrund: ' '
           });
         }
       });
@@ -135,6 +143,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         id: row.id, 
         beschreibung: row.beschreibung?.substring(0, 20),
         check: row.check, 
+        zustand: row.zustand,
+        stornogrund: row.stornogrund,
         echteEingabe: row.echteEingabe 
       })));
       return mergedTable;

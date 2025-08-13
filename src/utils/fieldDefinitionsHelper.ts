@@ -152,7 +152,11 @@ export const updateCheckStatus = (
         spartenData[sparteIndex] = { 
           ...spartenData[sparteIndex], 
           check: checked,
-          echteEingabe: isUserInput // Markiere als echte Eingabe
+          echteEingabe: isUserInput, // Markiere als echte Eingabe
+          // Zustand-Logik: Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leer)
+          zustand: checked ? 'A' : ' ',
+          // Stornogrund (zustandsdetail) immer leer, da weder "A" noch " " = "S" (Storniert)
+          stornogrund: ' '
         };
         const afterUpdate = { ...spartenData[sparteIndex] };
         
