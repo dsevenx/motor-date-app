@@ -25,6 +25,17 @@ npm run start  # Starts production server
 npm run lint  # Runs ESLint for code quality checks
 ```
 
+### MCP (Model Context Protocol) Integration
+```bash
+npm run mcp  # Starts MCP server for Claude Desktop integration on port 3001
+```
+
+The application includes MCP server integration for Claude Desktop:
+- **mcp-robust.mjs**: Production MCP server with native HTTP (no dependencies)
+- **mcp-working.mjs**: Alternative MCP implementation  
+- **mcp-simple.mjs**: Simplified version for testing
+- MCP servers provide the same AI functionality as the web chat interface
+
 ## Project Architecture
 
 This is a **Next.js 15** vehicle data management application with AI-powered chat functionality. The project structure follows the Next.js App Router pattern.
@@ -40,6 +51,7 @@ This is a **Next.js 15** vehicle data management application with AI-powered cha
 2. **AI Chat Integration** (`src/components/ChatComponent.tsx`)
    - Uses Anthropic Claude API for natural language processing
    - Extracts vehicle data from user messages and updates form fields
+   - **INTELLIGENT MERGE**: Preserves existing data while applying AI updates with betrag (amount) support
    - Implements confidence scoring and validation feedback
    - Supports real-time field updates based on conversation context
 
@@ -48,6 +60,7 @@ This is a **Next.js 15** vehicle data management application with AI-powered cha
    - Processes user text and current field values
    - Returns structured data extraction with confidence scores
    - **TOKEN OPTIMIZATION**: Intelligent table data reduction to prevent token limit issues
+   - **MCP COMPATIBLE**: Same API endpoint serves both web chat and MCP clients
 
 4. **Component System**
    - Reusable Motor components for different field types (MotorDate, MotorEditText, etc.)
@@ -107,13 +120,14 @@ The application requires `ANTHROPIC_API_KEY` for Claude AI functionality.
    - Better error messages when token limits are hit
    - Debug logging for prompt size analysis
 
-4. **System Prompt Management**
-   - Single optimized system prompt with full Sparten/Baustein rules including Baustein-Referenz-Tabelle
-   - Comprehensive domain knowledge and mapping rules
-   - Artifact-based domain data integration
+4. **System Prompt Management** (`src/constants/systempromts.tsx`)
+   - **SINGLE VERSION**: Uses only `SYSTEM_PROMPT_FAHRZEUGDATEN` (ASYNC version)
+   - **BAUSTEIN-REFERENZ-TABELLE**: Includes complete table with correct IDs (KBV00002, KBM00002, etc.)
+   - Comprehensive domain knowledge and mapping rules for German insurance
+   - Artifact-based domain data integration for dropdown mappings
 
 **Best Practices:**
-- Use `SYSTEM_PROMPT_FAHRZEUGDATEN` for all requests
+- Use `SYSTEM_PROMPT_FAHRZEUGDATEN` for all requests (SYNC version removed)
 - Monitor token usage in console for optimization opportunities  
 - Test with realistic data sizes during development
 - Consider table data optimization for production deployments
@@ -136,12 +150,14 @@ The application includes a sophisticated insurance product management system:
    - Claude AI recognizes insurance product mentions in natural language
    - Automatically activates relevant Sparten based on user input
    - Supports complex scenarios like "Vollkasko 300/150" (comprehensive coverage)
+   - **BAUSTEIN DETECTION**: Uses Baustein-Referenz-Tabelle for accurate ID mapping
    - Handles exclusions and "not explicitly mentioned" cases appropriately
 
 4. **Product State Management**
    - Each Sparte has states: Active ('A'), Inactive (' '), Cancelled ('S')
    - Building blocks (Bausteine) can be individually configured
-   - Amounts (Betrag) are editable when products are selected
+   - **AMOUNT SUPPORT**: Amounts (Betrag) are preserved and updated from AI responses
+   - **ZUSTAND LOGIC**: Centralized state management via `updateCheckStatus` function
 
 ### System Prompts and AI Integration
 
@@ -157,10 +173,11 @@ The application uses sophisticated system prompts (`src/constants/systempromts.t
 
 - **Avoid direct table data manipulation** for produktSparten and produktBausteine
 - **Use onFieldDefinitionsChange** for Sparten-related updates instead of direct field updates
-- **Leverage fieldDefinitionsHelper functions** for consistent state management
+- **Leverage fieldDefinitionsHelper functions** for consistent state management (especially `isChecked` and `updateCheckStatus`)
 - **Test AI responses** with various German insurance terminology
 - **Maintain synchronization** between UI state and FIELD_DEFINITIONS data
 - **Monitor token usage** to prevent incomplete AI responses
+- **MCP COMPATIBILITY**: Ensure all changes work in both web chat and Claude Desktop MCP integration
 
 ## Advanced Architecture Patterns
 
@@ -271,6 +288,20 @@ Strong typing across all architectural layers:
 - **API Types**: Request/response type definitions for all endpoints
 - **Field Configuration**: Typed field definitions with validation rules
 
+## Recent Critical Fixes (Important)
+
+### AI Chat Betrag (Amount) Support
+**Problem**: AI responses included `betrag` values but they weren't transferred to the form fields.
+**Solution**: Enhanced `mergeTableData` function in `ChatComponent.tsx` to extract and preserve `betrag` values from AI responses (lines 116, 120).
+
+### System Prompt Simplification
+**Problem**: Dual SYNC/ASYNC system prompt versions caused complexity and missing Baustein-Referenz-Tabelle.
+**Solution**: Removed SYNC version completely, use only `SYSTEM_PROMPT_FAHRZEUGDATEN` which includes complete Baustein-Referenz-Tabelle.
+
+### MCP Integration Stability
+**Problem**: MCP server had node-fetch dependency issues and port conflicts.
+**Solution**: Implemented native Node.js HTTP in `mcp-robust.mjs`, fixed port configuration (3000 vs 3001).
+
 ## Token Limit Troubleshooting
 
 ### Symptoms
@@ -294,3 +325,21 @@ Strong typing across all architectural layers:
 - Monitor token counts during development
 - Use table optimization for large datasets
 - Consider breaking large requests into smaller chunks
+
+## MCP Integration Troubleshooting
+
+### Common Issues
+- **Port conflicts**: MCP server runs on port 3001, app on port 3000
+- **Dependency errors**: Use `mcp-robust.mjs` (native HTTP) instead of versions requiring node-fetch
+- **Data synchronization**: MCP and web chat should produce identical results
+
+### Debugging MCP
+1. Check MCP server logs for HTTP request details
+2. Verify API endpoint responses match web chat behavior
+3. Monitor console for MCP-specific request identifiers
+4. Test with same inputs in both web chat and Claude Desktop
+
+### MCP Server Selection
+- **Production**: Use `mcp-robust.mjs` (most stable)
+- **Development**: Any version works, but robust has better error handling
+- **Testing**: `mcp-simple.mjs` for minimal setup
