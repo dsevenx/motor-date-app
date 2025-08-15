@@ -412,6 +412,100 @@ Dies müsste helfen oder hast Du eine andere Idee ?
 
 ------------------------------------------------------------------------------------------------------------
 
+Ich habe jetzt im KI-Chat mit diesem Satz getestet:
+"Ich habe ein Kilometerstand zum Beginn mit 433 KM, fahre im Jahr 12003 und möchte eine VK 300/150 mit Rabattschutz."
+
+Die Produktbausteintabellen sind leider nicht korrekt erzeugt worden - entstanden ist :
+"produktBausteine_KH": {
+      "value": [],
+      "confidence": 0,
+      "source": "",
+      "corrected": false,
+      "originalValue": null
+    },
+    "produktBausteine_KK": {
+      "value": [
+        {
+          "id": "VK_SB300150",
+          "beschreibung": "Selbstbeteiligung VK 500/300",
+          "check": true,
+          "betrag": 500
+        },
+        {
+          "id": "RS",
+          "beschreibung": "Rabattschutz",
+          "check": true,
+          "betrag": 0
+        }
+      ],
+      "confidence": 0.9,
+      "source": "VK 300/150 mit Rabattschutz",
+      "corrected": false,
+      "originalValue": null
+    },
+Claude hat sich die IDs selbst ausgedacht. Erwartet wäre :
+"produktBausteine_KH": {
+      "value": [{
+          "id": "KBM00001",
+          "beschreibung": "Rabattschutz",
+          "check": true,
+          "betrag": 0
+        }],
+      "confidence": 0,
+      "source": "",
+      "corrected": false,
+      "originalValue": null
+    },
+    "produktBausteine_KK": {
+      "value": [
+        {
+          "id": "KBV00002",
+          "beschreibung": "Selbstbeteiligung Vollkasko",
+          "check": true,
+          "betrag": 300
+        },
+        {
+          "id": "KBM00002",
+          "beschreibung": "Selbstbeteiligung Teilkasko",
+          "check": true,
+          "betrag": 150
+        },
+        {
+          "id": "KBM00001",
+          "beschreibung": "Rabattschutz",
+          "check": true,
+          "betrag": 0
+        }
+      ],
+      "confidence": 0.9,
+      "source": "VK 300/150 mit Rabattschutz",
+      "corrected": false,
+      "originalValue": null
+    },
+ Da wir ja schon öfters das Problem hatten, das das KI-Modell nicht mit den richtigen IDs antwortet hätte ich folgende Idee - wir schicken im 
+ Systemprompt (später als Artefakt) folgende Tabelle mit :
+
+BausteinID;Beschreibung;Sparten;Mit Betrag;Erkennbar;
+KBV00002;Selbstbeteiligung Vollkasko;KK;Ja;SB 500/150 immer der erste Betrag oder VK SB 300;
+KBM00002;"Selbstbeteiligung Teilkasko""";KK,EK;Ja;SB 500/150 immer der zweite Betrag oder TK SB 300;
+KBM00001;Rabattschutz;KH,KK;Nein;Rabattschutz, SFR-Retter,Rabattretter;
+KBH00119;Schutzbrief;KH;Nein;Schutzbrief, PremiumSchutzbrief ,KHPlus;
+
+Antworten soll Claude immer so :
+
+"produktBausteine_XX": {
+      "value": [
+        {
+          "id": "KBV00002",  <-- ID aus BausteinTabelle
+          "beschreibung": "Selbstbeteiligung Vollkasko",<-- Beschreibung aus BausteinTabelle
+          "check": true,  <-- Baustein ist vom Kunden gewünscht oder false, wenn nicht gewünscht
+          "betrag": 300   <-- Kunde wünscht ein Betrag sonst 0
+        },
+
+ Kannst Du bitte das Systemprompt so anpassen, das die BasteinTabelleCSV dabei ist und wir nochmal den JSON Antwort-Wunsch erklären.       
+
+------------------------------------------------------------------------------------------------------------
+
 Anfrage 16
 
 Wir möchten jetzt das Start- und Edit-Handling ausbauen:

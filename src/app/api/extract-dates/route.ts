@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { ClaudeResponse,FIELD_DEFINITIONS } from '@/constants/fieldConfig';
 import { 
-  SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC,
   SYSTEM_PROMPT_FAHRZEUGDATEN, 
   validateExtractedData 
 } from '@/constants/systempromts';
@@ -71,8 +70,8 @@ export async function POST(request: NextRequest) {
     console.log(`📥 CurrentValues Sample:`, JSON.stringify(Object.fromEntries(Object.entries(currentValues || {}).slice(0, 5)), null, 2));
     console.log(`📥 ===== ENDE REQUEST =====`);
 
-    // WICHTIG: System Prompt asynchron laden!
-    const SYSTEM_PROMPT = SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC;
+    // WICHTIG: System Prompt mit Baustein-Referenz-Tabelle verwenden!
+    const SYSTEM_PROMPT = await SYSTEM_PROMPT_FAHRZEUGDATEN();
 
     // Dynamisches User-Prompt basierend auf konfigurierten Feldern
     const fieldList = FIELD_DEFINITIONS.map(field => 
@@ -594,13 +593,11 @@ export async function GET() {
   console.log('GET Request an extract-dates API');
   
   try {
-    // Teste BEIDE System Prompts für Vergleich
-    const syncSystemPrompt = SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC;
+    // Teste den System Prompt
     const asyncSystemPrompt = await SYSTEM_PROMPT_FAHRZEUGDATEN();
     
-    const syncPromptLength = syncSystemPrompt.length;
     const asyncPromptLength = asyncSystemPrompt.length;
-    const hasDropdownMappings = syncSystemPrompt.includes('DROPDOWN-FELD WERTE');
+    const hasDropdownMappings = asyncSystemPrompt.includes('DROPDOWN-DOMAIN-REFERENZ');
     
     // Simuliere einen realistischen User Prompt mit VOLLSTÄNDIGEN Tabellen-Daten
     const testText = "VK mit SB 300/150";
@@ -715,33 +712,24 @@ Aktuelle produktBausteine_KU-Tabelle:
 ${mockCurrentValues['produktBausteine_KU']}
 `;
 
-    const syncTotalChars = syncPromptLength + testUserPrompt.length;
     const asyncTotalChars = asyncPromptLength + testUserPrompt.length;
-    const syncEstimatedTokens = Math.ceil(syncTotalChars / 4);
     const asyncEstimatedTokens = Math.ceil(asyncTotalChars / 4);
     
     return NextResponse.json({
       message: "Extract-data API ist aktiv!",
       timestamp: new Date().toISOString(),
       tokenAnalysis: {
-        syncSystemPromptChars: syncPromptLength,
-        asyncSystemPromptChars: asyncPromptLength,
-        promptSizeDifference: asyncPromptLength - syncPromptLength,
+        systemPromptChars: asyncPromptLength,
         testUserPromptChars: testUserPrompt.length,
-        syncTotalChars: syncTotalChars,
-        asyncTotalChars: asyncTotalChars,
-        syncEstimatedTokens: syncEstimatedTokens,
-        asyncEstimatedTokens: asyncEstimatedTokens,
-        tokenIncrease: asyncEstimatedTokens - syncEstimatedTokens,
-        syncWarningLevel: syncEstimatedTokens > 10000 ? 'HIGH' : syncEstimatedTokens > 5000 ? 'MEDIUM' : 'LOW',
-        asyncWarningLevel: asyncEstimatedTokens > 10000 ? 'HIGH' : asyncEstimatedTokens > 5000 ? 'MEDIUM' : 'LOW'
+        totalChars: asyncTotalChars,
+        estimatedTokens: asyncEstimatedTokens,
+        warningLevel: asyncEstimatedTokens > 10000 ? 'HIGH' : asyncEstimatedTokens > 5000 ? 'MEDIUM' : 'LOW'
       },
       systemPromptInfo: {
-        syncLength: syncPromptLength,
-        asyncLength: asyncPromptLength,
+        length: asyncPromptLength,
         hasDropdownMappings,
-        syncPreview: syncSystemPrompt.substring(0, 200) + '...',
-        asyncPreview: asyncSystemPrompt.substring(0, 200) + '...'
+        hasBausteinReferenzTabelle: asyncSystemPrompt.includes('BAUSTEIN-REFERENZ-TABELLE'),
+        preview: asyncSystemPrompt.substring(0, 200) + '...'
       },
       configuredFields: FIELD_DEFINITIONS.map(field => ({
         key: field.key,
@@ -751,9 +739,9 @@ ${mockCurrentValues['produktBausteine_KU']}
         domainId: field.dropdown?.domainId
       })),
       testUserPromptSample: testUserPrompt.substring(0, 500) + '...',
-      recommendation: asyncEstimatedTokens > 10000 ? 'CRITICAL: Use SYNC prompt or optimize tables' : 
-                     asyncEstimatedTokens > 5000 ? 'WARNING: Consider SYNC prompt for smaller requests' : 
-                     'OK: Safe to use either prompt'
+      recommendation: asyncEstimatedTokens > 10000 ? 'CRITICAL: Optimize tables or reduce prompt size' : 
+                     asyncEstimatedTokens > 5000 ? 'WARNING: Consider table optimization for better performance' : 
+                     'OK: Safe to use current prompt configuration'
     });
   } catch (error) {
     console.error('Error in GET handler:', error);

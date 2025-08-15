@@ -84,8 +84,7 @@ The application requires `ANTHROPIC_API_KEY` for Claude AI functionality.
 ### Token Optimization System
 
 **Problem Analysis:**
-- System Prompt (Async): 16,074 characters (~4,000 tokens)
-- System Prompt (Sync): 7,736 characters (~2,000 tokens)
+- System Prompt: 16,074+ characters (~4,000+ tokens)
 - User Prompt with full tables: 26,372+ characters (~6,600+ tokens)
 - **Total with full data: 42,446+ characters (~10,600+ tokens)**
 
@@ -101,7 +100,7 @@ The application requires `ANTHROPIC_API_KEY` for Claude AI functionality.
    - Real-time token counting and breakdown analysis
    - Warnings when approaching limits (8k/10k tokens)
    - Error handling for incomplete responses due to token limits
-   - Automatic fallback recommendations (SYNC vs ASYNC prompts)
+   - Automatic optimization recommendations
 
 3. **Increased Response Capacity**
    - `max_tokens` increased from 1,500 to 2,500 for full table responses
@@ -109,12 +108,12 @@ The application requires `ANTHROPIC_API_KEY` for Claude AI functionality.
    - Debug logging for prompt size analysis
 
 4. **System Prompt Management**
-   - SYNC version: 7,736 chars for simple requests
-   - ASYNC version: 16,074 chars with full Sparten/Baustein rules
-   - Automatic selection based on request complexity
+   - Single optimized system prompt with full Sparten/Baustein rules including Baustein-Referenz-Tabelle
+   - Comprehensive domain knowledge and mapping rules
+   - Artifact-based domain data integration
 
 **Best Practices:**
-- Use `SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC` for standard requests
+- Use `SYSTEM_PROMPT_FAHRZEUGDATEN` for all requests
 - Monitor token usage in console for optimization opportunities  
 - Test with realistic data sizes during development
 - Consider table data optimization for production deployments
@@ -285,10 +284,10 @@ Strong typing across all architectural layers:
 3. Monitor total prompt size vs. limits (aim for <8k tokens)
 
 ### Quick Fixes
-- Use sync system prompt: `SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC` instead of async version
 - Clear excessive table data before testing
 - Increase `max_tokens` if needed (currently 2500)
-- Check optimization is working in logs
+- Check table optimization is working in logs
+- Verify Baustein-Referenz-Tabelle is being used correctly
 
 ### Prevention
 - Test with realistic production data sizes

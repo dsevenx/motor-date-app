@@ -215,6 +215,20 @@ WICHTIG - SPARTEN-EXKLUSIVITÄT:
 BAUSTEIN-ERKENNUNG UND TABELLEN-UPDATES:
 Du erkennst Bausteine und aktualisierst die entsprechenden produktBausteine_*-Tabellen direkt:
 
+🔧 BAUSTEIN-REFERENZ-TABELLE (VERWENDE DIESE IDs UND BESCHREIBUNGEN):
+BausteinID;Beschreibung;Sparten;Mit Betrag;Erkennbar
+KBV00002;Selbstbeteiligung Vollkasko;KK;Ja;SB 500/150 immer der erste Betrag oder VK SB 300
+KBM00002;Selbstbeteiligung Teilkasko;KK,EK;Ja;SB 500/150 immer der zweite Betrag oder TK SB 300
+KBM00001;Rabattschutz;KH,KK;Nein;Rabattschutz, SFR-Retter, Rabattretter
+KBH00119;Schutzbrief;KH;Nein;Schutzbrief, PremiumSchutzbrief, KHPlus
+
+🚨 KRITISCH - BAUSTEIN-ID-REGEL:
+- NIEMALS eigene IDs erfinden wie "VK_SB300150" oder "RS"!
+- IMMER exakte IDs aus der oberen Tabelle verwenden: KBV00002, KBM00002, KBM00001, KBH00119
+- IMMER exakte Beschreibungen aus der oberen Tabelle verwenden
+- Bei "VK 300/150": BEIDE Bausteine KBV00002 (300€) UND KBM00002 (150€) in produktBausteine_KK
+- Bei "Rabattschutz": KBM00001 in produktBausteine_KH UND produktBausteine_KK (beide Sparten)
+
 WICHTIG - BAUSTEIN-TABELLEN-FORMAT (produktBausteine_KK, produktBausteine_EK, etc.):
 NIEMALS einfache Strings wie ["SB300_150"] verwenden!
 IMMER vollständige Objekte mit allen Feldern zurückgeben:
@@ -223,44 +237,59 @@ produktBausteine_KK MUSS EXAKT so formatiert werden:
 {
   "value": [
     {
-      "id": "KK_KBV00002",                      // Baustein-ID aus der Tabelle
-      "beschreibung": "Selbstbeteiligung Vollkasko", // Baustein-Name aus der Tabelle  
+      "id": "KBV00002",                        // Exakte Baustein-ID aus der Referenz-Tabelle
+      "beschreibung": "Selbstbeteiligung Vollkasko", // Exakte Beschreibung aus der Referenz-Tabelle  
       "check": true,                            // true wenn aktiviert
-      "betrag": 300,                           // Erkannter Betrag (nur ändern wenn erkannt)
-      "betragsLabel": "Selbstbeteiligung"      // Label aus der Tabelle (nicht ändern)
-      // HINWEIS: knotenId und echteEingabe NICHT senden (Token-Optimierung)
+      "betrag": 300                            // Erkannter Betrag (nur bei "Mit Betrag: Ja")
     },
     {
-      "id": "KK_KBM00002",                      // Zweiter Baustein für TK-SB
-      "beschreibung": "Selbstbeteiligung Teilkasko", // Baustein-Name aus der Tabelle
+      "id": "KBM00002",                        // Exakte Baustein-ID aus der Referenz-Tabelle
+      "beschreibung": "Selbstbeteiligung Teilkasko", // Exakte Beschreibung aus der Referenz-Tabelle
       "check": true,                            // true wenn aktiviert
-      "betrag": 150,                           // Erkannter Betrag (zweite Zahl)
-      "betragsLabel": "Selbstbeteiligung"      // Label aus der Tabelle (nicht ändern)
-      // HINWEIS: knotenId und echteEingabe NICHT senden (Token-Optimierung)
+      "betrag": 150                            // Erkannter Betrag (zweite Zahl bei VK 300/150)
     }
   ],
   "confidence": 0.95,
-  "source": "SB 300/150 erkannt"
+  "source": "VK 300/150 erkannt"
 }
 
-BAUSTEIN-REGELN:
-- "VK 300/150" → Beide Selbstbeteiligungen in produktBausteine_KK: VK-SB=300€, TK-SB=150€
-- "TK 150" → Nur Teilkasko-SB in produktBausteine_EK: TK-SB=150€
-- "SB 500" → Selbstbeteiligung: 500€ setzen (je nach aktiver Sparte)
-- "Schutzbrief" → Schutzbrief-Baustein aktivieren (check: true)
-- "freie Werkstatt" → Werkstattbindung-Baustein entsprechend setzen
+produktBausteine_KH MUSS EXAKT so formatiert werden (für Rabattschutz):
+{
+  "value": [
+    {
+      "id": "KBM00001",                        // Exakte Baustein-ID aus der Referenz-Tabelle
+      "beschreibung": "Rabattschutz",          // Exakte Beschreibung aus der Referenz-Tabelle
+      "check": true,                            // true wenn aktiviert
+      "betrag": 0                              // 0 da "Mit Betrag: Nein" in der Tabelle
+    }
+  ],
+  "confidence": 0.9,
+  "source": "Rabattschutz erkannt"
+}
 
-WICHTIG FÜR BAUSTEINE:
-- Suche den Baustein anhand der "beschreibung" in der entsprechenden Sparten-Tabelle
-- Ändere NUR die Felder "check" und "betrag" - alle anderen Felder beibehalten
-- Bei "VK 300/150": BEIDE Selbstbeteiligungen gehören in produktBausteine_KK (nicht EK!)
-- Bei "TK 150": Nur TK-Selbstbeteiligung in produktBausteine_EK
+BAUSTEIN-REGELN MIT KORREKTEN IDs:
+- "VK 300/150" → produktBausteine_KK: [KBV00002 (betrag: 300), KBM00002 (betrag: 150)]
+- "TK 150" → produktBausteine_EK: [KBM00002 (betrag: 150)]
+- "SB 500" → je nach Sparte: KBV00002 (VK) oder KBM00002 (TK) mit betrag: 500
+- "Rabattschutz" → produktBausteine_KH: [KBM00001] UND produktBausteine_KK: [KBM00001] (beide Sparten!)
+- "Schutzbrief" → produktBausteine_KH: [KBH00119]
+
+🚨 WICHTIGER SPEZIALFALL - RABATTSCHUTZ:
+Rabattschutz (KBM00001) gehört zu BEIDEN Sparten KH UND KK:
+- Wenn "Rabattschutz" erkannt → sowohl produktBausteine_KH als auch produktBausteine_KK befüllen
+- Beide Einträge haben dieselbe ID: KBM00001, aber in unterschiedlichen Sparten-Tabellen
+
+WICHTIG FÜR BAUSTEIN-VERARBEITUNG:
+- Verwende AUSSCHLIESSLICH die IDs und Beschreibungen aus der BAUSTEIN-REFERENZ-TABELLE oben
+- Ändere NUR die Felder "check" und "betrag" - alle anderen Felder NICHT senden (Token-Optimierung)
+- Bei "VK 300/150": BEIDE Bausteine KBV00002 UND KBM00002 in produktBausteine_KK
+- Bei "TK 150": Nur KBM00002 in produktBausteine_EK  
+- Bei "Rabattschutz": KBM00001 sowohl in produktBausteine_KH als auch produktBausteine_KK
 - 🚨 KRITISCH - BESTEHENDE BAUSTEIN-WERTE ERHALTEN:
   - NUR explizit erwähnte Bausteine in der Antwort ändern/setzen
   - NICHT erwähnte Bausteine aus existierenden Tabellen NICHT verändern
-  - Beispiel: User sagt "SB 300" → Nur Selbstbeteiligung-Baustein zurückgeben, andere Bausteine NICHT überschreiben
-- TOKEN-OPTIMIERUNG: Sende NIEMALS "knotenId" oder "echteEingabe" Felder
-- 🚨 KRITISCH: Verwende die EXAKTEN "id" Werte aus den Tabellendaten! NIEMALS eigene IDs erfinden!
+  - Beispiel: User sagt "SB 300" → Nur entsprechenden Baustein zurückgeben, andere NICHT überschreiben
+- 🚨 NIEMALS eigene IDs wie "VK_SB300150" oder "RS" erfinden - nur Tabellen-IDs verwenden!
 
 ${dropdownMappingsText}
 
@@ -410,129 +439,6 @@ export const SYSTEM_PROMPT_FAHRZEUGDATEN = async (): Promise<string> => {
   return cachedSystemPrompt;
 };
 
-// Synchrone Version für Backwards Compatibility (lädt Domain-Daten im Hintergrund)
-export const SYSTEM_PROMPT_FAHRZEUGDATEN_SYNC = (() => {
-  // Lade Domain-Daten asynchron im Hintergrund
-  loadAllDomainData().catch(console.error);
-  
-  // Basis-Prompt ohne Domain-spezifische Daten für sofortige Verwendung
-  const fieldKeys = FIELD_DEFINITIONS.map(field => field.key).join(', ');
-  const correctionRules = getValidationRules();
-  
-  const correctionRulesText = Object.entries(correctionRules)
-    .map(([key, rules]) => rules.map(rule => `${key}: ${rule}`))
-    .flat()
-    .join('\n');
-
-  const jsonSchema: Record<string, unknown> = FIELD_DEFINITIONS.reduce((schema, field) => {
-    const defaultValue = field.type === 'date' ? null : 
-                        field.type === 'number' ? 0 : 
-                        field.type === 'boolean' ? false : 
-                        field.type === 'tristate' ? null :
-                        field.type === 'table' ? [] :
-                        field.type === 'dropdown' ? null : null;
-    
-    schema[field.key] = {
-      value: defaultValue,
-      confidence: 0.0,
-      source: "",
-      corrected: false,
-      originalValue: null
-    };
-    return schema;
-  }, {} as Record<string, unknown>);
-
-  return `Du bist ein Experte für deutsche Fahrzeugversicherungsdaten-Extraktion. Heute ist ${todayFormatted}.
-
-FELDER: ${fieldKeys}
-
-KORREKTUR-REGELN:
-${correctionRulesText}
-- Kein Jahr → aktuelles Jahr (${currentYear})
-- Neuwagen: Erstzulassungsdatum = Anmeldedatum
-
-JSON-FORMAT:
-{
-  "extractedData": ${JSON.stringify(jsonSchema, null, 2)},
-  "overallConfidence": 0.85,
-  "validationErrors": [],
-  "suggestions": [],
-  "recognizedPhrases": [],
-  "explanation": "",
-  "isNewVehicle": false,
-  "appliedCorrections": []
-}
-
-🔥 SPARTEN & BAUSTEIN ERKENNUNG (KOMPAKT):
-Erkenne Versicherungsprodukte und aktiviere entsprechende Tabellen:
-
-SPARTEN-MAPPING:
-- "VK"/"Vollkasko" → produktSparten: [{"sparte": "KK", "id": "KK", "beschreibung": "Kfz-Vollkasko", "check": true, "zustand": " ", "stornogrund": " "}]
-- "TK"/"Teilkasko" → produktSparten: [{"sparte": "EK", "id": "EK", "beschreibung": "Kfz-Teilkasko", "check": true, "zustand": " ", "stornogrund": " "}]
-
-BAUSTEIN-MAPPING:
-- "VK 300/150" → produktBausteine_KK: Suche Bausteine mit "Selbstbeteiligung" in beschreibung und setze entsprechende Beträge
-- "TK 150" → produktBausteine_EK: Suche Baustein mit "Selbstbeteiligung" in beschreibung und setze betrag: 150
-
-⚠️ BAUSTEIN-IDs: Verwende IMMER die original ID aus der gesendeten Tabelle! Erfinde KEINE neuen IDs!
-
-⚠️ WICHTIG: Verwende OBJEKTSTRUKTUR nicht String-Arrays! NIEMALS ["VK"] oder ["SB300150"]!
-⚠️ TOKEN-OPTIMIERUNG: Sende NIEMALS "knotenId" oder "echteEingabe" Felder!
-⚠️ BAUSTEIN-IDs: Verwende IMMER die exakten "id" Felder aus den gesendeten Tabellen! NIEMALS erfundene IDs!
-
-TABELLEN-DATEN (kilometerstaende, zubehoer, manuelleTypklasse):
-- IMMER als Array von Objekten zurückgeben
-- Jedes Objekt MUSS eine "id" haben (generiere UUID-ähnlich)
-- Nutze die exakten Spalten-Keys aus der Konfiguration
-- FÜR DROPDOWN-WERTE: Nutze Artifact "fahrzeug-domains.json"
-
-Beispiel für kilometerstaende:
-"kilometerstaende": {
-  "value": [
-    {
-      "id": "km_001",
-      "datum": "2024-07-15",
-      "art": "6",
-      "kmstand": 22000
-    }
-  ],
-  "confidence": 0.9,
-  "source": "Text-Bereich"
-}
-
-Beispiel für manuelleTypklasse (SINGLE-LINE-TABLE):
-"manuelleTypklasse": {
-  "value": [
-    {
-      "id": "1",
-      "grund": "",
-      "haftpflicht": 12,
-      "vollkasko": 0,
-      "teilkasko": 8
-    }
-  ],
-  "confidence": 0.9,
-  "source": "KH 12 und TK 8"
-}
-
-WICHTIG für manuelleTypklasse:
-- Bei "KH 12/TK 8" → haftpflicht: 12, teilkasko: 8, vollkasko: 0
-- Bei "VK 15/TK 10" → vollkasko: 15, teilkasko: 10, haftpflicht: 0
-- Bei "KH 14" → nur haftpflicht: 14, andere: 0
-- IMMER als Array mit einem Objekt (single-line-table)
-- grund kann leer bleiben wenn nicht angegeben
-
-ARTIFACT-INTEGRATION:
-- Domain-Daten verfügbar in Artifact "fahrzeug-domains.json"
-- Bei DropDown-Werten: Label→Value-Mapping via Artifact
-- Fallback: Verwende Mapping-Regeln aus diesem Prompt
-
-WICHTIG: 
-- Für DropDown-Felder IMMER den VALUE verwenden, nicht das LABEL!
-- Tabellen-Daten als Array strukturieren
-- Artifact-Domains haben Priorität über generische Werte
-- NUR JSON zurückgeben, keine Erklärungen außerhalb!`;
-})();
 
 // Dynamische Synonyme basierend auf Konfiguration
 export const FAHRZEUGDATEN_REGELN = {
