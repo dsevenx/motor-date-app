@@ -24,15 +24,21 @@ export const TreeNodeComponent: React.FC<TreeNodeComponentProps> = ({
   const isExpanded = node.expanded;
 
   // Icon basierend auf Typ
-  const getIcon = () => {
+const getIcon = () => {
     switch (node.type) {
       case 'company':
         return <Building2 size={16} className="text-blue-600" />;
       case 'group':
         return <Folder size={16} className="text-yellow-600" />;
+      case 'TM':
+        return <Folder size={16} className="text-yellow-600" />;
       case 'contract':
         return <FileText size={16} className="text-green-600" />;
+     case 'EV':
+        return <FileText size={16} className="text-green-600" />;
       case 'fuhrpark':
+        return <Truck size={16} className="text-purple-600" />;
+     case 'OK':
         return <Truck size={16} className="text-purple-600" />;
       case 'general':
       default:
