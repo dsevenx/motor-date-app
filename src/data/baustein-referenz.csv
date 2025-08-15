@@ -1,0 +1,5 @@
+BausteinID;Beschreibung;Sparten;Mit Betrag;Erkennbar
+KBV00002;Selbstbeteiligung Vollkasko;KK;Ja;SB 500/150 immer der erste Betrag oder VK SB 300
+KBM00002;Selbstbeteiligung Teilkasko;KK,EK;Ja;SB 500/150 immer der zweite Betrag oder TK SB 300
+KBM00001;Rabattschutz;KH,KK;Nein;Rabattschutz, SFR-Retter, Rabattretter
+KBH00119;Schutzbrief;KH;Nein;Schutzbrief, PremiumSchutzbrief, KHPlus

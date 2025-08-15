@@ -503,6 +503,13 @@ Antworten soll Claude immer so :
         },
 
  Kannst Du bitte das Systemprompt so anpassen, das die BasteinTabelleCSV dabei ist und wir nochmal den JSON Antwort-Wunsch erklären.       
+-----------------------------------------------------------------------------------------------------------
+
+Wir haben jetzt einen sehr guten Stand erreicht. Bitte :
+- entferne alle Log-Ausgaben
+- bitte schau nach unbenutzten Dateien
+- bitte schauen nach unbenutzten Variablen.
+Wenn Du weitere Optimierungsmöglichkeiten siehst, dann bitte gern jetzt vornehmen.
 
 ------------------------------------------------------------------------------------------------------------
 

@@ -6,6 +6,8 @@ import {
   getDropdownFields
 } from '@/constants/fieldConfig';
 import { fetchDomainData } from '@/app/api/FetchDomainData';
+import fs from 'fs';
+import path from 'path';
 
 const today = new Date();
 const todayFormatted = today.toLocaleDateString('de-DE', {
@@ -14,6 +16,18 @@ const todayFormatted = today.toLocaleDateString('de-DE', {
   year: 'numeric'
 });
 const currentYear = today.getFullYear();
+
+// Funktion zum Einlesen der Baustein-Referenz-Tabelle aus CSV
+function loadBausteinReferenzTabelle(): string {
+  try {
+    const csvPath = path.join(process.cwd(), 'src', 'data', 'baustein-referenz.csv');
+    const csvContent = fs.readFileSync(csvPath, 'utf-8');
+    return csvContent.trim();
+  } catch (error) {
+    console.error('Fehler beim Laden der Baustein-Referenz-Tabelle:', error);
+    return `Bustein-refenz-Tabelle konnte nicht geladen werden. Bitte überprüfen Sie die Datei.`;
+  }
+}
 
 // Interface für Domain-Option
 interface DomainOption {
@@ -215,12 +229,8 @@ WICHTIG - SPARTEN-EXKLUSIVITÄT:
 BAUSTEIN-ERKENNUNG UND TABELLEN-UPDATES:
 Du erkennst Bausteine und aktualisierst die entsprechenden produktBausteine_*-Tabellen direkt:
 
-🔧 BAUSTEIN-REFERENZ-TABELLE (VERWENDE DIESE IDs UND BESCHREIBUNGEN):
-BausteinID;Beschreibung;Sparten;Mit Betrag;Erkennbar
-KBV00002;Selbstbeteiligung Vollkasko;KK;Ja;SB 500/150 immer der erste Betrag oder VK SB 300
-KBM00002;Selbstbeteiligung Teilkasko;KK,EK;Ja;SB 500/150 immer der zweite Betrag oder TK SB 300
-KBM00001;Rabattschutz;KH,KK;Nein;Rabattschutz, SFR-Retter, Rabattretter
-KBH00119;Schutzbrief;KH;Nein;Schutzbrief, PremiumSchutzbrief, KHPlus
+🔧 BAUSTEIN-REFERENZ-TABELLE (aus src/data/baustein-referenz.csv):
+${loadBausteinReferenzTabelle()}
 
 🚨 KRITISCH - BAUSTEIN-ID-REGEL:
 - NIEMALS eigene IDs erfinden wie "VK_SB300150" oder "RS"!
