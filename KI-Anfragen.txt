@@ -511,6 +511,129 @@ Wir haben jetzt einen sehr guten Stand erreicht. Bitte :
 - bitte schauen nach unbenutzten Variablen.
 Wenn Du weitere Optimierungsmöglichkeiten siehst, dann bitte gern jetzt vornehmen.
 
+-----------------------------------
+
+Der Satz:
+Ich habe ein Kilometerstand zum Beginn mit 434 KM, fahre im Jahr 12002 und möchte eine VK 300/150 mit Rabattschutz und Beitragsschutz.
+wird vom KI-Chat korrekt verarbeitet:
+<ANTRAG>
+  <PERSONEN>
+  </PERSONEN>
+  <VERTRAG>
+    <KRAFTBL>
+      <kilometerstaende_e>
+        <zeile>
+          <datum>2025-08-15</datum>
+          <art>1</art>
+          <kmstand>434</kmstand>
+        </zeile>
+      </kilometerstaende_e>
+      <produktSparten_e>
+        <zeile>
+          <beschreibung>Kfz-Vollkasko</beschreibung>
+          <check>true</check>
+          <zustand>A</zustand>
+          <stornogrund>
+          </stornogrund>
+          <beitragNetto>0</beitragNetto>
+          <beitragBrutto>0</beitragBrutto>
+        </zeile>
+      </produktSparten_e>
+      <produktBausteine_KH_e>
+        <zeile>
+          <beschreibung>Rabattschutz</beschreibung>
+          <check>true</check>
+          <betrag>0</betrag>
+          <knotenId>KBM00001</knotenId>
+        </zeile>
+        <zeile>
+          <beschreibung>BeitragsSchutz</beschreibung>
+          <check>true</check>
+          <betrag>0</betrag>
+          <knotenId>KBM00089</knotenId>
+        </zeile>
+        <zeile>
+          <beschreibung>Auslandsschadenschutz</beschreibung>
+          <check>true</check>
+          <betrag>0</betrag>
+          <knotenId>KBH00006</knotenId>
+        </zeile>
+        <zeile>
+          <beschreibung>Komfort Nicht-PKW</beschreibung>
+          <check>true</check>
+          <betrag>0</betrag>
+          <knotenId>KBM00195</knotenId>
+        </zeile>
+        <zeile>
+          <beschreibung>Eigen2schadenschutz</beschreibung>
+          <check>true</check>
+          <betrag>20</betrag>
+          <betragsLabel>Summe</betragsLabel>
+          <knotenId>KBE00002</knotenId>
+        </zeile>
+      </produktBausteine_KH_e>
+      <produktBausteine_KK_e>
+        <zeile>
+          <beschreibung>Rabattschutz</beschreibung>
+          <check>true</check>
+          <betrag>0</betrag>
+          <knotenId>KBM00001</knotenId>
+        </zeile>
+        <zeile>
+          <beschreibung>BeitragsSchutz</beschreibung>
+          <check>true</check>
+          <betrag>0</betrag>
+          <knotenId>KBM00089</knotenId>
+        </zeile>
+        <zeile>
+          <beschreibung>Selbstbeteiligung Vollkasko</beschreibung>
+          <check>true</check>
+          <betrag>300</betrag>
+          <betragsLabel>Selbstbeteiligung</betragsLabel>
+          <knotenId>KBV00002</knotenId>
+        </zeile>
+        <zeile>
+          <beschreibung>Selbstbeteiligung Teilkasko</beschreibung>
+          <check>true</check>
+          <betrag>150</betrag>
+          <betragsLabel>Selbstbeteiligung</betragsLabel>
+          <knotenId>KBM00002</knotenId>
+        </zeile>
+      </produktBausteine_KK_e>
+      <KraftDmKfzVorfahrl_e>12002</KraftDmKfzVorfahrl_e>
+    </KRAFTBL>
+  </VERTRAG>
+</ANTRAG>
+Der inhaltliche gleiche Satz an ClaudeDesktop (welches unseren MCP Server benutzt):
+Erzeuge mit bitte das ServiceABS EinarbeiterXML zu : Ich habe ein Kilometerstand zum Beginn mit 434 KM, fahre im Jahr 12002 und möchte eine VK 300/150 mit Rabattschutz und Beitragsschutz.
+liefert leider keine Baustein-Gruppen:
+<ANTRAG>
+  <PERSONEN>
+  </PERSONEN>
+  <VERTRAG>
+    <KRAFTBL>
+      <kilometerstaende_e>
+        <zeile>
+          <datum>2025-08-15</datum>
+          <art>1</art>
+          <kmstand>434</kmstand>
+        </zeile>
+      </kilometerstaende_e>
+      <produktSparten_e>
+        <zeile>
+          <beschreibung>Kfz-Vollkasko</beschreibung>
+          <check>true</check>
+          <zustand> </zustand>
+          <stornogrund> </stornogrund>
+          <beitragNetto>0</beitragNetto>
+          <beitragBrutto>0</beitragBrutto>
+        </zeile>
+      </produktSparten_e>
+      <KraftDmKfzVorfahrl_e>12002</KraftDmKfzVorfahrl_e>
+    </KRAFTBL>
+  </VERTRAG>
+</ANTRAG>
+
 ------------------------------------------------------------------------------------------------------------
 
 Anfrage 16

@@ -7,7 +7,7 @@ import { MotorEditText } from './MotorEditText';
 import { MotorEditNumber } from './MotorEditNumber';
 import { MotorCheckBox } from './MotorCheckBox';
 import { MotorDropDown } from './MotorDropDown';
-import { TableRow, TableColumn, FieldType } from '@/constants/fieldConfig';
+import { TableRow, TableColumn, FieldType, setFieldValueWithEchteEingabe } from '@/constants/fieldConfig';
 import { useEditMode } from '@/contexts/EditModeContext';
 
 export interface MotorTableProps {
@@ -21,6 +21,7 @@ export interface MotorTableProps {
   maxRows?: number; // Maximale Anzahl von Zeilen
   fieldType?: FieldType; // Feldtyp zur automatischen Erkennung von single-line-table
   einzeiligeTabelle?: boolean; // DEPRECATED: Use fieldType instead
+  fieldKey?: string; // Für echteEingabe tracking
 }
 
 export const MotorTable: React.FC<MotorTableProps> = ({
@@ -33,7 +34,8 @@ export const MotorTable: React.FC<MotorTableProps> = ({
   disabled = false,
   maxRows,
   fieldType,
-  einzeiligeTabelle = false
+  einzeiligeTabelle = false,
+  fieldKey
 }) => {
   const { isEditMode } = useEditMode();
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
@@ -82,11 +84,16 @@ export const MotorTable: React.FC<MotorTableProps> = ({
     if (disabled) return;
     if (maxRows && safeValue.length >= maxRows) return; // Verhindere Hinzufügen wenn maxRows erreicht
     const newRow = createNewRow();
+    newRow.echteEingabe = true; // Mark as user input
     const newRows = [...safeValue, newRow];
     
     // Only call onChange if this is actually a new row
     if (newRows.length !== safeValue.length) {
-      onChange(newRows);
+      if (fieldKey) {
+        setFieldValueWithEchteEingabe(fieldKey, newRows, onChange);
+      } else {
+        onChange(newRows);
+      }
     }
   };
 
@@ -97,7 +104,11 @@ export const MotorTable: React.FC<MotorTableProps> = ({
     
     // Only call onChange if we actually removed a row
     if (filteredRows.length !== safeValue.length) {
-      onChange(filteredRows);
+      if (fieldKey) {
+        setFieldValueWithEchteEingabe(fieldKey, filteredRows, onChange);
+      } else {
+        onChange(filteredRows);
+      }
     }
   };
 
@@ -113,13 +124,17 @@ export const MotorTable: React.FC<MotorTableProps> = ({
     
     const updatedRows = safeValue.map(row => 
       row.id === rowId 
-        ? { ...row, [columnKey]: newValue }
+        ? { ...row, [columnKey]: newValue, echteEingabe: true }
         : row
     );
     
     // Only call onChange if the array actually changed
     if (JSON.stringify(updatedRows) !== JSON.stringify(safeValue)) {
-      onChange(updatedRows);
+      if (fieldKey) {
+        setFieldValueWithEchteEingabe(fieldKey, updatedRows, onChange);
+      } else {
+        onChange(updatedRows);
+      }
     }
   };
 

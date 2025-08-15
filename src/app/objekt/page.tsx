@@ -183,6 +183,7 @@ export default function ObjektPage() {
                   columns={kilometerstaendeField.table?.columns || []}
                   addButtonText={kilometerstaendeField.table?.addButtonText}
                   emptyText={kilometerstaendeField.table?.emptyText}
+                  fieldKey={kilometerstaendeField.key}
                 />
               )}
             </div>
@@ -200,6 +201,7 @@ export default function ObjektPage() {
                   columns={zubehoerField.table?.columns || []}
                   addButtonText={zubehoerField.table?.addButtonText}
                   emptyText={zubehoerField.table?.emptyText}
+                  fieldKey={zubehoerField.key}
                 />
               )}
             </div>
@@ -263,6 +265,7 @@ export default function ObjektPage() {
                   columns={manuelleTypklasseField.table?.columns || []}
                   emptyText={manuelleTypklasseField.table?.emptyText}
                   fieldType={manuelleTypklasseField.type}
+                  fieldKey={manuelleTypklasseField.key}
                 />
               )}
             </div>

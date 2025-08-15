@@ -257,6 +257,7 @@ const GuiTestPage: React.FC = () => {
                           addButtonText={field.table?.addButtonText}
                           emptyText={field.table?.emptyText}
                           disabled={field.ui?.disabled}
+                          fieldKey={field.key}
                         />
                       </div>
                     ))}
