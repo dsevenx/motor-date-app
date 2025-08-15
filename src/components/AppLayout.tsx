@@ -125,10 +125,32 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   // Stelle fieldValues global für andere Komponenten zur Verfügung
   useEffect(() => {
     if (!isUpdatingFromGlobal) {
-      // Propagiere IMMER zu globalFieldDefinitions (auch bei GUI-Test)
-      // Nur bei Rückwärts-Updates (isUpdatingFromGlobal) unterbrechen
-      console.log('🌍 AppLayout propagiert fieldValues zu globalFieldDefinitions');
-      setGlobalFieldDefinitions(fieldValues);
+      // CRITICAL FIX: Only propagate non-default values to prevent overwriting user input
+      // Filter out fields that are still at their default values
+      const nonDefaultUpdates: Record<string, any> = {};
+      const defaultValues = generateDefaultValues();
+      
+      Object.keys(fieldValues).forEach(key => {
+        const currentValue = fieldValues[key];
+        const defaultValue = defaultValues[key];
+        
+        // Only propagate if value differs from default
+        if (Array.isArray(currentValue) && Array.isArray(defaultValue)) {
+          if (JSON.stringify(currentValue) !== JSON.stringify(defaultValue)) {
+            nonDefaultUpdates[key] = currentValue;
+          }
+        } else if (currentValue !== defaultValue) {
+          nonDefaultUpdates[key] = currentValue;
+        }
+      });
+      
+      // Only propagate if we have non-default values
+      if (Object.keys(nonDefaultUpdates).length > 0) {
+        console.log('🌍 AppLayout propagiert NON-DEFAULT fieldValues zu globalFieldDefinitions:', Object.keys(nonDefaultUpdates));
+        setGlobalFieldDefinitions(nonDefaultUpdates);
+      } else {
+        console.log('🌍 AppLayout: Keine non-default values zu propagieren');
+      }
     } else {
       // Reset flag nach Update von Global
       setIsUpdatingFromGlobal(false);

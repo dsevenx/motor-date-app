@@ -1119,6 +1119,8 @@ export const setFieldValueWithEchteEingabe = (
   // 2. echteEingabe in FIELD_DEFINITIONS setzen
   const fieldIndex = FIELD_DEFINITIONS.findIndex(f => f.key === fieldKey);
   if (fieldIndex !== -1) {
+    // Removed debug tracking for manuelleTypklasse - issue was found in AppLayout.tsx
+    
     FIELD_DEFINITIONS[fieldIndex].echteEingabe = finalValue;
     // Invalidate cache for this field so it gets updated
     delete _echteEingabeCache[fieldKey];

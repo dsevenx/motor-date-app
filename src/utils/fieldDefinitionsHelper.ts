@@ -694,6 +694,8 @@ export function mergeProductDataWithExistingUserData(
   
   const updates: Partial<FieldDefinitions> = {};
   
+  // Removed debug tracking for manuelleTypklasse - issue was found in AppLayout.tsx
+  
   // 1. MERGE PRODUKTSPARTEN: Kombiniere neue Struktur mit bestehenden User-Eingaben
   // console.log(`🔄 Merge Produktsparten...`);
   const existingSpartenData = currentFieldDefinitions?.produktSparten?.value || [];

@@ -34,6 +34,8 @@ export default function ObjektPage() {
         const singleLineUpdates: Record<string, any> = {};
         
         Object.keys(globalFieldValues).forEach(key => {
+          // Removed debug tracking for manuelleTypklasse - issue was found in AppLayout.tsx
+          
           const field = getFieldByKey(key);
           if (field?.type === 'single-line-table') {
             singleLineUpdates[key] = globalFieldValues[key];
@@ -88,6 +90,8 @@ export default function ObjektPage() {
   }, [globalFieldValues]);
 
   const handleFieldChange = (fieldKey: string, value: any) => {
+    // Removed debug tracking for manuelleTypklasse - issue was found in AppLayout.tsx
+    
     setFieldValues(prev => {
       // Only update if value actually changed
       const currentValue = prev[fieldKey];

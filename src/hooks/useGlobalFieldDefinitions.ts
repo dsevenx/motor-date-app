@@ -16,6 +16,8 @@ export const updateGlobalFieldDefinitions = (updates: Record<string, any>) => {
   console.log('🌍 ===== updateFieldDefinitions AUFGERUFEN =====');
   console.log('🌍 Updates:', JSON.stringify(updates, null, 2));
   
+  // Removed debug tracking for manuelleTypklasse - issue was found in AppLayout.tsx
+  
   if (isUpdating) {
     console.log('🌍 Abbruch: isUpdating=true (verhindert Zirkuläre Updates)');
     return; // Prevent circular updates
