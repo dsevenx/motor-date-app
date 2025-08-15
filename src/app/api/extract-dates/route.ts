@@ -53,22 +53,11 @@ export async function POST(request: NextRequest) {
   const isWebChat = referer.includes('localhost') && !userAgent.includes('node');
   const isMCP = userAgent.includes('node') || referer === '';
   
-  console.log(`🚀 ===== API-ROUTE START =====`);
-  console.log(`🚀 Typ: ${isWebChat ? 'WEB-CHAT' : isMCP ? 'MCP-CALL' : 'UNKNOWN'}`);
-  console.log(`🚀 Timestamp: ${new Date().toISOString()}`);
-  console.log(`🚀 User-Agent: ${userAgent}`);
-  console.log(`🚀 Referer: ${referer}`);
-  console.log(`🚀 ===== API-ROUTE INFO =====`);
 
   try {
     const requestBody = await request.json();
     const { text, currentValues } = requestBody;
 
-    console.log(`📥 ===== API-ROUTE REQUEST =====`);
-    console.log(`📥 Text Input: "${text}"`);
-    console.log(`📥 CurrentValues Keys: ${Object.keys(currentValues || {}).length}`);
-    console.log(`📥 CurrentValues Sample:`, JSON.stringify(Object.fromEntries(Object.entries(currentValues || {}).slice(0, 5)), null, 2));
-    console.log(`📥 ===== ENDE REQUEST =====`);
 
     // WICHTIG: System Prompt mit Baustein-Referenz-Tabelle verwenden!
     const SYSTEM_PROMPT = await SYSTEM_PROMPT_FAHRZEUGDATEN();
@@ -135,7 +124,7 @@ export async function POST(request: NextRequest) {
       const sentCount = optimizedData.length;
       
       if (sentCount < totalCount) {
-        console.log(`🔧 Token-Optimierung ${tableName}: ${sentCount}/${totalCount} Einträge gesendet (${totalCount - sentCount} weggelassen)`);
+        // Token-Optimierung: weniger Einträge gesendet
       }
       
       // Berechne zusätzliche Ersparnis durch Feld-Optimierung
@@ -144,7 +133,7 @@ export async function POST(request: NextRequest) {
       const fieldSavings = originalSize - optimizedSize;
       
       if (fieldSavings > 0) {
-        console.log(`🔧 Feld-Optimierung ${tableName}: ${fieldSavings} Zeichen gespart (knotenId + echteEingabe entfernt)`);
+        // Feld-Optimierung: Zeichen gespart durch Entfernen von knotenId + echteEingabe
       }
       
       return JSON.stringify(optimizedData, null, 2);
@@ -202,24 +191,9 @@ ${FIELD_DEFINITIONS.find(f => f.key === 'stornodatum') ?
 WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklärungen!
 `;
 
-    console.log('Sende Request an Claude...');
-    console.log('📊 ===== TOKEN USAGE ANALYSE =====');
-    console.log('📊 System Prompt Length:', SYSTEM_PROMPT.length, 'Zeichen');
-    console.log('📊 User Prompt Length:', userPrompt.length, 'Zeichen');
-    console.log('📊 Total Prompt Length:', SYSTEM_PROMPT.length + userPrompt.length, 'Zeichen');
     
-    // 🔍 DEBUG: Zeige nur relevante Teile der Prompts
-    //console.log('🔍 System Prompt enthält Sparten-Regeln:', SYSTEM_PROMPT.includes('SPARTEN & BAUSTEIN ERKENNUNG'));
-    //console.log('🔍 User Prompt enthält Test-Text:', `"${text}"`);
-    //console.log('🔍 User Prompt enthält Tabellen:', userPrompt.includes('produktSparten-Tabelle'));
   
-    console.log('🔍 System Prompt für Steffen :', SYSTEM_PROMPT);
-    console.log('🔍 User Prompt für Steffen:', userPrompt);
   
-    // Zeige die größten Komponenten des User Prompts (vor und nach Optimierung)
-    console.log('📊 USER PROMPT BREAKDOWN:');
-    console.log('📊 - Base Text:', `"${text}"`.length, 'Zeichen');
-    console.log('📊 - Field List:', fieldList.length, 'Zeichen');
     
     const originalTableSizes = {
       sparten: JSON.stringify(spartenTable).length,
@@ -237,18 +211,11 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
       ku: optimizedBausteinKU.length
     };
     
-    console.log('📊 TABELLEN-OPTIMIERUNG:');
-    console.log(`📊 - Sparten: ${originalTableSizes.sparten} → ${optimizedTableSizes.sparten} Zeichen (${originalTableSizes.sparten - optimizedTableSizes.sparten} gespart)`);
-    console.log(`📊 - KH: ${originalTableSizes.kh} → ${optimizedTableSizes.kh} Zeichen (${originalTableSizes.kh - optimizedTableSizes.kh} gespart)`);
-    console.log(`📊 - KK: ${originalTableSizes.kk} → ${optimizedTableSizes.kk} Zeichen (${originalTableSizes.kk - optimizedTableSizes.kk} gespart)`);
-    console.log(`📊 - EK: ${originalTableSizes.ek} → ${optimizedTableSizes.ek} Zeichen (${originalTableSizes.ek - optimizedTableSizes.ek} gespart)`);
-    console.log(`📊 - KU: ${originalTableSizes.ku} → ${optimizedTableSizes.ku} Zeichen (${originalTableSizes.ku - optimizedTableSizes.ku} gespart)`);
     
     const totalOriginalTables = Object.values(originalTableSizes).reduce((sum, size) => sum + size, 0);
     const totalOptimizedTables = Object.values(optimizedTableSizes).reduce((sum, size) => sum + size, 0);
     const tableSavings = totalOriginalTables - totalOptimizedTables;
     
-    console.log(`📊 GESAMT-ERSPARNIS: ${tableSavings} Zeichen (~${Math.ceil(tableSavings/4)} Tokens)`);
 
     const client = getAnthropicClient();
     const response = await client.messages.create({
@@ -259,20 +226,12 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
       temperature: 0.1 // Niedrig für konsistente Ergebnisse
     });
 
-    console.log('Claude Response erhalten:', response);
     
-    // Token-Usage analysieren
-    console.log('📊 ===== CLAUDE TOKEN USAGE =====');
-    console.log('📊 Input Tokens:', response.usage?.input_tokens);
-    console.log('📊 Output Tokens:', response.usage?.output_tokens);
-    console.log('📊 Total Tokens:', (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0));
-    console.log('📊 Stop Reason:', response.stop_reason);
     
     // Berechne geschätzte Token-pro-Zeichen Rate
     const totalChars = SYSTEM_PROMPT.length + userPrompt.length;
     const inputTokens = response.usage?.input_tokens || 0;
     const charsPerToken = totalChars / inputTokens;
-    console.log('📊 Chars per Token Ratio:', charsPerToken.toFixed(2));
     
     // Check für abgeschnittene Antworten durch Token-Limit
     if (response.stop_reason === 'max_tokens') {
@@ -350,11 +309,9 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
         if (fieldKey.startsWith('produktBausteine_')) {
           const fieldData = extractedData.extractedData[fieldKey];
           if (fieldData && Array.isArray(fieldData.value)) {
-            console.log(`🔧 Korrigiere Baustein-IDs für ${fieldKey}:`, fieldData.value);
             
             // Skip ID correction wenn Claude leere Arrays zurückgegeben hat
             if (fieldData.value.length === 0) {
-              console.log(`⏭️ Überspringe ID-Korrektur für ${fieldKey} (leer)`);
               return;
             }
             
@@ -374,14 +331,12 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
                 originalBausteine = [];
               }
             } catch (error) {
-              console.warn(`⚠️ Konnte originale Bausteine für ${fieldKey} nicht parsen:`, error);
               originalBausteine = [];
             }
             
             // Korrigiere IDs basierend auf Beschreibung mit verbesserter Logik
             const usedOriginals = new Set(); // Verhindere doppelte Zuordnung
             
-            console.log(`🔧 Verfügbare Original-Bausteine für ${fieldKey}:`, originalBausteine.map(b => ({ id: b.id, beschreibung: b.beschreibung, knotenId: b.knotenId })));
             
             // Spezielle Behandlung für kombinierte VK/TK Selbstbeteiligung
             let expandedClaudeItems: any[] = [];
@@ -390,7 +345,6 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
               
               // Erkenne kombinierte Selbstbeteiligung wie "VK 300 / TK 150"
               if (desc.includes('selbstbeteiligung') && desc.includes('vk') && desc.includes('tk') && desc.includes('/')) {
-                console.log(`🔧 Erkenne kombinierte VK/TK SB: "${claudeItem.beschreibung}"`);
                 
                 // Extrahiere Beträge
                 const vkMatch = desc.match(/vk\s*(\d+)/);
@@ -436,7 +390,6 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
                       original.beschreibung.toLowerCase().includes('selbstbeteiligung') &&
                       !usedOriginals.has(original.id)
                     );
-                    console.log(`🔧 Suche Vollkasko-SB für: "${claudeItem.beschreibung}"`);
                   } else if (desc.includes('teilkasko') || desc.includes(' tk ') || desc.includes('tk 150') || desc.includes('tk/')) {
                     // Suche nach Teilkasko-SB  
                     matchingOriginal = originalBausteine.find((original: any) => 
@@ -446,7 +399,6 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
                       original.beschreibung.toLowerCase().includes('selbstbeteiligung') &&
                       !usedOriginals.has(original.id)
                     );
-                    console.log(`🔧 Suche Teilkasko-SB für: "${claudeItem.beschreibung}"`);
                   } else {
                     // Fallback: Erste verfügbare Selbstbeteiligung
                     matchingOriginal = originalBausteine.find((original: any) => 
@@ -454,7 +406,6 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
                       original.beschreibung.toLowerCase().includes('selbstbeteiligung') &&
                       !usedOriginals.has(original.id)
                     );
-                    console.log(`🔧 Suche generische SB für: "${claudeItem.beschreibung}"`);
                   }
                 } else {
                   // Generische Beschreibungssuche für andere Bausteine
@@ -468,7 +419,6 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
                 
                 if (matchingOriginal && matchingOriginal.id) {
                   usedOriginals.add(matchingOriginal.id);
-                  console.log(`✅ ID-Korrektur: ${claudeItem.id} → ${matchingOriginal.id} (${claudeItem.beschreibung})`);
                   return { 
                     ...claudeItem, 
                     id: matchingOriginal.id,
@@ -477,7 +427,6 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
                     echteEingabe: matchingOriginal.echteEingabe || false
                   };
                 } else {
-                  console.warn(`⚠️ Keine ID-Korrektur möglich für: ${claudeItem.beschreibung}`);
                 }
               }
               return claudeItem;
@@ -493,14 +442,12 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
         
         const fieldData = extractedData.extractedData[fieldKey];
         if (fieldData && Array.isArray(fieldData.value) && fieldData.value.length > 0) {
-          console.log(`🔍 Prüfe Tabelle ${fieldKey}:`, fieldData.value);
           
           fieldData.value = fieldData.value.map((item, index) => {
             if (typeof item === 'object' && item !== null) {
               // Füge ID hinzu, falls nicht vorhanden
               if (!item.id) {
                 const newId = `${fieldKey}_${Date.now()}_${index}`;
-                console.log(`➕ Füge ID hinzu für ${fieldKey}[${index}]:`, newId);
                 return { ...item, id: newId };
               }
             }
@@ -518,7 +465,6 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
       // Sparten-Aktionen werden an das Frontend weitergereicht, aber nicht direkt verarbeitet
       // Das ChatComponent wird diese über onFieldDefinitionsChange an MotorProduktSpartenTree weiterleiten
       if (extractedData.spartenActions) {
-        console.log('🔄 Sparten-Aktionen erkannt (werden an Frontend weitergeleitet):', extractedData.spartenActions);
       }
 
       // Explanation aus dem JSON ins Objekt integrieren, falls nicht schon vorhanden
@@ -528,11 +474,6 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
 
     } catch (parseError: unknown) {
       const errorMessage = parseError instanceof Error ? parseError.message : 'Unbekannter Parsing-Fehler';
-      console.error('JSON Parse Error:', errorMessage);
-      console.error('Rohe Claude Response:', responseText);
-      
-      // KEIN RETRY MEHR - sofortiger Fehler bei JSON-Parse-Problemen
-      console.log('JSON-Parsing fehlgeschlagen - KEIN Retry');
       
       return NextResponse.json({
         success: false,
@@ -550,33 +491,11 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
       timestamp: new Date().toISOString()
     };
 
-    console.log(`📤 ===== API-ROUTE RESPONSE =====`);
-    console.log(`📤 Success:`, result.success);
-    console.log(`📤 Data verfügbar:`, !!result.data);
-    if (result.data) {
-      console.log(`📤 ExtractedData Keys:`, result.data.extractedData ? Object.keys(result.data.extractedData) : 'none');
-      
-      // Detailanalyse für MCP-Debugging
-      if (isMCP && result.data.extractedData) {
-        Object.entries(result.data.extractedData).forEach(([key, value]: [string, any]) => {
-          console.log(`📤 API-RESPONSE FELD: ${key}`, {
-            confidence: value?.confidence,
-            valueType: typeof value?.value,
-            isArray: Array.isArray(value?.value),
-            valuePreview: Array.isArray(value?.value) ? `Array[${value.value.length}]` : JSON.stringify(value?.value).substring(0, 100)
-          });
-        });
-      }
-      
-      console.log(`📤 Vollständige Response Data:`, JSON.stringify(result.data, null, 2));
-    }
-    console.log(`📤 Processing Time: ${Date.now() - startTime}ms`);
     console.log(`📤 ===== ENDE API-ROUTE RESPONSE =====`);
 
     return NextResponse.json(result);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unbekannter Server-Fehler';
-    console.error('Fehler in API Route:', error);
     return NextResponse.json(
       {
         success: false,
@@ -590,7 +509,6 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
 
 // Für Debugging auch GET erlauben - mit Token-Usage-Test
 export async function GET() {
-  console.log('GET Request an extract-dates API');
   
   try {
     // Teste den System Prompt
@@ -744,7 +662,6 @@ ${mockCurrentValues['produktBausteine_KU']}
                      'OK: Safe to use current prompt configuration'
     });
   } catch (error) {
-    console.error('Error in GET handler:', error);
     return NextResponse.json({
       message: "Extract-data API ist aktiv, aber System Prompt hat Probleme",
       error: error instanceof Error ? error.message : 'Unknown error',

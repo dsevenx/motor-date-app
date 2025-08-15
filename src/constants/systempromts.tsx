@@ -24,7 +24,6 @@ function loadBausteinReferenzTabelle(): string {
     const csvContent = fs.readFileSync(csvPath, 'utf-8');
     return csvContent.trim();
   } catch (error) {
-    console.error('Fehler beim Laden der Baustein-Referenz-Tabelle:', error);
     return `Bustein-refenz-Tabelle konnte nicht geladen werden. Bitte überprüfen Sie die Datei.`;
   }
 }

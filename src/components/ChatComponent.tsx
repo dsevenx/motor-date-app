@@ -53,32 +53,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       currentArray = currentValue;
     } else if (currentValue && Array.isArray(currentValue.value)) {
       currentArray = currentValue.value;
-      console.log(`🔧 currentValue hat .value Property für ${fieldKey}:`, currentArray.length);
     }
     
     // aiValue ist normalerweise ein Array
     if (Array.isArray(aiValue)) {
       aiArray = aiValue;
     } else {
-      console.log(`⚠️ aiValue ist kein Array für ${fieldKey}:`, aiValue);
       aiArray = [];
     }
-    
-    console.log(`🔧 Normalisierte Werte für ${fieldKey}:`, {
-      currentArray: currentArray.length,
-      aiArray: aiArray.length
-    });
-
-    console.log(`🔄 Merge Table Data für ${fieldKey}:`, { 
-      currentCount: currentArray.length, 
-      aiCount: aiArray.length 
-    });
 
     // Für Sparten- und Baustein-Tabellen: Intelligente Merge-Logik
     if (fieldKey === 'produktSparten' || fieldKey.startsWith('produktBausteine_')) {
-      console.log(`🔧 PRODUKTSPARTEN/BAUSTEIN MERGE - START`);
-      console.log(`🔧 Current ${fieldKey}:`, currentArray.map(row => ({ id: row.id, beschreibung: row.beschreibung, check: row.check })));
-      console.log(`🔧 AI ${fieldKey}:`, aiArray.map(row => ({ id: row.id, beschreibung: row.beschreibung, check: row.check })));
       
       // Merge-Strategie: AI-Updates überschreiben nur die spezifischen Einträge
       const mergedTable = [...currentArray]; // Start mit bestehenden Werten (normalisiert)
@@ -93,7 +78,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
             row.beschreibung?.toLowerCase().includes(aiRow.beschreibung?.toLowerCase()) ||
             aiRow.beschreibung?.toLowerCase().includes(row.beschreibung?.toLowerCase())
           );
-          console.log(`🔧 Fallback Match by beschreibung: ${aiRow.beschreibung} → Index ${existingIndex}`);
         }
         
         // Fallback 2: Spezielle Behandlung für Vollkasko/VK
@@ -105,7 +89,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
               row.id === 'KK' || 
               row.beschreibung?.toLowerCase().includes('vollkasko')
             );
-            console.log(`🔧 VK/Vollkasko Match → Index ${existingIndex} (${mergedTable[existingIndex]?.id})`);
           }
         }
         
@@ -124,13 +107,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
             // Stornogrund (zustandsdetail) immer leer
             stornogrund: ' '
           };
-          console.log(`🔄 Merged existing row in ${fieldKey}:`, {
-            beforeUpdate: { id: beforeUpdate.id, check: beforeUpdate.check, betrag: beforeUpdate.betrag, zustand: beforeUpdate.zustand },
-            afterUpdate: { id: mergedTable[existingIndex].id, check: mergedTable[existingIndex].check, betrag: mergedTable[existingIndex].betrag, zustand: mergedTable[existingIndex].zustand }
-          });
         } else {
           // Neue Zeile hinzufügen (sollte bei Standard-Sparten normalerweise nicht passieren)
-          console.log(`⚠️ Neue Zeile hinzufügen (ungewöhnlich) in ${fieldKey}:`, aiRow);
           mergedTable.push({
             ...aiRow,
             echteEingabe: true, // Markiere als User-Eingabe
@@ -140,16 +118,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
           });
         }
       });
-      
-      console.log(`✅ MERGE ERGEBNIS ${fieldKey}:`, mergedTable.map(row => ({ 
-        id: row.id, 
-        beschreibung: row.beschreibung?.substring(0, 20),
-        check: row.check, 
-        betrag: row.betrag, // HINZUGEFÜGT: Betrag im Debug-Log anzeigen
-        zustand: row.zustand,
-        stornogrund: row.stornogrund,
-        echteEingabe: row.echteEingabe 
-      })));
       return mergedTable;
     }
     
@@ -168,7 +136,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
     
     // Null-Check für extractedData
     if (!aiData.extractedData || typeof aiData.extractedData !== 'object') {
-      console.warn('❌ extractedData ist null, undefined oder kein Objekt:', aiData.extractedData);
       return updatedFieldsWithValues;
     }
 
@@ -183,14 +150,10 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
 
     // Sichere Iteration über extractedData
     try {
-      console.log('🔍 Processing extracted data fields:', Object.keys(aiData.extractedData));
       Object.entries(aiData.extractedData).forEach(([fieldKey, extractedValue]) => {
-        console.log(`🔍 === Verarbeite Feld: ${fieldKey} ===`);
-        console.log(`🔍 extractedValue:`, extractedValue);
         
         // Null-Check für extractedValue
         if (!extractedValue || typeof extractedValue !== 'object') {
-          console.warn(`❌ Ungültiger extractedValue für ${fieldKey}:`, extractedValue);
           return;
         }
 
@@ -198,22 +161,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         
         // Confidence-Check
         if (!typedExtractedValue.value || typedExtractedValue.confidence <= 0.5) {
-          console.log(`Überspringe ${fieldKey} - niedrige Confidence oder kein Wert:`, typedExtractedValue);
           return;
         }
 
         // Passende FieldConfig finden
         const fieldConfig = fieldConfigs.find(config => config.fieldKey === fieldKey);
         if (!fieldConfig) {
-          console.warn(`❌ Keine FieldConfig gefunden für ${fieldKey}`);
           return;
         }
-        
-        console.log(`🔍 FieldConfig gefunden für ${fieldKey}:`, {
-          type: fieldConfig.type,
-          currentValue: fieldConfig.currentValue,
-          onChange: typeof fieldConfig.onChange
-        });
 
         const previousValue = previousValues[fieldKey];
         
@@ -239,7 +194,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
                   ...aiRow,       // Override with AI extracted values
                   id: existingRow.id || '1' // Ensure ID is preserved
                 }];
-                console.log(`Single-line table update for ${fieldKey}:`, newValue);
               } else {
                 newValue = aiTableValue.map((row: any, index: number) => ({
                   ...row,
@@ -249,18 +203,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
             } else {
               // Verwende intelligente Merge-Funktion für normale Tabellen
               newValue = mergeTableData(currentTableValue, aiTableValue, fieldKey);
-              console.log(`Merged table data for ${fieldKey}:`, newValue.length, 'rows');
             }
           } else {
             newValue = String(convertedValue);
           }
         } catch (conversionError) {
-          console.error(`Fehler bei Typkonvertierung für ${fieldKey}:`, conversionError);
           
           // Fallback für Tabellen
           if (fieldConfig.type === 'table' || fieldConfig.type === 'single-line-table') {
             newValue = Array.isArray(typedExtractedValue.value) ? typedExtractedValue.value : [];
-            console.log(`Table fallback for ${fieldKey}:`, newValue);
           } else {
             newValue = String(typedExtractedValue.value);
           }
@@ -277,11 +228,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
                 const columnDef = fieldConfig.table?.columns?.find(col => col.key === columnKey);
                 if (columnDef?.dropdown?.domainId) {
                   const domainId = columnDef.dropdown.domainId;
-                  console.log(`Domain-Value "${columnValue}" für ${domainId} in ${fieldKey}[${rowIndex}].${columnKey}`);
-                  
                   // Asynchrone Validation wird über das Artifact-System abgehandelt
                   // Für bessere Performance: Validation erfolgt client-side
-                  console.log(`Domain-Value verarbeitet: ${domainId}`);
                 }
               }
             });
@@ -291,7 +239,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         // Standard-Validierung
         const validationResult = validateFieldValue(fieldConfig, newValue);
         if (!validationResult.isValid) {
-          console.warn(`Validierungsfehler für ${fieldKey}:`, validationResult.errors);
           // Optional: Trotzdem setzen oder überspringen
           // return;
         }
@@ -303,15 +250,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
           
         if (hasChanged) {
           try {
-            console.log(`🔄 Feld ${fieldKey} hat sich geändert:`, {
-              previousValue,
-              newValue,
-              type: fieldConfig.type
-            });
             
             // Update für später sammeln statt sofort ausführen
             pendingUpdates.push({ fieldConfig, newValue });
-            console.log(`📝 Update für ${fieldKey} zur Batch-Liste hinzugefügt`);
             
             // Formatierung für die Anzeige
             const formattedValue = formatValueForDisplay(newValue, fieldConfig.type);
@@ -323,16 +264,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
               formattedValue: formattedValue
             });
             
-            console.log(`Updated ${fieldKey} from "${JSON.stringify(previousValue)}" to "${JSON.stringify(newValue)}" (formatted: ${formattedValue})`);
           } catch (updateError) {
-            console.error(`Fehler beim Aktualisieren von ${fieldKey}:`, updateError);
           }
         } else {
-          console.log(`${fieldKey} unchanged: "${JSON.stringify(previousValue)}"`);
         }
       });
     } catch (iterationError) {
-      console.error('Fehler beim Iterieren über extractedData:', iterationError);
     }
 
     // ALLE Updates in einem Batch ausführen (verhindert "maximum update depth exceeded")
@@ -348,18 +285,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
               // Sammle für direkte globale Synchronisation
               globalUpdates[fieldConfig.fieldKey] = newValue;
             } catch (error) {
-              console.error(`❌ Fehler bei UPDATE ${fieldConfig.fieldKey}:`, error);
             }
           });
           
           // ZUSÄTZLICHE DIREKTE SYNCHRONISATION (als Backup)
           if (Object.keys(globalUpdates).length > 0) {
-            console.log('🔄 ChatComponent: Zusätzliche direkte Synchronisation zu globalFieldDefinitions:', globalUpdates);
             updateGlobalFieldDefinitions(globalUpdates);
           }
         }, 0);
       } catch (batchError) {
-        console.error('❌ Fehler beim Batch-Update:', batchError);
       }
     }
 
@@ -426,19 +360,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
   // KI-Antwort über API generieren
   const generateAIResponse = async (userText: string): Promise<string> => {
     try {
-      console.log('🔮 ===== generateAIResponse GESTARTET =====');
-      console.log('🔮 userText:', userText);
-      console.log('🔮 Sende Request an API...');
       
       const currentValues = getCurrentValues();
-      console.log('🔮 currentValues:', currentValues);
       
       const requestBody = {
         text: userText,
         currentValues: currentValues
       };
       
-      console.log('🔮 Request Body:', JSON.stringify(requestBody, null, 2));
 
       const response = await fetch('/api/extract-dates', {
         method: 'POST',
@@ -448,16 +377,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         body: JSON.stringify(requestBody)
       });
 
-      console.log('API Response Status:', response.status);
 
       if (!response.ok) {
         let errorMessage = 'Unbekannter Fehler';
         try {
           const errorData = await response.json();
-          console.error('API Error:', errorData);
           errorMessage = errorData.error || errorMessage;
         } catch (jsonError) {
-          console.error('Fehler beim Parsen der Error-Response:', jsonError);
         }
         return `Entschuldigung, es gab einen Fehler bei der Verarbeitung: ${errorMessage}`;
       }
@@ -466,35 +392,26 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       try {
         result = await response.json();
       } catch (jsonError) {
-        console.error('Fehler beim Parsen der API-Response:', jsonError);
         return 'Entschuldigung, die API-Antwort konnte nicht verarbeitet werden.';
       }
 
-      console.log('API Result:', result);
 
       // Validierung der API-Response
       if (!result || typeof result !== 'object') {
-        console.error('API-Response ist null oder kein Objekt:', result);
         return 'Entschuldigung, die API-Antwort ist ungültig.';
       }
 
       if (!result.success) {
         const errorMsg = result.error || 'Unbekannter API-Fehler';
-        console.error('API Success=false:', errorMsg);
         return `Es gab ein Problem bei der Analyse: ${errorMsg}`;
       }
 
       if (!result.data) {
-        console.error('API-Response hat keine Daten:', result);
         return 'Es gab ein Problem bei der Analyse: Keine Daten erhalten';
       }
 
       const aiData = result.data;
       
-      // ===== KLARE KI-ANTWORT-AUSGABE =====
-      console.log('🤖 ===== KI-ANTWORT =====');  
-      console.log(JSON.stringify(aiData, null, 2));
-      console.log('🤖 ===== ENDE KI-ANTWORT =====');
       
       // Daten verarbeiten  
       const updatedFieldsWithValues = processExtractedData(aiData);
@@ -504,18 +421,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       return responseMessage;
 
     } catch (error) {
-      console.error('Fehler beim API-Aufruf:', error);
       return 'Entschuldigung, es gab einen technischen Fehler. Bitte versuchen Sie es erneut.';
     }
   };
 
   const handleSendMessage = async () => {
-    console.log('🚀 ===== handleSendMessage GESTARTET =====');
-    console.log('🚀 inputMessage:', inputMessage);
-    console.log('🚀 isTyping:', isTyping);
     
     if (!inputMessage.trim() || isTyping) {
-      console.log('🛑 Abbruch: Leere Nachricht oder bereits am Tippen');
       return;
     }
 
@@ -526,36 +438,23 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       timestamp: new Date()
     };
 
-    console.log('📨 Füge User Message hinzu:', userMessage);
-    setMessages(prev => {
-      console.log('📨 setMessages aufgerufen mit prev.length:', prev.length);
-      return [...prev, userMessage];
-    });
+    setMessages(prev => [...prev, userMessage]);
     
     const currentInput = inputMessage;
     setInputMessage('');
     setIsTyping(true);
     
-    console.log('🔄 States aktualisiert, starte AI Response...');
 
     try {
       // 🌐 Stelle sicher, dass Produktdaten geladen sind für AI-Verarbeitung
-      console.log('🌐 Prüfe und lade Produktdaten für AI-Request...');
       if (!isProductDataLoaded) {
-        console.log('⏳ Produktdaten noch nicht geladen - lade jetzt...');
         await ensureProductDataLoaded();
-        console.log('✅ Produktdaten für Chat-AI bereit');
-      } else {
-        console.log('✅ Produktdaten bereits geladen für Chat-AI');
       }
       
       // AI Response generieren
-      console.log('🤖 Rufe generateAIResponse auf...');
       const aiResponseText = await generateAIResponse(currentInput);
-      console.log('🤖 AI Response erhalten:', aiResponseText);
       
       // Realistische Verzögerung für bessere UX
-      console.log('⏱️ Warte auf UX-Verzögerung...');
       await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
 
       const aiMessage: ChatMessage = {
@@ -565,28 +464,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         timestamp: new Date()
       };
 
-      console.log('📨 Füge AI Message hinzu:', aiMessage);
-      setMessages(prev => {
-        console.log('📨 setMessages (AI) aufgerufen mit prev.length:', prev.length);
-        return [...prev, aiMessage];
-      });
+      setMessages(prev => [...prev, aiMessage]);
       
-      console.log('✅ handleSendMessage erfolgreich abgeschlossen');
     } catch (error) {
-      console.error('❌ Error generating AI response:', error);
       const errorMessage: ChatMessage = {
         id: Date.now() + 1,
         text: 'Entschuldigung, es gab einen Fehler bei der Verarbeitung Ihrer Anfrage.',
         isUser: false,
         timestamp: new Date()
       };
-      console.log('📨 Füge Error Message hinzu:', errorMessage);
-      setMessages(prev => {
-        console.log('📨 setMessages (Error) aufgerufen mit prev.length:', prev.length);
-        return [...prev, errorMessage];
-      });
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
-      console.log('🏁 setIsTyping(false)');
       setIsTyping(false);
     }
   };

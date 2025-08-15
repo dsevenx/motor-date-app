@@ -44,29 +44,17 @@ export const isChecked = (knotenId: string, sparte: string, fieldDefinitions: Fi
       if (Array.isArray(fieldDefinitions.produktSparten)) {
         // Direktes Array (von AI-Updates)
         spartenData = fieldDefinitions.produktSparten;
-        console.log(`🔧 produktSparten ist direktes Array für ${sparte}:`, spartenData.length);
       } else if (fieldDefinitions.produktSparten?.value && Array.isArray(fieldDefinitions.produktSparten.value)) {
         // Objekt mit value Property (Standard-Format)
         spartenData = fieldDefinitions.produktSparten.value;
-        console.log(`🔧 produktSparten hat .value Property für ${sparte}:`, spartenData.length);
       } else {
         // Fallback: Leeres Array
-        console.log(`⚠️ produktSparten Format unbekannt für ${sparte}:`, fieldDefinitions.produktSparten);
         spartenData = [];
       }
       
       const sparteEntry = spartenData.find((s: any) => s.id === sparte);
       const result = sparteEntry?.check === true;
       
-      // Debug-Logs für wichtige Sparten
-      if (sparte === 'KH' || sparte === 'KK') {
-        console.log(`🔍 isChecked Sparte [${sparte}]:`, { 
-          'fieldDefinitions.produktSparten': fieldDefinitions.produktSparten,
-          'spartenData.length': spartenData.length,
-          'sparteEntry': sparteEntry,
-          result 
-        });
-      }
       return result;
     }
     
@@ -87,14 +75,9 @@ export const isChecked = (knotenId: string, sparte: string, fieldDefinitions: Fi
     const bausteinEntry = bausteineData.find((b: any) => b.knotenId === knotenId);
     const result = bausteinEntry?.check === true;
     
-    // Debug nur bei Level 0 für weniger Spam
-    if (knotenId && knotenId.startsWith('KBH')) {
-      console.log(`🔍 isChecked Baustein [${knotenId}] in [${sparte}]:`, { bausteinEntry, result });
-    }
     return result;
     
   } catch (error) {
-    console.error(`❌ Fehler in isChecked(${knotenId}, ${sparte}):`, error);
     return false;
   }
 };
@@ -117,7 +100,6 @@ export const updateCheckStatus = (
   isUserInput: boolean = true
 ): void => {
   try {
-    console.log(`📝 updateCheckStatus: ${knotenId} in ${sparte} = ${checked} (userInput: ${isUserInput})`);
     
     // 1. Sparten-Update
     if (knotenId === sparte) {
@@ -134,18 +116,8 @@ export const updateCheckStatus = (
       
       const spartenData = [...currentSpartenData]; // Kopie für Update
       
-      console.log(`🔍 Sparten-Update Debug:`, {
-        knotenId,
-        sparte, 
-        checked,
-        isUserInput,
-        'fieldDefinitions.produktSparten': fieldDefinitions.produktSparten,
-        'spartenData.length': spartenData.length,
-        'spartenData': spartenData.map(s => ({ id: s.id, check: s.check }))
-      });
       
       const sparteIndex = spartenData.findIndex((s: any) => s.id === sparte);
-      console.log(`🔍 Gefundener sparteIndex für ${sparte}:`, sparteIndex);
       
       if (sparteIndex >= 0) {
         const beforeUpdate = { ...spartenData[sparteIndex] };
@@ -160,14 +132,11 @@ export const updateCheckStatus = (
         };
         const afterUpdate = { ...spartenData[sparteIndex] };
         
-        console.log(`🔍 Sparte Update:`, { beforeUpdate, afterUpdate });
         
         updateFieldDefinitions({
           produktSparten: { value: spartenData }
         });
-        console.log(`✅ Sparte ${sparte} updated to ${checked} (echteEingabe: ${isUserInput})`);
       } else {
-        console.log(`❌ Sparte ${sparte} nicht gefunden in spartenData`);
       }
       return;
     }
@@ -199,13 +168,10 @@ export const updateCheckStatus = (
       updateFieldDefinitions({
         [tableKey]: { value: bausteineData }
       });
-      console.log(`✅ Baustein ${knotenId} in ${sparte} updated to ${checked} (echteEingabe: ${isUserInput})`);
     } else {
-      console.log(`⚠️ Baustein ${knotenId} nicht gefunden in ${tableKey}`);
     }
     
   } catch (error) {
-    console.error(`❌ Fehler in updateCheckStatus(${knotenId}, ${sparte}, ${checked}):`, error);
   }
 };
 
@@ -238,7 +204,6 @@ export const getBetrag = (knotenId: string, sparte: string, fieldDefinitions: Fi
     return betrag;
     
   } catch (error) {
-    console.error(`❌ Fehler in getBetrag(${knotenId}, ${sparte}):`, error);
     return 0;
   }
 };
@@ -259,7 +224,6 @@ export const updateBetragStatus = (
   updateFieldDefinitions: (updates: Partial<FieldDefinitions>) => void
 ): void => {
   try {
-    console.log(`💰 updateBetragStatus: ${knotenId} in ${sparte} = ${betrag}`);
     
     const tableKey = `produktBausteine_${sparte}`;
     
@@ -287,13 +251,10 @@ export const updateBetragStatus = (
       updateFieldDefinitions({
         [tableKey]: { value: bausteineData }
       });
-      console.log(`✅ Betrag ${knotenId} in ${sparte} updated to ${betrag}`);
     } else {
-      console.log(`⚠️ Baustein ${knotenId} nicht gefunden in ${tableKey}`);
     }
     
   } catch (error) {
-    console.error(`❌ Fehler in updateBetragStatus(${knotenId}, ${sparte}, ${betrag}):`, error);
   }
 };
 
@@ -308,7 +269,6 @@ export const initializeProductFieldDefinitions = (
   produktData: any[], 
   currentFieldDefinitions?: FieldDefinitions
 ): Partial<FieldDefinitions> => {
-  console.log(`🚀 Initialisiere FIELD_DEFINITIONS mit ${produktData.length} Sparten`);
   
   // Prüfe ob bereits User-Eingaben für Produktsparten vorhanden sind (Row-Level + Field-Level)
   const hasExistingSpartenRowData = currentFieldDefinitions?.produktSparten?.value && 
@@ -322,7 +282,6 @@ export const initializeProductFieldDefinitions = (
     produktSpartenField?.echteEingabe !== produktSpartenField?.defaultValue;
   
   if (hasExistingSpartenRowData || hasExistingSpartenFieldData) {
-    console.log(`🔄 MERGE: Produktsparten bereits mit User-Eingaben vorhanden - merge mit neuen Strukturdaten!`);
     // Führe intelligente Merge-Operation durch statt komplett zu skippen
     return mergeProductDataWithExistingUserData(produktData, currentFieldDefinitions);
   }
@@ -347,7 +306,6 @@ export const initializeProductFieldDefinitions = (
     });
   
   updates.produktSparten = { value: spartenEntries };
-  console.log(`✅ ${spartenEntries.length} Sparten initialisiert`);
   
   // 2. Initialisiere Bausteine-Tabellen für jede Sparte (ALLE Bausteine für vollständige Tabellen)
   produktData.forEach(sparte => {
@@ -362,7 +320,6 @@ export const initializeProductFieldDefinitions = (
       currentFieldDefinitions[tableKey].value.some((b: any) => b.echteEingabe === true);
     
     if (hasExistingBausteineData) {
-      console.log(`⏭️ SKIP: ${tableKey} bereits mit User-Eingaben vorhanden - überschreibe NICHT!`);
       return; // Skip diese Sparte
     }
     
@@ -397,7 +354,6 @@ export const initializeProductFieldDefinitions = (
     
     if (bausteineEntries.length > 0) {
       updates[tableKey] = { value: bausteineEntries };
-      console.log(`✅ ${bausteineEntries.length} Bausteine (inkl. Subbausteine) für ${sparte.sparte} initialisiert`);
     }
   });
   
@@ -417,7 +373,7 @@ export const processSpartenActions = (
   spartenActions: Record<string, SpartenAction>,
   fieldDefinitions: FieldDefinitions
 ): Record<string, any> => {
-  console.log('🤖 Verarbeite spartenActions von Claude AI:', spartenActions);
+  // console.log('🤖 Verarbeite spartenActions von Claude AI:', spartenActions);
   
   // Arbeite mit einer lokalen Kopie der spartenData, um alle Änderungen zu sammeln
   const spartenData = [...(fieldDefinitions.produktSparten?.value || [])];
@@ -425,11 +381,11 @@ export const processSpartenActions = (
   
   // Verarbeite alle spartenActions auf der lokalen Kopie
   Object.entries(spartenActions).forEach(([sparteCode, action]) => {
-    console.log(`🤖 KI-Update: Sparte ${sparteCode} = ${action.active ? 'aktivieren' : 'deaktivieren'} (${action.reason})`);
+    // console.log(`🤖 KI-Update: Sparte ${sparteCode} = ${action.active ? 'aktivieren' : 'deaktivieren'} (${action.reason})`);
     
     // Ignoriere "nicht explizit erwähnt" Fälle - keine Änderung an bestehenden Sparten
     if (!action.active && action.reason.toLowerCase().includes('nicht explizit erwähnt')) {
-      console.log(`⏭️ Sparte ${sparteCode} übersprungen: nicht explizit erwähnt (keine Änderung)`);
+      // console.log(`⏭️ Sparte ${sparteCode} übersprungen: nicht explizit erwähnt (keine Änderung)`);
       return;
     }
     
@@ -449,13 +405,13 @@ export const processSpartenActions = (
           stornogrund: ' ' // Zustandsdetail immer leer, da weder "A" noch " " = "S" (Storniert)
         };
         
-        console.log(`✅ Sparte ${sparteCode} aktualisiert: ${oldCheck} → ${newCheck}`, spartenData[sparteFieldIndex]);
+        // console.log(`✅ Sparte ${sparteCode} aktualisiert: ${oldCheck} → ${newCheck}`, spartenData[sparteFieldIndex]);
         hasChanges = true;
       } else {
-        console.log(`ℹ️ Sparte ${sparteCode} bereits im gewünschten Zustand: ${newCheck}`);
+        // console.log(`ℹ️ Sparte ${sparteCode} bereits im gewünschten Zustand: ${newCheck}`);
       }
     } else {
-      console.warn(`⚠️ Sparte ${sparteCode} nicht in FIELD_DEFINITIONS gefunden`);
+      // console.warn(`⚠️ Sparte ${sparteCode} nicht in FIELD_DEFINITIONS gefunden`);
     }
   });
   
@@ -464,10 +420,10 @@ export const processSpartenActions = (
     const updates = {
       produktSparten: { value: spartenData }
     };
-    console.log('🔄 Finale Sparten-Updates für FIELD_DEFINITIONS:', updates);
+    // console.log('🔄 Finale Sparten-Updates für FIELD_DEFINITIONS:', updates);
     return updates;
   } else {
-    console.log('ℹ️ Keine Sparten-Änderungen notwendig');
+    // console.log('ℹ️ Keine Sparten-Änderungen notwendig');
     return {};
   }
 };
@@ -494,12 +450,12 @@ const findBausteinByIntelligentMatching = (
   sparte: string,
   bausteineData: any[]
 ): any | null => {
-  console.log(`🧠 Intelligente Suche: claudeKnotenId="${claudeKnotenId}", beschreibung="${claudeBeschreibung}", sparte="${sparte}"`);
+  // console.log(`🧠 Intelligente Suche: claudeKnotenId="${claudeKnotenId}", beschreibung="${claudeBeschreibung}", sparte="${sparte}"`);
   
   // 1. Exakte KnotenId-Übereinstimmung (falls Claude zufällig die echte ID hat)
   let match = bausteineData.find((b: any) => b.knotenId === claudeKnotenId);
   if (match) {
-    console.log(`✅ Exakte KnotenId-Übereinstimmung gefunden: ${match.knotenId}`);
+    // console.log(`✅ Exakte KnotenId-Übereinstimmung gefunden: ${match.knotenId}`);
     return match;
   }
   
@@ -509,7 +465,7 @@ const findBausteinByIntelligentMatching = (
     b.synonyme.includes(claudeKnotenId)
   );
   if (match) {
-    console.log(`✅ Synonyme-Übereinstimmung gefunden: ${match.knotenId} (Synonym: ${claudeKnotenId})`);
+    // console.log(`✅ Synonyme-Übereinstimmung gefunden: ${match.knotenId} (Synonym: ${claudeKnotenId})`);
     return match;
   }
   
@@ -559,11 +515,11 @@ const findBausteinByIntelligentMatching = (
   // 3. Anwendung der Matching-Regeln
   const rule = matchingRules[claudeKnotenId.toLowerCase()];
   if (rule) {
-    console.log(`🔍 Anwendung Regel für "${claudeKnotenId}":`, rule);
+    // console.log(`🔍 Anwendung Regel für "${claudeKnotenId}":`, rule);
     
     // Sparten-Check (falls Regel sparten-spezifisch ist)
     if (rule.sparten && !rule.sparten.includes(sparte)) {
-      console.log(`⚠️ Sparte ${sparte} nicht in erlaubten Sparten ${rule.sparten.join(', ')}`);
+      // console.log(`⚠️ Sparte ${sparte} nicht in erlaubten Sparten ${rule.sparten.join(', ')}`);
       return null;
     }
     
@@ -586,14 +542,14 @@ const findBausteinByIntelligentMatching = (
     });
     
     if (match) {
-      console.log(`✅ Keyword-Match gefunden: ${match.knotenId} - ${match.beschreibung}`);
+      // console.log(`✅ Keyword-Match gefunden: ${match.knotenId} - ${match.beschreibung}`);
       return match;
     }
   }
   
   // 4. Fallback: Fuzzy-Matching auf Claude-Beschreibung
   if (claudeBeschreibung) {
-    console.log(`🔍 Fallback: Fuzzy-Matching auf Beschreibung "${claudeBeschreibung}"`);
+    // console.log(`🔍 Fallback: Fuzzy-Matching auf Beschreibung "${claudeBeschreibung}"`);
     
     const beschreibungWords = claudeBeschreibung.toLowerCase().split(/\s+/);
     
@@ -621,12 +577,12 @@ const findBausteinByIntelligentMatching = (
     });
     
     if (bestMatch && bestScore > 3) { // Mindest-Score für Relevanz
-      console.log(`✅ Fuzzy-Match gefunden: ${bestMatch.knotenId} - ${bestMatch.beschreibung} (Score: ${bestScore})`);
+      // console.log(`✅ Fuzzy-Match gefunden: ${bestMatch.knotenId} - ${bestMatch.beschreibung} (Score: ${bestScore})`);
       return bestMatch;
     }
   }
   
-  console.log(`❌ Kein Match gefunden für "${claudeKnotenId}" in Sparte ${sparte}`);
+  // console.log(`❌ Kein Match gefunden für "${claudeKnotenId}" in Sparte ${sparte}`);
   return null;
 };
 
@@ -641,7 +597,7 @@ export const processBausteinActions = (
   bausteinActions: BausteinAction[],
   fieldDefinitions: FieldDefinitions
 ): Record<string, any> => {
-  console.log('🤖 Verarbeite bausteinActions von Claude AI:', bausteinActions);
+  // console.log('🤖 Verarbeite bausteinActions von Claude AI:', bausteinActions);
   
   const allUpdates: Record<string, any> = {};
   let hasChanges = false;
@@ -658,17 +614,17 @@ export const processBausteinActions = (
   // Verarbeite jede Sparte
   Object.entries(bausteineBySpart).forEach(([sparteCode, sparteActions]) => {
     const tableKey = `produktBausteine_${sparteCode}`;
-    console.log(`🔧 Verarbeite Bausteine für Sparte ${sparteCode}:`, sparteActions);
+    // console.log(`🔧 Verarbeite Bausteine für Sparte ${sparteCode}:`, sparteActions);
     
     // Arbeite mit einer lokalen Kopie der Baustein-Daten
     const bausteineData = [...(fieldDefinitions[tableKey]?.value || [])];
     
     sparteActions.forEach(action => {
-      console.log(`🤖 Baustein-Update: ${action.knotenId} = ${action.active ? 'aktivieren' : 'deaktivieren'} (${action.reason})`);
+      // console.log(`🤖 Baustein-Update: ${action.knotenId} = ${action.active ? 'aktivieren' : 'deaktivieren'} (${action.reason})`);
       
       // Ignoriere "nicht explizit erwähnt" Fälle
       if (!action.active && action.reason.toLowerCase().includes('nicht explizit erwähnt')) {
-        console.log(`⏭️ Baustein ${action.knotenId} übersprungen: nicht explizit erwähnt (keine Änderung)`);
+        // console.log(`⏭️ Baustein ${action.knotenId} übersprungen: nicht explizit erwähnt (keine Änderung)`);
         return;
       }
       
@@ -696,13 +652,13 @@ export const processBausteinActions = (
             echteEingabe: true // Markiere als echte Eingabe (von KI)
           };
           
-          console.log(`✅ Baustein ${matchedBaustein.knotenId} (Claude: ${action.knotenId}) aktualisiert: check ${oldCheck}→${newCheck}, betrag ${oldBetrag}→${newBetrag}`);
+          // console.log(`✅ Baustein ${matchedBaustein.knotenId} (Claude: ${action.knotenId}) aktualisiert: check ${oldCheck}→${newCheck}, betrag ${oldBetrag}→${newBetrag}`);
           hasChanges = true;
         } else {
-          console.log(`ℹ️ Baustein ${matchedBaustein.knotenId} (Claude: ${action.knotenId}) bereits im gewünschten Zustand`);
+          // console.log(`ℹ️ Baustein ${matchedBaustein.knotenId} (Claude: ${action.knotenId}) bereits im gewünschten Zustand`);
         }
       } else {
-        console.warn(`⚠️ Intelligente Suche für Claude-Baustein "${action.knotenId}" in ${tableKey} erfolglos`);
+        // console.warn(`⚠️ Intelligente Suche für Claude-Baustein "${action.knotenId}" in ${tableKey} erfolglos`);
       }
     });
     
@@ -713,10 +669,10 @@ export const processBausteinActions = (
   });
   
   if (hasChanges) {
-    console.log('🔄 Finale Baustein-Updates für FIELD_DEFINITIONS:', allUpdates);
+    // console.log('🔄 Finale Baustein-Updates für FIELD_DEFINITIONS:', allUpdates);
     return allUpdates;
   } else {
-    console.log('ℹ️ Keine Baustein-Änderungen notwendig');
+    // console.log('ℹ️ Keine Baustein-Änderungen notwendig');
     return {};
   }
 };
@@ -732,14 +688,14 @@ export function mergeProductDataWithExistingUserData(
   produktData: any[], 
   currentFieldDefinitions?: FieldDefinitions
 ): Partial<FieldDefinitions> {
-  console.log(`🔄 Starte intelligente Merge-Operation...`);
-  console.log(`📊 Produktdaten:`, produktData.length, `Sparten`);
-  console.log(`📊 Bestehende FieldDefinitions:`, Object.keys(currentFieldDefinitions || {}));
+  // console.log(`🔄 Starte intelligente Merge-Operation...`);
+  // console.log(`📊 Produktdaten:`, produktData.length, `Sparten`);
+  // console.log(`📊 Bestehende FieldDefinitions:`, Object.keys(currentFieldDefinitions || {}));
   
   const updates: Partial<FieldDefinitions> = {};
   
   // 1. MERGE PRODUKTSPARTEN: Kombiniere neue Struktur mit bestehenden User-Eingaben
-  console.log(`🔄 Merge Produktsparten...`);
+  // console.log(`🔄 Merge Produktsparten...`);
   const existingSpartenData = currentFieldDefinitions?.produktSparten?.value || [];
   const newSpartenEntries = produktData
     .filter(sparte => sparte.sparte && sparte.beschreibung)
@@ -748,7 +704,7 @@ export function mergeProductDataWithExistingUserData(
       const existingSparte = existingSpartenData.find((s: any) => s.id === sparte.sparte);
       
       if (existingSparte && existingSparte.echteEingabe === true) {
-        console.log(`🔒 PRESERVE User-Eingabe: Sparte ${sparte.sparte} (echteEingabe: true)`);
+        // console.log(`🔒 PRESERVE User-Eingabe: Sparte ${sparte.sparte} (echteEingabe: true)`);
         // Behalte User-Eingaben, aktualisiere nur Struktur-Daten
         return {
           ...existingSparte, // User-Eingaben bleiben erhalten (check, zustand, stornogrund, echteEingabe)
@@ -758,7 +714,7 @@ export function mergeProductDataWithExistingUserData(
           // echteEingabe bleibt true!
         };
       } else {
-        console.log(`🆕 NEW/UPDATE Struktur: Sparte ${sparte.sparte} (keine User-Eingabe)`);
+        // console.log(`🆕 NEW/UPDATE Struktur: Sparte ${sparte.sparte} (keine User-Eingabe)`);
         // Neue Sparte oder keine User-Eingabe vorhanden
         const isChecked = sparte.check || false;
         return {
@@ -775,17 +731,17 @@ export function mergeProductDataWithExistingUserData(
     });
   
   updates.produktSparten = { value: newSpartenEntries };
-  console.log(`✅ ${newSpartenEntries.length} Sparten gemerged`);
+  // console.log(`✅ ${newSpartenEntries.length} Sparten gemerged`);
   
   // 2. MERGE PRODUKTBAUSTEINE: Für jede Sparte, kombiniere neue Struktur mit User-Eingaben
-  console.log(`🔄 Merge Produktbausteine...`);
+  // console.log(`🔄 Merge Produktbausteine...`);
   produktData.forEach(sparte => {
     if (!sparte.sparte || !sparte.bausteine) return;
     
     const tableKey = `produktBausteine_${sparte.sparte}`;
     const existingBausteineData = currentFieldDefinitions?.[tableKey]?.value || [];
     
-    console.log(`🔍 Merge ${tableKey}: ${existingBausteineData.length} bestehende vs ${sparte.bausteine.length} neue`);
+    // console.log(`🔍 Merge ${tableKey}: ${existingBausteineData.length} bestehende vs ${sparte.bausteine.length} neue`);
     
     // Rekursive Sammlung aller neuen Bausteine
     const collectAllBausteine = (bausteine: any[], level: number = 0): any[] => {
@@ -797,7 +753,7 @@ export function mergeProductDataWithExistingUserData(
           const existingBaustein = existingBausteineData.find((b: any) => b.knotenId === baustein.knotenId);
           
           if (existingBaustein && existingBaustein.echteEingabe === true) {
-            console.log(`🔒 PRESERVE User-Eingabe: Baustein ${baustein.knotenId} (echteEingabe: true)`);
+            // console.log(`🔒 PRESERVE User-Eingabe: Baustein ${baustein.knotenId} (echteEingabe: true)`);
             // Behalte User-Eingaben, aktualisiere nur Struktur
             result.push({
               ...existingBaustein, // User-Eingaben bleiben (check, betrag, echteEingabe)
@@ -806,7 +762,7 @@ export function mergeProductDataWithExistingUserData(
               // echteEingabe bleibt true!
             });
           } else {
-            console.log(`🆕 NEW/UPDATE Struktur: Baustein ${baustein.knotenId} (keine User-Eingabe)`);
+            // console.log(`🆕 NEW/UPDATE Struktur: Baustein ${baustein.knotenId} (keine User-Eingabe)`);
             // Neuer Baustein oder keine User-Eingabe
             result.push({
               id: `${sparte.sparte}_${baustein.knotenId}`,
@@ -833,10 +789,10 @@ export function mergeProductDataWithExistingUserData(
     
     if (mergedBausteineEntries.length > 0) {
       updates[tableKey] = { value: mergedBausteineEntries };
-      console.log(`✅ ${mergedBausteineEntries.length} Bausteine für ${sparte.sparte} gemerged`);
+      // console.log(`✅ ${mergedBausteineEntries.length} Bausteine für ${sparte.sparte} gemerged`);
     }
   });
   
-  console.log(`✅ Merge-Operation abgeschlossen. Updates:`, Object.keys(updates));
+  // console.log(`✅ Merge-Operation abgeschlossen. Updates:`, Object.keys(updates));
   return updates;
 }
