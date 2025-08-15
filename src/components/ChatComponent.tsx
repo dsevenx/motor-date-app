@@ -111,11 +111,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         
         if (existingIndex >= 0) {
           const beforeUpdate = { ...mergedTable[existingIndex] };
-          // Update bestehende Zeile - NUR check und echteEingabe, behalte ALLE anderen Felder
+          // Update bestehende Zeile - check, betrag, echteEingabe, behalte ALLE anderen Felder
           const newCheckValue = aiRow.check !== undefined ? aiRow.check : mergedTable[existingIndex].check;
+          const newBetragValue = aiRow.betrag !== undefined ? aiRow.betrag : mergedTable[existingIndex].betrag;
           mergedTable[existingIndex] = {
             ...mergedTable[existingIndex], // Bestehende Felder behalten (KRITISCH!)
             check: newCheckValue,
+            betrag: newBetragValue, // HINZUGEFÜGT: Betrag aus AI-Response übernehmen
             echteEingabe: true, // Markiere als User-Eingabe
             // Zustand-Logik: Bei Aktivierung "A" (Aktiv), bei Deaktivierung " " (Leer) - wie in updateCheckStatus
             zustand: newCheckValue ? 'A' : ' ',
@@ -123,8 +125,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
             stornogrund: ' '
           };
           console.log(`🔄 Merged existing row in ${fieldKey}:`, {
-            beforeUpdate: { id: beforeUpdate.id, check: beforeUpdate.check, zustand: beforeUpdate.zustand },
-            afterUpdate: { id: mergedTable[existingIndex].id, check: mergedTable[existingIndex].check, zustand: mergedTable[existingIndex].zustand }
+            beforeUpdate: { id: beforeUpdate.id, check: beforeUpdate.check, betrag: beforeUpdate.betrag, zustand: beforeUpdate.zustand },
+            afterUpdate: { id: mergedTable[existingIndex].id, check: mergedTable[existingIndex].check, betrag: mergedTable[existingIndex].betrag, zustand: mergedTable[existingIndex].zustand }
           });
         } else {
           // Neue Zeile hinzufügen (sollte bei Standard-Sparten normalerweise nicht passieren)
@@ -143,6 +145,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         id: row.id, 
         beschreibung: row.beschreibung?.substring(0, 20),
         check: row.check, 
+        betrag: row.betrag, // HINZUGEFÜGT: Betrag im Debug-Log anzeigen
         zustand: row.zustand,
         stornogrund: row.stornogrund,
         echteEingabe: row.echteEingabe 
