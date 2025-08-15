@@ -186,18 +186,44 @@ class McpServer {
     console.error('🚀 MCP-Robust existingData:', Object.keys(existingData));
     
     try {
-      // 1. Aktuelle Feldwerte erstellen (vereinfacht für MCP)
+      // 1. Aktuelle Feldwerte erstellen (VOLLSTÄNDIG für korrekten AI-Input)
       const currentValues = {
+        // Basis-Felder (wie vorher)
         beginndatum: '0001-01-01',
         ablaufdatum: '0001-01-01',
         anmeldedatum: '0001-01-01',
         erstzulassungsdatum: '0001-01-01',
+        KraftBoZefdatum: '0001-01-01',
+        urbeginn: '0001-01-01',
+        stornodatum: '0001-01-01',
         fahrzeugmarke: '',
+        neuwert: '0',
+        vorsteuerabzugsberechtigt: ' ',
+        abweichende_fahrzeugdaten: ' ',
+        KraftBoGruppeAusfertigungsgrundABS: '',
+        fahrerkreis: '',
+        wirtschaftszweig: '',
+        inkassoart: '',
+        KraftDmKfzVorfahrl: '0',
         fahrgestellnummer: '',
         amtlKennzeichen: '',
-        KraftDmKfzVorfahrl: '0',
+        
+        // Tabellen-Felder (WICHTIG: Vollständig initialisiert!)
         kilometerstaende: '[]',
-        produktSparten: '[]',
+        zubehoer: '[]',
+        manuelleTypklasse: '[{"id":"1","grund":"","haftpflicht":0,"vollkasko":0,"teilkasko":0}]',
+        
+        // PRODUKTDATEN (Das ist der Schlüssel für korrekte AI-Antworten!)
+        produktSparten: '[{"id":"KH","beschreibung":"Kfz-Haftpflicht","check":false,"zustand":" ","stornogrund":" ","beitragNetto":0,"beitragBrutto":0,"echteEingabe":false},{"id":"KK","beschreibung":"Kfz-Vollkasko","check":false,"zustand":" ","stornogrund":" ","beitragNetto":0,"beitragBrutto":0,"echteEingabe":false},{"id":"EK","beschreibung":"Kfz-Teilkasko","check":false,"zustand":" ","stornogrund":" ","beitragNetto":0,"beitragBrutto":0,"echteEingabe":false},{"id":"KU","beschreibung":"Kfz-Unfallversicherung","check":false,"zustand":" ","stornogrund":" ","beitragNetto":0,"beitragBrutto":0,"echteEingabe":false}]',
+        
+        // BAUSTEIN-TABELLEN (Damit Claude weiß, welche Bausteine verfügbar sind!)
+        produktBausteine_KH: '[{"id":"KBM00001","beschreibung":"Rabattschutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00001","echteEingabe":false},{"id":"KBH00006","beschreibung":"Auslandsschadenschutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBH00006","echteEingabe":false},{"id":"KBM00089","beschreibung":"BeitragsSchutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00089","echteEingabe":false},{"id":"KBM00195","beschreibung":"Komfort Nicht-PKW","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00195","echteEingabe":false},{"id":"KBE00002","beschreibung":"Eigen2schadenschutz","check":false,"betrag":20,"betragsLabel":"Summe","knotenId":"KBE00002","echteEingabe":false}]',
+        
+        produktBausteine_KK: '[{"id":"KBM00001","beschreibung":"Rabattschutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00001","echteEingabe":false},{"id":"KBM00089","beschreibung":"BeitragsSchutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00089","echteEingabe":false},{"id":"KBV00002","beschreibung":"Selbstbeteiligung Vollkasko","check":false,"betrag":300,"betragsLabel":"Selbstbeteiligung","knotenId":"KBV00002","echteEingabe":false},{"id":"KBM00002","beschreibung":"Selbstbeteiligung Teilkasko","check":false,"betrag":150,"betragsLabel":"Selbstbeteiligung","knotenId":"KBM00002","echteEingabe":false}]',
+        
+        produktBausteine_EK: '[]',
+        produktBausteine_KU: '[]',
+        
         ...existingData // Überschreibe mit bestehenden Daten
       };
       
@@ -385,7 +411,59 @@ ${spartenRows}
       console.error(`❌ Produktsparten nicht verarbeitet - Bedingungen nicht erfüllt`);
     }
     
-    // 3. Einzelfelder
+    // 3. ProduktBausteine KH Tabelle  
+    console.error(`🔍 Prüfe produktBausteine_KH:`, {
+      exists: !!fieldValues.produktBausteine_KH,
+      type: typeof fieldValues.produktBausteine_KH,
+      isArray: Array.isArray(fieldValues.produktBausteine_KH),
+      length: Array.isArray(fieldValues.produktBausteine_KH) ? fieldValues.produktBausteine_KH.length : 'not array',
+      value: fieldValues.produktBausteine_KH
+    });
+    
+    if (fieldValues.produktBausteine_KH && Array.isArray(fieldValues.produktBausteine_KH) && fieldValues.produktBausteine_KH.length > 0) {
+      console.error(`✅ Verarbeite ProduktBausteine KH:`, fieldValues.produktBausteine_KH);
+      let bausteinKHRows = fieldValues.produktBausteine_KH.map(row => `        <zeile>
+          <id>${row.id || ''}</id>
+          <beschreibung>${row.beschreibung || ''}</beschreibung>
+          <check>${row.check === true ? 'true' : 'false'}</check>
+          <betrag>${row.betrag || '0'}</betrag>
+          <betragsLabel>${row.betragsLabel || ''}</betragsLabel>
+          <knotenId>${row.knotenId || row.id || ''}</knotenId>
+        </zeile>`).join('\n');
+      xmlContent.push(`      <produktBausteine_KH_e>
+${bausteinKHRows}
+      </produktBausteine_KH_e>`);
+    } else {
+      console.error(`❌ ProduktBausteine KH nicht verarbeitet - Bedingungen nicht erfüllt`);
+    }
+    
+    // 4. ProduktBausteine KK Tabelle
+    console.error(`🔍 Prüfe produktBausteine_KK:`, {
+      exists: !!fieldValues.produktBausteine_KK,
+      type: typeof fieldValues.produktBausteine_KK,
+      isArray: Array.isArray(fieldValues.produktBausteine_KK),
+      length: Array.isArray(fieldValues.produktBausteine_KK) ? fieldValues.produktBausteine_KK.length : 'not array',
+      value: fieldValues.produktBausteine_KK
+    });
+    
+    if (fieldValues.produktBausteine_KK && Array.isArray(fieldValues.produktBausteine_KK) && fieldValues.produktBausteine_KK.length > 0) {
+      console.error(`✅ Verarbeite ProduktBausteine KK:`, fieldValues.produktBausteine_KK);
+      let bausteinKKRows = fieldValues.produktBausteine_KK.map(row => `        <zeile>
+          <id>${row.id || ''}</id>
+          <beschreibung>${row.beschreibung || ''}</beschreibung>
+          <check>${row.check === true ? 'true' : 'false'}</check>
+          <betrag>${row.betrag || '0'}</betrag>
+          <betragsLabel>${row.betragsLabel || ''}</betragsLabel>
+          <knotenId>${row.knotenId || row.id || ''}</knotenId>
+        </zeile>`).join('\n');
+      xmlContent.push(`      <produktBausteine_KK_e>
+${bausteinKKRows}
+      </produktBausteine_KK_e>`);
+    } else {
+      console.error(`❌ ProduktBausteine KK nicht verarbeitet - Bedingungen nicht erfüllt`);
+    }
+
+    // 5. Einzelfelder
     if (fieldValues.KraftDmKfzVorfahrl && fieldValues.KraftDmKfzVorfahrl !== '0') {
       console.error(`🔍 Verarbeite Fahrleistung:`, fieldValues.KraftDmKfzVorfahrl);
       xmlContent.push(`      <KraftDmKfzVorfahrl_e>${fieldValues.KraftDmKfzVorfahrl}</KraftDmKfzVorfahrl_e>`);

@@ -339,7 +339,7 @@ WICHTIG: Antworte NUR mit JSON im angegebenen Format. Keine zusätzlichen Erklä
             
             
             // Spezielle Behandlung für kombinierte VK/TK Selbstbeteiligung
-            let expandedClaudeItems: any[] = [];
+            const expandedClaudeItems: any[] = [];
             fieldData.value.forEach((claudeItem: any) => {
               const desc = claudeItem.beschreibung?.toLowerCase() || '';
               

@@ -606,7 +606,7 @@ wird vom KI-Chat korrekt verarbeitet:
 </ANTRAG>
 Der inhaltliche gleiche Satz an ClaudeDesktop (welches unseren MCP Server benutzt):
 Erzeuge mit bitte das ServiceABS EinarbeiterXML zu : Ich habe ein Kilometerstand zum Beginn mit 434 KM, fahre im Jahr 12002 und möchte eine VK 300/150 mit Rabattschutz und Beitragsschutz.
-liefert leider keine Baustein-Gruppen:
+liefert leider keine Baustein-Gruppen und auch der Zustand wird nicht wie beim KI-Chat erkannt:
 <ANTRAG>
   <PERSONEN>
   </PERSONEN>
@@ -633,6 +633,17 @@ liefert leider keine Baustein-Gruppen:
     </KRAFTBL>
   </VERTRAG>
 </ANTRAG>
+
+MCP Anfragen und KI Chat anfragen sollen gleich beantwortet werden - bitte schau nach, was beim MCP-Call noch nicht in Ordnung ist.
+
+------------------------------------------------------------------------------------------------------------
+
+Die Key in FIELD_DEFINITIONS werden über mehrer Teams abgestimmt. Wir haben jetzt ein fieldConfigAbgestimmt.tsx bekommen.
+Dort sind die abgestimmten Keys hinterlegt. Also z.B. NEU key: 'KraftBoAllgBeginn' statt ALT: key: 'beginndatum'.
+Bitte geh fieldConfigAbgestimmt.tsx durch und passe unsere Key-Bezeichnungen auf diese aus fieldConfigAbgestimmt.tsx an. 
+Wenn Synonyme ergänzt worden sind, dann bitte diese auch übernehmen. Bitte aber darandenken, wenn wir die key aus FIELD_DEFINITIONS schon bei uns verwendet haben,
+also in if-Abfragen oder ähnliches. Wir müseen diese Abfragen/benutzungen gleich mit umstellen. 
+Die Key-Felder bei den Tabellen könnten ebenfalls angepasst sein. Bitte hier analog vorgehen.
 
 ------------------------------------------------------------------------------------------------------------
 

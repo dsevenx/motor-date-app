@@ -1,7 +1,6 @@
 import { createMcpHandler } from '@vercel/mcp-adapter';
 import { ServiceABSEinarbeiterHelper } from '@/utils/ServiceABSEinarbeiterHelper';
-import { FIELD_DEFINITIONS, generateDefaultValues, generateEchteEingabeValues } from '@/constants/fieldConfig';
-import { ensureGlobalProductDataLoaded } from '@/hooks/useGlobalProductData';
+import { FIELD_DEFINITIONS, generateEchteEingabeValues } from '@/constants/fieldConfig';
 
 // MCP Server für ServiceABS-Einarbeiter XML Generation
 const handler = createMcpHandler((server) => {
@@ -17,15 +16,10 @@ const handler = createMcpHandler((server) => {
         description: 'Optional: Bereits vorhandene Felddaten'
       }
     },
-    async (args, extra) => {
+    async (args) => {
       const { chatInput, existingData = {} } = args as { chatInput: string; existingData?: Record<string, any> };
       
       try {
-        // 🌐 Stelle sicher, dass globale Produktdaten geladen sind
-        console.log('🌐 MCP: Lade globale Produktdaten...');
-        await ensureGlobalProductDataLoaded();
-        console.log('✅ MCP: Globale Produktdaten bereit');
-        
         // 1. KI-Extraktion der Daten aus Chat-Input
         const extractedData = await extractDataFromChat(chatInput, existingData);
       
@@ -80,7 +74,7 @@ const handler = createMcpHandler((server) => {
         description: 'Optional: Filterung nach Feldtyp (date, text, number, table, etc.)'
       }
     },
-    async (args, extra) => {
+    async (args) => {
       const { fieldType } = args as { fieldType?: string };
     try {
       let fields = FIELD_DEFINITIONS;
@@ -137,17 +131,28 @@ async function extractDataFromChat(chatInput: string, existingData: Record<strin
   
   try {
     // 1. Aktuelle Feldwerte mit existierenden Daten erstellen (wie Web-Chat)
+    // WICHTIG: Verwende generateEchteEingabeValues() für konsistente Initialisierung
+    const baseValues = generateEchteEingabeValues();
     const currentValues: Record<string, string> = {};
     
-    // FIELD_DEFINITIONS durchgehen und aktuelle Werte sammeln
+    // FIELD_DEFINITIONS durchgehen und aktuelle Werte sammeln (wie Web-Chat)
     FIELD_DEFINITIONS.forEach(field => {
-      // Prüfe existingData first, dann echteEingabe, dann defaultValue
+      let value: any;
+      
+      // Prüfe existingData first, dann baseValues, dann defaultValue
       if (existingData[field.key] !== undefined) {
-        currentValues[field.key] = String(existingData[field.key]);
-      } else if (field.echteEingabe !== undefined) {
-        currentValues[field.key] = String(field.echteEingabe);
+        value = existingData[field.key];
+      } else if (baseValues[field.key] !== undefined) {
+        value = baseValues[field.key];
       } else {
-        currentValues[field.key] = String(field.defaultValue || '');
+        value = field.defaultValue || '';
+      }
+      
+      // Konvertiere zu String für Claude API
+      if (typeof value === 'object') {
+        currentValues[field.key] = JSON.stringify(value);
+      } else {
+        currentValues[field.key] = String(value);
       }
     });
     
@@ -232,54 +237,16 @@ async function extractDataFromChat(chatInput: string, existingData: Record<strin
           return;
         }
         
-        // FIELD_DEFINITIONS finden und echteEingabe setzen
+        // FIELD_DEFINITIONS finden und echteEingabe setzen (wie Web-Chat)
         const fieldDef = FIELD_DEFINITIONS.find(f => f.key === fieldKey);
         if (fieldDef) {
           console.log(`✅ MCP: Update ${fieldKey} = ${extractedValue.value}`);
-          console.log(`✅ MCP: Field type = ${fieldDef.type}`);
           
-          // Korrekte Datenstruktur je nach Feldtyp
-          let processedValue = extractedValue.value;
-          
-          // Für Tabellen: Stelle sicher, dass es ein Array ist
-          if (fieldDef.type === 'table' || fieldDef.type === 'single-line-table') {
-            if (!Array.isArray(processedValue)) {
-              console.log(`🔧 MCP: Konvertiere Tabellenwert zu Array für ${fieldKey}`);
-              processedValue = Array.isArray(extractedValue.value) ? extractedValue.value : [];
-            }
-            
-            // Spezielle Behandlung für Kilometerstände
-            if (fieldKey === 'kilometerstaende' && Array.isArray(processedValue)) {
-              processedValue = processedValue.map((row: any) => ({
-                ...row,
-                echteEingabe: true // Markiere jede Zeile als echte Eingabe
-              }));
-              console.log(`🔧 MCP: Kilometerstand-Struktur:`, processedValue);
-            }
-            
-            // Spezielle Behandlung für Produktsparten
-            if (fieldKey === 'produktSparten' && Array.isArray(processedValue)) {
-              processedValue = processedValue.map((row: any) => ({
-                ...row,
-                echteEingabe: true, // Markiere als echte Eingabe
-                // Stelle sicher, dass alle erforderlichen Felder vorhanden sind
-                id: row.id || row.beschreibung || 'KK',
-                beschreibung: row.beschreibung || 'Kfz-Vollkasko',
-                check: row.check !== undefined ? row.check : true,
-                zustand: row.zustand || 'A',
-                stornogrund: row.stornogrund || ' ',
-                beitragNetto: row.beitragNetto || 0,
-                beitragBrutto: row.beitragBrutto || 0
-              }));
-              console.log(`🔧 MCP: Produktsparten-Struktur:`, processedValue);
-            }
-          }
-          
-          // Setze echteEingabe in FIELD_DEFINITIONS (WICHTIG!)
-          fieldDef.echteEingabe = processedValue;
+          // Setze echteEingabe Flag in FIELD_DEFINITIONS (boolean!)
+          fieldDef.echteEingabe = extractedValue.value;
           
           // Setze auch in fieldValues für XML-Generierung
-          fieldValues[fieldKey] = processedValue;
+          fieldValues[fieldKey] = extractedValue.value;
           
           extractedFields.push(fieldKey);
           totalConfidence += extractedValue.confidence;
@@ -304,13 +271,13 @@ async function extractDataFromChat(chatInput: string, existingData: Record<strin
     
   } catch (error) {
     console.error('❌ ===== MCP CLAUDE API FEHLER =====');
-    console.error('❌ Error Type:', error.constructor.name);
-    console.error('❌ Error Message:', error.message);
+    console.error('❌ Error Type:', error instanceof Error ? error.constructor.name : typeof error);
+    console.error('❌ Error Message:', error instanceof Error ? error.message : String(error));
     console.error('❌ Full Error:', error);
-    console.error('❌ Stack Trace:', error.stack);
+    console.error('❌ Stack Trace:', error instanceof Error ? error.stack : 'No stack trace');
     console.error('❌ ===== ENDE MCP FEHLER =====');
     
     // KEINEN Fallback - werfe Fehler weiter, um das Problem zu identifizieren
-    throw new Error(`MCP Claude API Integration fehlgeschlagen: ${error.message}`);
+    throw new Error(`MCP Claude API Integration fehlgeschlagen: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

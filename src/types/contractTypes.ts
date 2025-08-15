@@ -4,7 +4,7 @@ export interface TreeNode {
   id: string;
   name: string;
   description: string;
-  type: 'company' | 'group' | 'contract' | 'general' | 'fuhrpark';
+  type: 'company' | 'group' | 'contract' | 'general' | 'fuhrpark' | 'TM' | 'EV' | 'OK';
   aktivesObjekt?: boolean; // Für fettgeschriebene Darstellung
   children?: TreeNode[];
   expanded?: boolean;
