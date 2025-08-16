@@ -30,4 +30,5 @@ Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilometerstand zum 
 Erzeuge mir mal das SerivceABS-EinarbeiterXML : Ich habe ein Kilometerstand zum Beginn mit 433 KM, fahre im Jahr 12002 und möchte eine VK
 
 Erzeuge mir mal das SerivceABS-EinarbeiterXML : 
-Ich habe ein Kilometerstand zum Beginn mit 3334 KM, fahre im Jahr 12005 und möchte eine VK 2500/150 mit Rabattschutz und Beitragsschutz.
+Meine Versicherung für mein 3 Jahres altes Auto soll am 1.9. beginnen.  
+Ich habe ein Kilometerstand zum Beginn mit 15334 KM, fahre im Jahr 12005 und möchte eine VK 750/555 mit Rabattschutz und Beitragsschutz.

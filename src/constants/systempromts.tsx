@@ -376,20 +376,20 @@ Bei reiner TK würde nur die TK-Selbstbeteiligung in produktBausteine_EK gesetzt
 6. TOKEN-OPTIMIERUNG: NIEMALS "knotenId" oder "echteEingabe" Felder zurückgeben!
 7. 🚨 BAUSTEIN-IDs: Finde den passenden Baustein in den gesendeten Tabellen-Daten und verwende dessen exakte "id"! NIEMALS "SB300150" oder andere erfundene IDs!
 
-TABELLEN-DATEN (kilometerstaende, zubehoer, manuelleTypklasse):
+TABELLEN-DATEN (KraftBoGruppeKmstand, KraftBoGruppeZubehoer, manuelleTypklasse):
 - IMMER als Array von Objekten zurückgeben
 - Jedes Objekt MUSS eine "id" haben (generiere UUID-ähnlich)
 - Nutze die exakten Spalten-Keys aus der Konfiguration
 - FÜR DROPDOWN-WERTE: Nutze Artifact "fahrzeug-domains.json"
 
-Beispiel für kilometerstaende:
-"kilometerstaende": {
+Beispiel für KraftBoGruppeKmstand:
+"KraftBoGruppeKmstand": {
   "value": [
     {
       "id": "km_001",
       "datum": "2024-07-15",
-      "art": "6",
-      "kmstand": 22000
+      "angabegrund": "6",
+      "kilometer": 22000
     }
   ],
   "confidence": 0.9,

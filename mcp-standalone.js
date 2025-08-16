@@ -197,8 +197,8 @@ async function extractDataFromChat(chatInput, existingData) {
   const kmRegex = /(\d+)\s*(?:km|kilometer)\s*(?:pro\s+jahr|jährlich|im\s+jahr)/i;
   const kmMatch = chatInput.match(kmRegex);
   if (kmMatch) {
-    fieldValues.jahreskilometer = parseInt(kmMatch[1]);
-    extractedFields.push('jahreskilometer');
+    fieldValues.KraftBoJahreskilometer = parseInt(kmMatch[1]);
+    extractedFields.push('KraftDmKfzVorfahrl');
     confidence += 0.2;
   }
   
@@ -226,8 +226,8 @@ async function extractDataFromChat(chatInput, existingData) {
   const markenRegex = /(bmw|mercedes|audi|volkswagen|vw|porsche|ford|opel|toyota|nissan|honda)/i;
   const markeMatch = chatInput.match(markenRegex);
   if (markeMatch) {
-    fieldValues.fahrzeugmarke = markeMatch[1].toUpperCase();
-    extractedFields.push('fahrzeugmarke');
+    fieldValues.KraftBoMarke = markeMatch[1].toUpperCase();
+    extractedFields.push('KraftBoMarke');
     confidence += 0.2;
   }
   

@@ -71,7 +71,7 @@ export interface FieldDefinition {
 // Zentrale Feld-Konfiguration
 export const FIELD_DEFINITIONS: FieldDefinition[] = [
   {
-    key: 'beginndatum',
+    key: 'KraftBoAllgBeginn',
     label: 'Beginndatum',
     type: 'date',
     defaultValue: '0001-01-01',
@@ -87,7 +87,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'ablaufdatum',
+    key: 'KraftBoAllgAblaufdatum',
     label: 'Ablaufdatum',
     type: 'date',
     defaultValue: '0001-01-01',
@@ -102,7 +102,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'erstzulassungsdatum',
+    key: 'KraftBoErstzuldatum',
     label: 'Erstzulassungsdatum',
     type: 'date',
     defaultValue: '0001-01-01',
@@ -134,7 +134,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'anmeldedatum',
+    key: 'KraftBoAnmeldedatum',
     label: 'Anmeldedatum',
     type: 'date',
     defaultValue: '0001-01-01',
@@ -158,7 +158,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'urbeginn',
+    key: 'KraftBoUrBeginn',
     label: 'Urbeginn',
     type: 'date',
     defaultValue: '0001-01-01',
@@ -181,7 +181,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'fahrzeugmarke',
+    key: 'KraftBoMarke',
     label: 'Fahrzeugmarke',
     type: 'text',
     defaultValue: '',
@@ -195,7 +195,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'neuwert',
+    key: 'KraftBoNeuwert',
     label: 'Neuwert',
     type: 'number',
     defaultValue: 0,
@@ -215,7 +215,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   },
   // TriState-Felder
   {
-    key: 'vorsteuerabzugsberechtigt',
+    key: 'KraftBoVorsteuerabzugsberechtigt',
     label: 'Vorsteuerabzugsberechtigt',
     type: 'tristate',
     defaultValue: ' ',
@@ -239,7 +239,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'abweichende_fahrzeugdaten',
+    key: 'KraftBoAbweichendeFahrzeugDetails',
     label: 'Abweichende Fahrzeugdaten',
     type: 'tristate',
     defaultValue: ' ',
@@ -284,7 +284,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'fahrerkreis',
+    key: 'KraftBoFahrerkreis',
     label: 'Fahrerkreis',
     type: 'dropdown',
     defaultValue: '',
@@ -308,7 +308,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'wirtschaftszweig',
+    key: 'KraftBoGruppeWirtschaftszweig',
     label: 'Wirtschaftszweig',
     type: 'dropdown',
     defaultValue: '',
@@ -325,7 +325,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     }
   },
   {
-    key: 'inkassoart',
+    key: 'KraftBoGruppeVertragInkassoart',
     label: 'Inkassoart',
     type: 'dropdown',
     defaultValue: '',
@@ -349,7 +349,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   },
   // Tabelle: Kilometerstände
   {
-    key: 'kilometerstaende',
+    key: 'KraftBoGruppeKmstand',
     label: 'Kilometerstände',
     type: 'table',
     defaultValue: [],
@@ -364,7 +364,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       correctionRules: [
         'Datum sollte logisch zum Kontext passen',
         'KM-Stand sollte chronologisch steigen',
-        'Bei "zu Beginn" verwende beginndatum',
+        'Bei "zu Beginn" verwende KraftBoAllgBeginn',
         'Bei "jetzt/heute/aktuell" verwende aktuelles Datum'
       ]
     },
@@ -377,7 +377,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           width: '160px'
         },
         {
-          key: 'art',
+          key: 'angabegrund',
           label: 'Art des KM-Stands',
           type: 'dropdown',
           width: '200px',
@@ -389,7 +389,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           }
         },
         {
-          key: 'kmstand',
+          key: 'kilometer',
           label: 'KM-Stand',
           type: 'number',
           width: '120px',
@@ -402,12 +402,12 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       ],
       addButtonText: 'Kilometerstand hinzufügen',
       emptyText: 'Keine Kilometerstände erfasst',
-      relatedFields: ['beginndatum', 'anmeldedatum', 'erstzulassungsdatum']
+      relatedFields: ['KraftBoAllgBeginn', 'KraftBoAnmeldedatum', 'KraftBoErstzuldatum']
     }
   },
   // Tabelle: Zubehör
   {
-    key: 'zubehoer',
+    key: 'KraftBoGruppeZubehoerteile',
     label: 'Zubehör',
     type: 'table',
     defaultValue: [],
@@ -433,7 +433,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     table: {
       columns: [
         {
-          key: 'hersteller',
+          key: 'hersteller_zubehoerteil',
           label: 'Hersteller',
           type: 'text',
           width: '140px',
@@ -442,7 +442,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           }
         },
         {
-          key: 'art',
+          key: 'name_zubehoerteil',
           label: 'Art des Zubehörs',
           type: 'dropdown',
           width: '180px',
@@ -454,13 +454,13 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
           }
         },
         {
-          key: 'zuschlag',
+          key: 'zuschlag_zubehoerteil',
           label: 'Zuschlagspflichtig',
           type: 'tristate',
           width: '100px'
         },
         {
-          key: 'wert',
+          key: 'wert_zubehoerteil',
           label: 'Wert in Euro',
           type: 'number',
           width: '120px',
@@ -473,7 +473,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       ],
       addButtonText: 'Zubehör hinzufügen',
       emptyText: 'Kein Zubehör erfasst',
-      relatedFields: ['neuwert']
+      relatedFields: ['KraftBoNeuwert']
     }
   },
 

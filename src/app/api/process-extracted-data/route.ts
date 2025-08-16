@@ -271,16 +271,8 @@ export async function POST(request: NextRequest) {
     });
     
     // 3. Generiere echteEingabeValues (lokale Version da generateEchteEingabeValues keine Parameter akzeptiert)
-    /*
-    console.log('🔧 Generiere echteEingabeValues lokal...');
-    console.log('🔍 Updated Field Definitions für echteEingabeValues:', {
-      kilometerstaende: updatedFieldDefinitions.find(f => f.key === 'kilometerstaende')?.defaultValue,
-      produktSparten: updatedFieldDefinitions.find(f => f.key === 'produktSparten')?.defaultValue,
-      produktBausteine_KK: updatedFieldDefinitions.find(f => f.key === 'produktBausteine_KK')?.defaultValue,
-      KraftDmKfzVorfahrl: updatedFieldDefinitions.find(f => f.key === 'KraftDmKfzVorfahrl')?.defaultValue
-    });
-    */
     
+        
     // Lokale generateEchteEingabeValues Implementation
     const echteEingabeValues = updatedFieldDefinitions.reduce((acc, field) => {
       const value = field.echteEingabeValue || field.defaultValue;
