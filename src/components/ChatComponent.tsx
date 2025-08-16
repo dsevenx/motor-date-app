@@ -69,6 +69,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
       const mergedTable = [...currentArray]; // Start mit bestehenden Werten (normalisiert)
       
       aiArray.forEach((aiRow: any) => {
+        console.log(`🔍 mergeTableData: Processing AI row for ${fieldKey}:`, {
+          id: aiRow.id,
+          beschreibung: aiRow.beschreibung,
+          check: aiRow.check,
+          zustand: aiRow.zustand,
+          knotenId: aiRow.knotenId
+        });
+        
         // Mehrere Matching-Strategien für robustes Matching
         let existingIndex = mergedTable.findIndex(row => row.id === aiRow.id);
         
@@ -94,6 +102,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
         
         if (existingIndex >= 0) {
           const beforeUpdate = { ...mergedTable[existingIndex] };
+          console.log(`🔄 mergeTableData: Found existing row at index ${existingIndex}:`, beforeUpdate);
+          
           // Update bestehende Zeile - check, betrag, echteEingabe, behalte ALLE anderen Felder
           const newCheckValue = aiRow.check !== undefined ? aiRow.check : mergedTable[existingIndex].check;
           const newBetragValue = aiRow.betrag !== undefined ? aiRow.betrag : mergedTable[existingIndex].betrag;
@@ -107,15 +117,28 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({ fieldConfigs }) =>
             // Stornogrund (zustandsdetail) immer leer
             stornogrund: ' '
           };
+          
+          const afterUpdate = { ...mergedTable[existingIndex] };
+          console.log(`✅ mergeTableData: Updated row:`, {
+            before: { check: beforeUpdate.check, zustand: beforeUpdate.zustand, knotenId: beforeUpdate.knotenId },
+            after: { check: afterUpdate.check, zustand: afterUpdate.zustand, knotenId: afterUpdate.knotenId }
+          });
         } else {
           // Neue Zeile hinzufügen (sollte bei Standard-Sparten normalerweise nicht passieren)
-          mergedTable.push({
+          console.log(`➕ mergeTableData: Adding new row (no existing match found):`, aiRow);
+          const newRow = {
             ...aiRow,
             echteEingabe: true, // Markiere als User-Eingabe
             // Zustand-Logik auch für neue Zeilen
             zustand: aiRow.check ? 'A' : ' ',
             stornogrund: ' '
+          };
+          console.log(`✅ mergeTableData: New row created:`, {
+            check: newRow.check, 
+            zustand: newRow.zustand, 
+            knotenId: newRow.knotenId
           });
+          mergedTable.push(newRow);
         }
       });
       return mergedTable;

@@ -121,6 +121,13 @@ export const updateCheckStatus = (
       
       if (sparteIndex >= 0) {
         const beforeUpdate = { ...spartenData[sparteIndex] };
+        console.log(`🔧 updateCheckStatus: Sparte ${sparte} - BEFORE:`, {
+          check: beforeUpdate.check,
+          zustand: beforeUpdate.zustand,
+          stornogrund: beforeUpdate.stornogrund,
+          echteEingabe: beforeUpdate.echteEingabe
+        });
+        
         spartenData[sparteIndex] = { 
           ...spartenData[sparteIndex], 
           check: checked,
@@ -132,6 +139,12 @@ export const updateCheckStatus = (
         };
         const afterUpdate = { ...spartenData[sparteIndex] };
         
+        console.log(`✅ updateCheckStatus: Sparte ${sparte} - AFTER:`, {
+          check: afterUpdate.check,
+          zustand: afterUpdate.zustand,
+          stornogrund: afterUpdate.stornogrund,
+          echteEingabe: afterUpdate.echteEingabe
+        });
         
         updateFieldDefinitions({
           produktSparten: { value: spartenData }
@@ -160,11 +173,26 @@ export const updateCheckStatus = (
     const bausteinIndex = bausteineData.findIndex((b: any) => b.knotenId === knotenId);
     
     if (bausteinIndex >= 0) {
+      const beforeUpdate = { ...bausteineData[bausteinIndex] };
+      console.log(`🔧 updateCheckStatus: Baustein ${knotenId} in ${sparte} - BEFORE:`, {
+        knotenId: beforeUpdate.knotenId,
+        check: beforeUpdate.check,
+        echteEingabe: beforeUpdate.echteEingabe
+      });
+      
       bausteineData[bausteinIndex] = { 
         ...bausteineData[bausteinIndex], 
         check: checked,
         echteEingabe: isUserInput // Markiere als echte Eingabe
       };
+      
+      const afterUpdate = { ...bausteineData[bausteinIndex] };
+      console.log(`✅ updateCheckStatus: Baustein ${knotenId} in ${sparte} - AFTER:`, {
+        knotenId: afterUpdate.knotenId,
+        check: afterUpdate.check,
+        echteEingabe: afterUpdate.echteEingabe
+      });
+      
       updateFieldDefinitions({
         [tableKey]: { value: bausteineData }
       });
