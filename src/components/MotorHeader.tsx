@@ -6,7 +6,7 @@ import { fetchContractDataBL } from '@/app/api/FetchContractBL';
 import { useEditMode } from '@/contexts/EditModeContext';
 import { NavigationMenu } from './NavigationMenu';
 import { ParsedLink } from './ParsedLink';
-import { cleanServiceText } from '@/utils/htmlLinkParser';
+import { cleanServiceText, cleanTelFaxField } from '@/utils/htmlLinkParser';
 
 interface MotorHeaderProps {
   contract?: Contract;
@@ -134,7 +134,7 @@ export const MotorHeader: React.FC<MotorHeaderProps> = ({ contract: propContract
               {contract.contract.kContract.deAllgInfos.vertrPlzOrt}
             </div>
             <div className="text-sm text-gray-700">
-              {cleanServiceText(contract.contract.kContract.deAllgInfos.vertrTelFax)} 
+              {cleanTelFaxField(contract.contract.kContract.deAllgInfos.vertrTelFax)} 
             </div>
           </div>
         </div>

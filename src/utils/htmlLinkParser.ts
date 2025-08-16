@@ -107,3 +107,33 @@ export const cleanServiceText = (str: string): string => {
   // Zuerst doppelte Backslashes entfernen, dann HTML-Entities
   return unescapeHtml(cleanDoubleBackslashes(str));
 };
+
+/**
+ * Spezielle Behandlung für vertrTelFax-Felder
+ * Beispiel: "Tel./Fax: <a href="tel:+4922130831734">(0221) 3083-1734</a>//3089531734"
+ * Ergebnis: "Tel./Fax: (0221) 3083-1734"
+ */
+export const cleanTelFaxField = (str: string): string => {
+  if (!str || typeof str !== 'string') {
+    return str;
+  }
+
+  // Erst normale Service-Text-Bereinigung
+  let cleaned = cleanServiceText(str);
+  
+  // Prüfe auf HTML-Link im Text
+  const linkMatch = cleaned.match(/<a\s+href=["'][^"']*["'][^>]*>([^<]+)<\/a>/i);
+  
+  if (linkMatch) {
+    const linkText = linkMatch[1]; // Text zwischen <a> und </a>
+    
+    // Entferne alles nach dem Link (z.B. "//3089531734")
+    const beforeLink = cleaned.substring(0, cleaned.indexOf('<a'));
+    
+    // Baue bereinigten Text zusammen: "Tel./Fax: " + Telefonnummer
+    return `${beforeLink}${linkText}`;
+  }
+  
+  // Falls kein Link gefunden, normalen bereinigten Text zurückgeben
+  return cleaned;
+};
