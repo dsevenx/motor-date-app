@@ -3,58 +3,43 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { Contract } from '@/types/contractTypes';
+import { createEmptyContract } from '@/utils/emptyContract';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const vertrkey = searchParams.get('vertrkey');
     
-    // Default-File falls kein vertrkey angegeben
-    const defaultFile = 'testContract_AS_ 5294945057.json';
-    let targetFile = defaultFile;
-    
-    if (vertrkey) {
-      // Konstruiere Filename basierend auf vertrkey
-      targetFile = `${vertrkey}.json`;
+    if (!vertrkey) {
+      // Kein vertrkey angegeben - gib leeren Contract zurück
+      console.log('API: No vertrkey provided, returning empty contract');
+      const emptyContract = createEmptyContract();
+      return NextResponse.json(emptyContract);
     }
+    
+    // Konstruiere Filename basierend auf vertrkey
+    const targetFile = `${vertrkey}.json`;
+    const filePath = path.join(process.cwd(), 'src', 'data', targetFile);
     
     console.log(`API: Attempting to load contract file: ${targetFile}`);
     
-    // Versuche das gewünschte File zu laden
-    const filePath = path.join(process.cwd(), 'src', 'data', targetFile);
-    
-    let contractData: Contract | null = null;
-    
     if (fs.existsSync(filePath)) {
       const fileContent = fs.readFileSync(filePath, 'utf-8');
-      contractData = JSON.parse(fileContent);
+      const contractData: Contract = JSON.parse(fileContent);
       console.log(`API: Successfully loaded contract data from: ${targetFile}`);
-    } else if (targetFile !== defaultFile) {
-      // Fallback auf Default-File
-      console.log(`API: File ${targetFile} not found, trying default: ${defaultFile}`);
-      const defaultFilePath = path.join(process.cwd(), 'src', 'data', defaultFile);
-      
-      if (fs.existsSync(defaultFilePath)) {
-        const fileContent = fs.readFileSync(defaultFilePath, 'utf-8');
-        contractData = JSON.parse(fileContent);
-        console.log(`API: Successfully loaded default contract data from: ${defaultFile}`);
-      }
+      return NextResponse.json(contractData);
+    } else {
+      // File nicht gefunden - gib leeren Contract zurück
+      console.log(`API: Contract file not found: ${targetFile}, returning empty contract`);
+      const emptyContract = createEmptyContract();
+      return NextResponse.json(emptyContract);
     }
-    
-    if (!contractData) {
-      return NextResponse.json(
-        { error: `Contract file not found: ${targetFile}` },
-        { status: 404 }
-      );
-    }
-    
-    return NextResponse.json(contractData);
     
   } catch (error) {
     console.error('API: Error loading contract data:', error);
-    return NextResponse.json(
-      { error: 'Internal server error loading contract data' },
-      { status: 500 }
-    );
+    // Bei Fehlern auch leeren Contract zurückgeben statt 500-Error
+    console.log('API: Returning empty contract due to error');
+    const emptyContract = createEmptyContract();
+    return NextResponse.json(emptyContract);
   }
 }

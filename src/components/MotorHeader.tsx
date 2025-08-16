@@ -6,7 +6,7 @@ import { fetchContractDataBL } from '@/app/api/FetchContractBL';
 import { useEditMode } from '@/contexts/EditModeContext';
 import { NavigationMenu } from './NavigationMenu';
 import { ParsedLink } from './ParsedLink';
-import { cleanServiceText, cleanTelFaxField } from '@/utils/htmlLinkParser';
+import { cleanTelFaxField } from '@/utils/htmlLinkParser';
 
 interface MotorHeaderProps {
   contract?: Contract;
