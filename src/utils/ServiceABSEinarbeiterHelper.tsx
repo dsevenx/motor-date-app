@@ -22,6 +22,28 @@ export interface ServiceABSEinarbeiterResponse {
 export class ServiceABSEinarbeiterHelper {
   
   /**
+   * Ermittelt den XML-Sende-Tag-Namen basierend auf dem Field Key
+   * @param key - Field Key aus FIELD_DEFINITIONS
+   * @returns XML Tag Name mit _e Suffix
+   */
+  static ermittelXMLSendeTagName(key: string): string {
+    if (key.startsWith('Kraft')) {
+      // Nimm den Teil nach 'Kraft'
+      const nachKraft = key.substring(5); // 'Kraft' hat 5 Zeichen
+      
+      // Füge vor jeden Großbuchstaben einen Unterstrich hinzu und mache alles klein
+      const mitUnterstrichen = nachKraft.replace(/[A-Z]/g, (match, offset) => {
+        return offset > 0 ? '_' + match.toLowerCase() : match.toLowerCase();
+      });
+      
+      return mitUnterstrichen + '_e';
+    } else {
+      // Für Keys die nicht mit 'Kraft' beginnen, einfach _e anhängen
+      return key + '_e';
+    }
+  }
+  
+  /**
    * Hauptfunktion: Erzeugt das komplette Sende-XML für den ServiceABSEinarbeiter
    * @param fieldValues - Aktuelle Feldwerte aus dem Formular
    * @returns Das vollständige XML für den SOAP-Service
@@ -158,7 +180,8 @@ ${kraftblContent}
 
     if (xmlValue === '') return null;
 
-    return `<${field.key}_e>${this.escapeXML(xmlValue)}</${field.key}_e>`;
+    const tagName = this.ermittelXMLSendeTagName(field.key);
+    return `<${tagName}>${this.escapeXML(xmlValue)}</${tagName}>`;
   }
 
   /**
@@ -190,7 +213,8 @@ ${kraftblContent}
 
     if (zeilen.length === 0) return null;
 
-    return `<${field.key}_e>\n${zeilen.join('\n')}\n      </${field.key}_e>`;
+    const tagName = this.ermittelXMLSendeTagName(field.key);
+    return `<${tagName}>\n${zeilen.join('\n')}\n      </${tagName}>`;
   }
 
   /**
