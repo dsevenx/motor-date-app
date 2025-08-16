@@ -33,7 +33,7 @@ export interface FieldDefinition {
   label: string;                  // Anzeigename
   type: FieldType;               // Datentyp
   defaultValue: string | number | boolean | TableRow[] | 'J' | 'N' | ' '; // Standardwert
-  echteEingabe?: string | number | boolean | TableRow[] | 'J' | 'N' | ' '; // Echte Benutzereingabe
+  echteEingabeValue?: string | number | boolean | TableRow[] | 'J' | 'N' | ' '; // Echte Benutzereingabe
   synonyms: string[];            // KI-Erkennungsworte
   required?: boolean;            // Pflichtfeld
   validation?: {
@@ -1071,10 +1071,10 @@ export const generateDefaultValues = (): Record<string, any> => {
 // Generiere echte Eingabe Werte für KB-TH
 export const generateEchteEingabeValues = (): Record<string, any> => {
   return FIELD_DEFINITIONS.reduce((acc, field) => {
-    const value = field.echteEingabe || field.defaultValue;
+    const value = field.echteEingabeValue || field.defaultValue;
     
     // Use cached value if available to maintain object identity
-    if (_echteEingabeCache[field.key] === undefined || field.echteEingabe !== undefined) {
+    if (_echteEingabeCache[field.key] === undefined || field.echteEingabeValue !== undefined) {
       // Deep clone arrays and objects to prevent mutation
       if (Array.isArray(value)) {
         _echteEingabeCache[field.key] = value.map(item => 
@@ -1121,7 +1121,7 @@ export const setFieldValueWithEchteEingabe = (
   if (fieldIndex !== -1) {
     // Removed debug tracking for manuelleTypklasse - issue was found in AppLayout.tsx
     
-    FIELD_DEFINITIONS[fieldIndex].echteEingabe = finalValue;
+    FIELD_DEFINITIONS[fieldIndex].echteEingabeValue = finalValue;
     // Invalidate cache for this field so it gets updated
     delete _echteEingabeCache[fieldKey];
   }
@@ -1151,7 +1151,7 @@ export const generateFieldConfigs = (
       // echteEingabe in FIELD_DEFINITIONS setzen (für ChatComponent/KI-Updates)
       const fieldIndex = FIELD_DEFINITIONS.findIndex(f => f.key === field.key);
       if (fieldIndex !== -1) {
-        FIELD_DEFINITIONS[fieldIndex].echteEingabe = finalValue;
+        FIELD_DEFINITIONS[fieldIndex].echteEingabeValue = finalValue;
         delete _echteEingabeCache[field.key];
       }
     };

@@ -121,21 +121,57 @@ class McpServer {
     try {
       const { chatInput, existingData = {} } = args || {};
       
-      console.error(`🎯 Tool-Aufruf: generate_serviceabs_xml`);
+      console.error(`🎯 ===== MCP TOOL-AUFRUF START =====`);
+      console.error(`🎯 Tool: generate_serviceabs_xml`);
       console.error(`📝 ChatInput: "${chatInput}"`);
       console.error(`📋 ExistingData:`, JSON.stringify(existingData, null, 2));
+      console.error(`📊 Logs verfügbar unter: /Users/steffenrokosch/Library/Logs/Claude/mcp-server-serviceabs-xml-generator.log`);
+      console.error(`📊 Next.js Dev Server sollte laufen auf: http://localhost:3000`);
+      console.error(`🎯 ===== BEGINN VERARBEITUNG =====`);
       
       if (!chatInput) {
         throw new Error('chatInput ist erforderlich');
       }
 
-      // Datenextraktion
-      const extractedData = await this.extractDataFromChat(chatInput, existingData);
-      console.error(`🔍 Extrahierte Daten:`, JSON.stringify(extractedData, null, 2));
+      // Schritt 1: Datenextraktion über Claude AI
+      console.error(`🚀 SCHRITT 1: Starte Claude AI Datenextraktion...`);
+      let aiResponse;
+      try {
+        aiResponse = await this.extractDataFromChat(chatInput, existingData);
+        console.error(`✅ SCHRITT 1 ERFOLGREICH: Claude AI Response:`, JSON.stringify(aiResponse, null, 2));
+      } catch (extractError) {
+        console.error(`❌ SCHRITT 1 FEHLGESCHLAGEN:`, extractError.message);
+        throw new Error(`Claude AI Extraktion fehlgeschlagen: ${extractError.message}`);
+      }
       
-      // XML-Generierung
-      const xml = this.generateXML(extractedData.fieldValues);
-      console.error(`📄 Generierte XML:`, xml);
+      // Validierung der aiResponse
+      if (!aiResponse || !aiResponse.aiData || !aiResponse.aiData.extractedData) {
+        console.error(`❌ Ungültige aiResponse Struktur:`, aiResponse);
+        throw new Error('Claude AI Response hat keine extractedData');
+      }
+      
+      // Schritt 2: Verarbeitung der extrahierten Daten
+      console.error(`🚀 SCHRITT 2: Starte Datenverarbeitung...`);
+      console.error(`🔍 ExtractedData Keys:`, Object.keys(aiResponse.aiData.extractedData));
+      let processedData;
+      try {
+        processedData = await this.processExtractedDataViaAPI(aiResponse.aiData.extractedData);
+        console.error(`✅ SCHRITT 2 ERFOLGREICH: Verarbeitete Daten:`, JSON.stringify(processedData, null, 2));
+      } catch (processError) {
+        console.error(`❌ SCHRITT 2 FEHLGESCHLAGEN:`, processError.message);
+        throw new Error(`Datenverarbeitung fehlgeschlagen: ${processError.message}`);
+      }
+      
+      // Validierung der processedData
+      if (!processedData || !processedData.xml) {
+        console.error(`❌ Ungültige processedData:`, processedData);
+        throw new Error('Datenverarbeitung lieferte keine XML');
+      }
+      
+      // Schritt 3: XML Final
+      console.error(`🚀 SCHRITT 3: XML-Finalisierung...`);
+      const xml = processedData.xml;
+      console.error(`✅ SCHRITT 3 ERFOLGREICH: Finale XML (${xml.length} Zeichen):`, xml);
       
       const response = {
         jsonrpc: '2.0',
@@ -144,7 +180,7 @@ class McpServer {
           content: [
             {
               type: 'text',
-              text: `🚗 ServiceABS XML erfolgreich generiert!\n\n${xml}\n\n📊 Extrahierte Daten:\n${extractedData.extractedFields.map(field => `✓ ${field}`).join('\n')}\n\n🎯 Konfidenz: ${Math.round(extractedData.confidence * 100)}%`
+              text: `🚗 ServiceABS XML erfolgreich generiert!\n\n${xml}\n\n📊 Extrahierte Daten:\n${aiResponse.extractedFields.map(field => `✓ ${field}`).join('\n')}\n\n🎯 Konfidenz: ${Math.round(aiResponse.confidence * 100)}%`
             }
           ]
         }
@@ -153,7 +189,15 @@ class McpServer {
       console.error(`📤 Antwort an Claude Desktop:`, JSON.stringify(response, null, 2));
       return response;
     } catch (error) {
-      console.error(`❌ XML-Generierung fehlgeschlagen:`, error.message);
+      console.error(`❌ ===== MCP TOOL FEHLER =====`);
+      console.error(`❌ Error Type:`, error.constructor.name);
+      console.error(`❌ Error Message:`, error.message);
+      console.error(`❌ Full Error:`, error);
+      console.error(`❌ Stack Trace:`, error.stack);
+      console.error(`❌ ChatInput war:`, chatInput);
+      console.error(`❌ ExistingData war:`, JSON.stringify(existingData, null, 2));
+      console.error(`❌ ===== ENDE FEHLER =====`);
+      
       return this.createErrorResponse(id, -32603, `XML-Generierung fehlgeschlagen: ${error.message}`);
     }
   }
@@ -186,46 +230,20 @@ class McpServer {
     console.error('🚀 MCP-Robust existingData:', Object.keys(existingData));
     
     try {
-      // 1. Aktuelle Feldwerte erstellen (VOLLSTÄNDIG für korrekten AI-Input)
-      const currentValues = {
-        // Basis-Felder (wie vorher)
-        beginndatum: '0001-01-01',
-        ablaufdatum: '0001-01-01',
-        anmeldedatum: '0001-01-01',
-        erstzulassungsdatum: '0001-01-01',
-        KraftBoZefdatum: '0001-01-01',
-        urbeginn: '0001-01-01',
-        stornodatum: '0001-01-01',
-        fahrzeugmarke: '',
-        neuwert: '0',
-        vorsteuerabzugsberechtigt: ' ',
-        abweichende_fahrzeugdaten: ' ',
-        KraftBoGruppeAusfertigungsgrundABS: '',
-        fahrerkreis: '',
-        wirtschaftszweig: '',
-        inkassoart: '',
-        KraftDmKfzVorfahrl: '0',
-        fahrgestellnummer: '',
-        amtlKennzeichen: '',
-        
-        // Tabellen-Felder (WICHTIG: Vollständig initialisiert!)
-        kilometerstaende: '[]',
-        zubehoer: '[]',
-        manuelleTypklasse: '[{"id":"1","grund":"","haftpflicht":0,"vollkasko":0,"teilkasko":0}]',
-        
-        // PRODUKTDATEN (Das ist der Schlüssel für korrekte AI-Antworten!)
-        produktSparten: '[{"id":"KH","beschreibung":"Kfz-Haftpflicht","check":false,"zustand":" ","stornogrund":" ","beitragNetto":0,"beitragBrutto":0,"echteEingabe":false},{"id":"KK","beschreibung":"Kfz-Vollkasko","check":false,"zustand":" ","stornogrund":" ","beitragNetto":0,"beitragBrutto":0,"echteEingabe":false},{"id":"EK","beschreibung":"Kfz-Teilkasko","check":false,"zustand":" ","stornogrund":" ","beitragNetto":0,"beitragBrutto":0,"echteEingabe":false},{"id":"KU","beschreibung":"Kfz-Unfallversicherung","check":false,"zustand":" ","stornogrund":" ","beitragNetto":0,"beitragBrutto":0,"echteEingabe":false}]',
-        
-        // BAUSTEIN-TABELLEN (Damit Claude weiß, welche Bausteine verfügbar sind!)
-        produktBausteine_KH: '[{"id":"KBM00001","beschreibung":"Rabattschutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00001","echteEingabe":false},{"id":"KBH00006","beschreibung":"Auslandsschadenschutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBH00006","echteEingabe":false},{"id":"KBM00089","beschreibung":"BeitragsSchutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00089","echteEingabe":false},{"id":"KBM00195","beschreibung":"Komfort Nicht-PKW","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00195","echteEingabe":false},{"id":"KBE00002","beschreibung":"Eigen2schadenschutz","check":false,"betrag":20,"betragsLabel":"Summe","knotenId":"KBE00002","echteEingabe":false}]',
-        
-        produktBausteine_KK: '[{"id":"KBM00001","beschreibung":"Rabattschutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00001","echteEingabe":false},{"id":"KBM00089","beschreibung":"BeitragsSchutz","check":false,"betrag":0,"betragsLabel":"","knotenId":"KBM00089","echteEingabe":false},{"id":"KBV00002","beschreibung":"Selbstbeteiligung Vollkasko","check":false,"betrag":300,"betragsLabel":"Selbstbeteiligung","knotenId":"KBV00002","echteEingabe":false},{"id":"KBM00002","beschreibung":"Selbstbeteiligung Teilkasko","check":false,"betrag":150,"betragsLabel":"Selbstbeteiligung","knotenId":"KBM00002","echteEingabe":false}]',
-        
-        produktBausteine_EK: '[]',
-        produktBausteine_KU: '[]',
-        
-        ...existingData // Überschreibe mit bestehenden Daten
-      };
+      // 1. Generiere currentValues dynamisch aus Next.js API (wie Web-Chat)
+      console.error('📡 MCP-Robust: Rufe Next.js /api/initialize-data auf...');
+      
+      const initResult = await this.makeHttpRequest('http://localhost:3000/api/initialize-data', { 
+        existingData 
+      });
+      
+      if (!initResult.success || !initResult.currentValues) {
+        console.error('❌ Initialisierung fehlgeschlagen, verwende Fallback...');
+        throw new Error('Failed to initialize currentValues from Next.js API');
+      }
+      
+      const currentValues = initResult.currentValues;
+      console.error('✅ MCP-Robust: CurrentValues aus FIELD_DEFINITIONS geladen:', Object.keys(currentValues).length, 'Felder');
       
       console.error('🚀 MCP-Robust: Rufe Claude API auf...');
       
@@ -319,7 +337,7 @@ class McpServer {
       console.error(`✅ MCP-Robust: Durchschnittliche Konfidenz: ${Math.round(avgConfidence * 100)}%`);
       
       return {
-        fieldValues,
+        aiData: result.data,
         extractedFields,
         confidence: avgConfidence
       };
@@ -349,152 +367,79 @@ class McpServer {
       }
       
       return {
-        fieldValues,
+        aiData: {
+          extractedData: {
+            jahreskilometer: fieldValues.jahreskilometer ? {
+              value: fieldValues.jahreskilometer,
+              confidence: confidence,
+              source: 'Fallback regex extraction'
+            } : undefined
+          }
+        },
         extractedFields,
         confidence: Math.min(confidence, 1.0)
       };
     }
   }
 
-  generateXML(fieldValues) {
-    console.error(`🔍 ===== MCP-ROBUST XML-GENERIERUNG START =====`);
-    console.error(`🔍 FieldValues Input:`, JSON.stringify(fieldValues, null, 2));
+  // Verarbeitung extrahierter Daten über Next.js API (wie ChatComponent)
+  async processExtractedDataViaAPI(extractedData) {
+    console.error(`🔧 MCP-Robust: Verarbeite extrahierte Daten über Next.js API...`);
+    console.error(`🔧 ExtractedData Keys:`, Object.keys(extractedData || {}));
     
-    let xmlContent = [];
-    
-    // 1. Kilometerstände Tabelle
-    console.error(`🔍 Prüfe kilometerstaende:`, {
-      exists: !!fieldValues.kilometerstaende,
-      type: typeof fieldValues.kilometerstaende,
-      isArray: Array.isArray(fieldValues.kilometerstaende),
-      length: Array.isArray(fieldValues.kilometerstaende) ? fieldValues.kilometerstaende.length : 'not array',
-      value: fieldValues.kilometerstaende
-    });
-    
-    if (fieldValues.kilometerstaende && Array.isArray(fieldValues.kilometerstaende) && fieldValues.kilometerstaende.length > 0) {
-      console.error(`✅ Verarbeite Kilometerstände:`, fieldValues.kilometerstaende);
-      let kmRows = fieldValues.kilometerstaende.map(row => `        <zeile>
-          <datum>${row.datum || new Date().toISOString().split('T')[0]}</datum>
-          <art>${row.art || '1'}</art>
-          <kmstand>${row.kmstand || '0'}</kmstand>
-        </zeile>`).join('\n');
-      xmlContent.push(`      <kilometerstaende_e>
-${kmRows}
-      </kilometerstaende_e>`);
-    } else {
-      console.error(`❌ Kilometerstände nicht verarbeitet - Bedingungen nicht erfüllt`);
+    try {
+      const result = await this.makeHttpRequest('http://localhost:3000/api/process-extracted-data', { 
+        extractedData 
+      });
+      
+      if (result.success) {
+        console.error('✅ Datenverarbeitung erfolgreich:', {
+          processedFields: result.processedFields?.length || 0,
+          xmlLength: result.xml?.length || 0
+        });
+        return result;
+      } else {
+        throw new Error('Data processing failed: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('❌ Datenverarbeitung über Next.js API fehlgeschlagen:', error.message);
+      throw error;
     }
-    
-    // 2. Produktsparten Tabelle
-    console.error(`🔍 Prüfe produktSparten:`, {
-      exists: !!fieldValues.produktSparten,
-      type: typeof fieldValues.produktSparten,
-      isArray: Array.isArray(fieldValues.produktSparten),
-      length: Array.isArray(fieldValues.produktSparten) ? fieldValues.produktSparten.length : 'not array',
-      value: fieldValues.produktSparten
-    });
-    
-    if (fieldValues.produktSparten && Array.isArray(fieldValues.produktSparten) && fieldValues.produktSparten.length > 0) {
-      console.error(`✅ Verarbeite Produktsparten:`, fieldValues.produktSparten);
-      let spartenRows = fieldValues.produktSparten.map(row => `        <zeile>
-          <beschreibung>${row.beschreibung || 'Kfz-Vollkasko'}</beschreibung>
-          <check>${row.check === true ? 'true' : 'false'}</check>
-          <zustand>${row.zustand || 'A'}</zustand>
-          <stornogrund>${row.stornogrund || ' '}</stornogrund>
-          <beitragNetto>${row.beitragNetto || '0'}</beitragNetto>
-          <beitragBrutto>${row.beitragBrutto || '0'}</beitragBrutto>
-        </zeile>`).join('\n');
-      xmlContent.push(`      <produktSparten_e>
-${spartenRows}
-      </produktSparten_e>`);
-    } else {
-      console.error(`❌ Produktsparten nicht verarbeitet - Bedingungen nicht erfüllt`);
-    }
-    
-    // 3. ProduktBausteine KH Tabelle  
-    console.error(`🔍 Prüfe produktBausteine_KH:`, {
-      exists: !!fieldValues.produktBausteine_KH,
-      type: typeof fieldValues.produktBausteine_KH,
-      isArray: Array.isArray(fieldValues.produktBausteine_KH),
-      length: Array.isArray(fieldValues.produktBausteine_KH) ? fieldValues.produktBausteine_KH.length : 'not array',
-      value: fieldValues.produktBausteine_KH
-    });
-    
-    if (fieldValues.produktBausteine_KH && Array.isArray(fieldValues.produktBausteine_KH) && fieldValues.produktBausteine_KH.length > 0) {
-      console.error(`✅ Verarbeite ProduktBausteine KH:`, fieldValues.produktBausteine_KH);
-      let bausteinKHRows = fieldValues.produktBausteine_KH.map(row => `        <zeile>
-          <id>${row.id || ''}</id>
-          <beschreibung>${row.beschreibung || ''}</beschreibung>
-          <check>${row.check === true ? 'true' : 'false'}</check>
-          <betrag>${row.betrag || '0'}</betrag>
-          <betragsLabel>${row.betragsLabel || ''}</betragsLabel>
-          <knotenId>${row.knotenId || row.id || ''}</knotenId>
-        </zeile>`).join('\n');
-      xmlContent.push(`      <produktBausteine_KH_e>
-${bausteinKHRows}
-      </produktBausteine_KH_e>`);
-    } else {
-      console.error(`❌ ProduktBausteine KH nicht verarbeitet - Bedingungen nicht erfüllt`);
-    }
-    
-    // 4. ProduktBausteine KK Tabelle
-    console.error(`🔍 Prüfe produktBausteine_KK:`, {
-      exists: !!fieldValues.produktBausteine_KK,
-      type: typeof fieldValues.produktBausteine_KK,
-      isArray: Array.isArray(fieldValues.produktBausteine_KK),
-      length: Array.isArray(fieldValues.produktBausteine_KK) ? fieldValues.produktBausteine_KK.length : 'not array',
-      value: fieldValues.produktBausteine_KK
-    });
-    
-    if (fieldValues.produktBausteine_KK && Array.isArray(fieldValues.produktBausteine_KK) && fieldValues.produktBausteine_KK.length > 0) {
-      console.error(`✅ Verarbeite ProduktBausteine KK:`, fieldValues.produktBausteine_KK);
-      let bausteinKKRows = fieldValues.produktBausteine_KK.map(row => `        <zeile>
-          <id>${row.id || ''}</id>
-          <beschreibung>${row.beschreibung || ''}</beschreibung>
-          <check>${row.check === true ? 'true' : 'false'}</check>
-          <betrag>${row.betrag || '0'}</betrag>
-          <betragsLabel>${row.betragsLabel || ''}</betragsLabel>
-          <knotenId>${row.knotenId || row.id || ''}</knotenId>
-        </zeile>`).join('\n');
-      xmlContent.push(`      <produktBausteine_KK_e>
-${bausteinKKRows}
-      </produktBausteine_KK_e>`);
-    } else {
-      console.error(`❌ ProduktBausteine KK nicht verarbeitet - Bedingungen nicht erfüllt`);
-    }
+  }
 
-    // 5. Einzelfelder
-    if (fieldValues.KraftDmKfzVorfahrl && fieldValues.KraftDmKfzVorfahrl !== '0') {
-      console.error(`🔍 Verarbeite Fahrleistung:`, fieldValues.KraftDmKfzVorfahrl);
-      xmlContent.push(`      <KraftDmKfzVorfahrl_e>${fieldValues.KraftDmKfzVorfahrl}</KraftDmKfzVorfahrl_e>`);
-    }
+  // XML-Generierung über Next.js API (verwendet ServiceABSEinarbeiterHelper)
+  async generateXMLviaAPI(fieldValues) {
+    console.error(`🔧 MCP-Robust: Generiere XML über Next.js API...`);
+    console.error(`🔧 FieldValues Input:`, JSON.stringify(fieldValues, null, 2));
     
-    // Legacy-Unterstützung für alte Feldnamen
-    if (fieldValues.jahreskilometer && fieldValues.jahreskilometer !== 0) {
-      console.error(`🔍 Legacy: jahreskilometer → KraftDmKfzVorfahrl:`, fieldValues.jahreskilometer);
-      xmlContent.push(`      <KraftDmKfzVorfahrl_e>${fieldValues.jahreskilometer}</KraftDmKfzVorfahrl_e>`);
-    }
-    
-    console.error(`🔍 ===== FINALE XML-GENERIERUNG =====`);
-    console.error(`🔍 XML Content Teile:`, xmlContent.length);
-    console.error(`🔍 XML Content Details:`, xmlContent);
-    console.error(`🔍 ===== ENDE XML-GENERIERUNG =====`);
-    
-    const finalXml = `<ANTRAG>
-  <PERSONEN>
-  </PERSONEN>
+    try {
+      const result = await this.makeHttpRequest('http://localhost:3000/api/generate-xml', { 
+        fieldValues 
+      });
+      
+      if (result.success && result.xml) {
+        console.error('✅ XML erfolgreich generiert via Next.js API:', result.xml.length, 'Zeichen');
+        console.error('✅ Generierte XML:', result.xml);
+        return result.xml;
+      } else {
+        throw new Error('XML generation failed: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('❌ XML-Generierung über Next.js API fehlgeschlagen:', error.message);
+      
+      // Fallback: Minimale XML-Struktur
+      const fallbackXml = `<ANTRAG>
+  <PERSONEN></PERSONEN>
   <VERTRAG>
     <KRAFTBL>
-${xmlContent.join('\n')}
+      <!-- XML-Generierung fehlgeschlagen: ${error.message} -->
     </KRAFTBL>
   </VERTRAG>
 </ANTRAG>`;
-
-    console.error(`🔍 ===== FINALE XML =====`);
-    console.error(finalXml);
-    console.error(`🔍 ===== ENDE FINALE XML =====`);
-    
-    return finalXml;
+      
+      console.error('⚠️ Verwende Fallback-XML:', fallbackXml);
+      return fallbackXml;
+    }
   }
 
   // Native HTTP Request ohne fetch dependency

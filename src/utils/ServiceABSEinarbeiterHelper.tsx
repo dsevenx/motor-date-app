@@ -51,7 +51,7 @@ ${kraftblContent}
 
     FIELD_DEFINITIONS.forEach(field => {
       const fieldValue = fieldValues[field.key];
-      const echteEingabe = field.echteEingabe;
+      const echteEingabeValue = field.echteEingabeValue;
       
       // Prüfe ob Feld vom Nutzer oder KI eingegeben wurde (hat echteEingabe)
       let istEingegeben: boolean;
@@ -101,7 +101,8 @@ ${kraftblContent}
         }
       } else {
         // Für normale Felder: Prüfe Field-Level echteEingabe
-        istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
+        istEingegeben = echteEingabeValue !== undefined && echteEingabeValue !== field.defaultValue;
+        console.log(`🔍 DEBUG Normal Field ${field.key}: echteEingabeValue=${echteEingabeValue}, defaultValue=${field.defaultValue}, istEingegeben=${istEingegeben}`);
       }
       
       if (istEingegeben) {
@@ -120,12 +121,15 @@ ${kraftblContent}
           console.log(`🔍 Übergebe an erzeugeTabellXML für ${field.key}:`, actualTableData);
           
           const tableXml = this.erzeugeTabellXML(field, actualTableData);
+          console.log(`🔍 erzeugtes XML für ${field.key}:`, tableXml);
           if (tableXml) {
             xmlParts.push(tableXml);
           }
         } else {
           // Direkte Felder (Zahl, Datum, Text, DropDown, CheckBox)
-          const fieldXml = this.erzeugeFeldXML(field, echteEingabe);
+          console.log(`🔍 Generiere Feld-XML für ${field.key}: echteEingabeValue=${echteEingabeValue}`);
+          const fieldXml = this.erzeugeFeldXML(field, echteEingabeValue);
+          console.log(`🔍 Feld-XML für ${field.key}:`, fieldXml);
           if (fieldXml) {
             xmlParts.push(fieldXml);
           }
@@ -236,7 +240,10 @@ ${kraftblContent}
     }
     // Bei Bausteintabellen: nur Zeilen mit KnotenID (z.B. "KBM00087")
     else if (field.key.startsWith('produktBausteine_')) {
-      const knotenId = row.knotenId as string;
+      // Flexible KnotenID-Erkennung: knotenId oder id verwenden
+      const knotenId = (row.knotenId || row.id) as string;
+      console.log(`🔍 DEBUG Baustein: field=${field.key}, knotenId=${knotenId}, row=`, row);
+      
       if (knotenId && knotenId.trim() !== '') {
         field.table.columns.forEach(column => {
           const cellValue = row[column.key];
@@ -245,6 +252,8 @@ ${kraftblContent}
           }
         });
         console.log(`✅ Produktbaustein verarbeitet: ${knotenId}`, { zellXml });
+      } else {
+        console.log(`❌ Produktbaustein übersprungen - keine gültige knotenId/id: ${field.key}`, row);
       }
     }
 
@@ -383,7 +392,7 @@ ${kraftblContent}
 
     FIELD_DEFINITIONS.forEach(field => {
       const fieldValue = fieldValues[field.key];
-      const echteEingabe = field.echteEingabe;
+      const echteEingabeValue = field.echteEingabeValue;
       
       // Verwende dieselbe Logik wie in erzeugeKRAFTBLContent
       let istEingegeben: boolean;
@@ -424,7 +433,7 @@ ${kraftblContent}
         }
       } else {
         // Für normale Felder: Prüfe Field-Level echteEingabe
-        istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
+        istEingegeben = echteEingabeValue !== undefined && echteEingabeValue !== field.defaultValue;
       }
       
       if (istEingegeben) {
@@ -445,7 +454,7 @@ ${kraftblContent}
 
     FIELD_DEFINITIONS.forEach(field => {
       const fieldValue = fieldValues[field.key];
-      const echteEingabe = field.echteEingabe;
+      const echteEingabeValue = field.echteEingabeValue;
       
       // Verwende dieselbe Logik wie in erzeugeKRAFTBLContent
       let istEingegeben: boolean;
@@ -494,10 +503,10 @@ ${kraftblContent}
         }
       } else {
         // Für normale Felder: Prüfe Field-Level echteEingabe
-        istEingegeben = echteEingabe !== undefined && echteEingabe !== field.defaultValue;
+        istEingegeben = echteEingabeValue !== undefined && echteEingabeValue !== field.defaultValue;
         
         if (istEingegeben) {
-          let displayValue = echteEingabe;
+          let displayValue = echteEingabeValue;
           if (field.type === 'date' && displayValue !== '0001-01-01') {
             displayValue = new Date(displayValue as string).toLocaleDateString('de-DE');
           }
