@@ -123,9 +123,9 @@ export default function ObjektPage() {
 
   // Field Definitions für die einzelnen Felder
   const fahrleistungField = getFieldByKey('KraftDmKfzVorfahrl');
-  const kilometerstaendeField = getFieldByKey('kilometerstaende');
-  const zubehoerField = getFieldByKey('zubehoer');
-  const manuelleTypklasseField = getFieldByKey('manuelleTypklasse');
+  const kilometerstaendeField = getFieldByKey('KraftBoGruppeKmstand');
+  const zubehoerField = getFieldByKey('KraftBoGruppeZubehoerteile');
+  const manuelleTypklasseField = getFieldByKey('KraftBoManuelleTk');
 
   return (
     <PageTemplate title="Objekt" enableSectionNavigation>

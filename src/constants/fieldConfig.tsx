@@ -764,7 +764,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
 
   // Manuelle Typklasse (als einzeilige Tabelle)
   {
-    key: 'manuelleTypklasse',
+    key: 'KraftBoManuelleTk',
     label: 'Manuelle Typklasse',
     type: 'single-line-table',
     defaultValue: [{

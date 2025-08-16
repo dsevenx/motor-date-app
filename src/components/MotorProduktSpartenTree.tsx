@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search, ChevronRight, ChevronDown } from 'lucide-react';
-import { Produktsparte } from '@/constants';
+import { Produktsparte } from '@/constants/index';
 import { MotorProduktBausteinTree } from './MotorProduktBausteinTree';
 import { MotorDropDown } from './MotorDropDown';
 import { MotorEditNumber } from './MotorEditNumber';

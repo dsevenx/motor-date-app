@@ -198,7 +198,7 @@ async function extractDataFromChat(chatInput, existingData) {
   const kmMatch = chatInput.match(kmRegex);
   if (kmMatch) {
     fieldValues.KraftBoJahreskilometer = parseInt(kmMatch[1]);
-    extractedFields.push('KraftDmKfzVorfahrl');
+    extractedFields.push('KraftBoJahreskilometer');
     confidence += 0.2;
   }
   
@@ -210,7 +210,7 @@ async function extractDataFromChat(chatInput, existingData) {
     const haftpflicht = parseInt(typklasseMatch[1]) || 0;
     const teilkasko = parseInt(typklasseMatch[2]) || 0;
     
-    fieldValues.manuelleTypklasse = [{
+    fieldValues.KraftBoManuelleTk = [{
       id: '1',
       grund: 'Manuell eingetragen',
       haftpflicht: haftpflicht,
@@ -218,7 +218,7 @@ async function extractDataFromChat(chatInput, existingData) {
       teilkasko: teilkasko
     }];
     
-    extractedFields.push('manuelleTypklasse');
+    extractedFields.push('KraftBoManuelleTk');
     confidence += 0.3;
   }
   

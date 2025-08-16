@@ -376,7 +376,7 @@ Bei reiner TK würde nur die TK-Selbstbeteiligung in produktBausteine_EK gesetzt
 6. TOKEN-OPTIMIERUNG: NIEMALS "knotenId" oder "echteEingabe" Felder zurückgeben!
 7. 🚨 BAUSTEIN-IDs: Finde den passenden Baustein in den gesendeten Tabellen-Daten und verwende dessen exakte "id"! NIEMALS "SB300150" oder andere erfundene IDs!
 
-TABELLEN-DATEN (KraftBoGruppeKmstand, KraftBoGruppeZubehoer, manuelleTypklasse):
+TABELLEN-DATEN (KraftBoGruppeKmstand, KraftBoGruppeZubehoerteile, KraftBoManuelleTk):
 - IMMER als Array von Objekten zurückgeben
 - Jedes Objekt MUSS eine "id" haben (generiere UUID-ähnlich)
 - Nutze die exakten Spalten-Keys aus der Konfiguration

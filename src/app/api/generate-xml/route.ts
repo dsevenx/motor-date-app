@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     // Aktualisiere FIELD_DEFINITIONS.echteEingabe basierend auf fieldValues
     FIELD_DEFINITIONS.forEach(field => {
       if (fieldValues[field.key] !== undefined) {
-        field.echteEingabe = fieldValues[field.key];
+        field.echteEingabeValue = fieldValues[field.key];
       }
     });
 
