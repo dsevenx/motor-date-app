@@ -646,6 +646,13 @@ also in if-Abfragen oder ähnliches. Wir müseen diese Abfragen/benutzungen glei
 Die Key-Felder bei den Tabellen könnten ebenfalls angepasst sein. Bitte hier analog vorgehen.
 
 ------------------------------------------------------------------------------------------------------------
+In fetchContractDataDB haben wir ja den DB Zugriff zur Zeit gemockt.
+Ich habe im Data Verzeichnis 3 Json Dateien abgelegt. Diese JSON sind die echte Rückgaben von dem getContractDB. 
+Bitte bestimmm mal welche Felder wir in unserem Mock angenommen haben, es aber gar nicht im echten ContractDB gibt.
+Bitte prüfe auch, ob die Felder evnetuell an einer anderen Stelle in den Dateien stehen.
+Wenn Du die Felder nicht in den Contract-Dateien findest, dann erstmal nur rausschreiben - ich würde dann manuell prüfen wollen.
+
+------------------------------------------------------------------------------------------------------------
 
 Anfrage 16
 
@@ -653,7 +660,7 @@ Wir möchten jetzt das Start- und Edit-Handling ausbauen:
 
 Wenn die Anwendung gestartet wird und wir aus fetchContractDataDB folgendes lesen:
 Fall1:
-    contractstate: '2',
+    phase: '2',
     contractAusfertigunsgrund: 'G01',
     inceptionDate: '2025-07-01'
 dann bedeutet dies, das ist ein "Antrag" an dem jemand weiterarbeiten möchte. D.h. wenn man in den EditModus geht,
@@ -664,7 +671,7 @@ dann übertragen wir
 Wenn der Nutzer den EditModus wieder verlässt - wird die WebSite neu gestartet. D.h. man würde auf KB-TH keine Eingaben mehr sehen.
 
 Fall2:
-    contractstate: '3',
+    phase: '3',
     contractAusfertigunsgrund: 'G01',
     inceptionDate: '2025-07-01'
 dann bedeutet dies, das ist ein "Vertrag" an dem jemand ein Vorgang beginnen könnte. D.h. wenn man in den EditModus geht,
@@ -677,7 +684,7 @@ Wenn der Nutzer auf Abbrechen klickt, dann ist der Nutzer wieder im Anzeigemodus
 Wenn der Nutzer den EditModus wieder verlässt - wird die WebSite neu gestartet. D.h. man würde auf KB-TH keine Eingaben mehr sehen.
 
 Fall3:
-    contractstate: '',
+    phase: '',
     contractAusfertigunsgrund: 'G01',
     inceptionDate: '2025-07-01'
 dann bedeutet dies, das ist der Start eines Neuschgeschäfts. 

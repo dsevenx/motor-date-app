@@ -1,0 +1,223 @@
+{
+    "kraftversion": "29.0.39.34.003",
+    "messages": [
+        {
+            "msgCode": "200",
+            "msgType": "HINWEIS",
+            "text": "Die Anfrage wurde erfolgreich bearbeitet."
+        }
+    ],
+    "contract": {
+        "classId": "com.allianz.cisl.core.contract.Contract",
+        "extEntity": {
+            "classId": "com.allianz.cisl.ext.extcontract.ExtContract",
+            "questions": [],
+            "contractLayers": []
+        },
+        "kContract": {
+            "erstzuldatum": "20200101",
+            "gruppeDe1KraftschichtTypklasseMan": {
+                "typklasseKH": 15,
+                "typklasseTK": 22,
+                "typklasseVK": 16,
+                "grund": "2"
+            },
+            "gruppeZubehoerteile": [
+                {
+                    "zubehoerteil": "ZUB300",
+                    "zuschlagZubehoerteil": " ",
+                    "herstellerZubehoerteil": "Monroe",
+                    "wertZubehoerteil": "3400"
+                },
+                {
+                    "zubehoerteil": "ZUB301",
+                    "zuschlagZubehoerteil": "J",
+                    "herstellerZubehoerteil": "RollsRoyce",
+                    "wertZubehoerteil": "11500"
+                },
+                {
+                    "zubehoerteil": "ZUB302",
+                    "zuschlagZubehoerteil": " ",
+                    "herstellerZubehoerteil": "Haver",
+                    "wertZubehoerteil": "2000"
+                }
+            ],
+            "vertragsstandVertrag": {
+                "beginn": "01.08.2025",
+                "kontostand": "0.0",
+                "angebotsname": "",
+                "inkassodaten": "",
+                "inkassoart": "Überweisung",
+                "zahlweise": "jährlich",
+                "mahnstatus": "keine Mahnung",
+                "produkt": "Komfort 2023",
+                "stand": "01.08.2025",
+                "storno": "",
+                "ablauf": "01.01.2026",
+                "einzug": ""
+            },
+            "KVUEVertragsHierarchie": {
+                "name": "(Antrag U) AS8114830384",
+                "id": "1",
+                "type": "EV",
+                "level": 0,
+                "children": [],
+                "description": "",
+                "aktivesObjekt": true,
+                "expanded": true
+            },
+            "vertragsstandSummen": {
+                "summeBgz": "459.76",
+                "summeJzb": "459.76"
+            },
+            "vertragsstandSparten": [
+                {
+                    "zustand": "aktiv",
+                    "spartenart": "KH",
+                    "stornogrund": "",
+                    "sparte": "KH 100 Mio.",
+                    "jzb": "459.76",
+                    "bgz": "459.76",
+                    "rst": "",
+                    "sfr": "1999(SF 26)/26",
+                    "tatSfr": "1999",
+                    "bs": "",
+                    "rST": "",
+                    "bGZ": "459.76",
+                    "jZB": "459.76"
+                },
+                {
+                    "zustand": "",
+                    "spartenart": "",
+                    "stornogrund": "",
+                    "sparte": "",
+                    "jzb": "",
+                    "bgz": "",
+                    "rst": "",
+                    "sfr": "",
+                    "tatSfr": "",
+                    "bs": "",
+                    "rST": "",
+                    "bGZ": "",
+                    "jZB": ""
+                },
+                {
+                    "zustand": "",
+                    "spartenart": "",
+                    "stornogrund": "",
+                    "sparte": "",
+                    "jzb": "",
+                    "bgz": "",
+                    "rst": "",
+                    "sfr": "",
+                    "tatSfr": "",
+                    "bs": "",
+                    "rST": "",
+                    "bGZ": "",
+                    "jZB": ""
+                },
+                {
+                    "zustand": "",
+                    "spartenart": "",
+                    "stornogrund": "",
+                    "sparte": "",
+                    "jzb": "",
+                    "bgz": "",
+                    "rst": "",
+                    "sfr": "",
+                    "tatSfr": "",
+                    "bs": "",
+                    "rST": "",
+                    "bGZ": "",
+                    "jZB": ""
+                }
+            ],
+            "vertragsstandHinweis": {
+                "hinweisGUI": "",
+                "hinweisKomplett": ""
+            },
+            "vertragsstandFahrzeug": {
+                "vorvertragText": "",
+                "fin": "ANDIMITTER",
+                "folgevertrag": {
+                    "vertrKey": "",
+                    "pollfnrVorhanden": false,
+                    "storniert": false,
+                    "gefunden": false,
+                    "vollkaskoLebt": false,
+                    "begDat": "",
+                    "sichtbar": false,
+                    "ablDat": ""
+                },
+                "nachlassKh": "",
+                "sonderfahrzeug": "",
+                "nachlassKu": "",
+                "vorvertrag": {
+                    "vertrKey": "",
+                    "pollfnrVorhanden": false,
+                    "storniert": false,
+                    "gefunden": false,
+                    "vollkaskoLebt": false,
+                    "begDat": "",
+                    "sichtbar": false,
+                    "ablDat": ""
+                },
+                "fahrerkreis": "VN/Hauptfahrer",
+                "fzgArtEinsatz": "1 PKW / 1 Ohne Vermietung",
+                "beruflUmfeld": "",
+                "nachlass": "",
+                "nachlassKf": "",
+                "kfzKennzeichen": "M-LK 456",
+                "fahrleistung": "12000",
+                "tarifgrWirschaftszw": "Rest",
+                "folgevertragText": "",
+                "hsnTsn": "0005 BMW / 504 3/C (318I)"
+            },
+            "gruppeKmstand": [
+                {
+                    "datum": "20250730",
+                    "kmStand": 546,
+                    "grund": "6",
+                    "KmStand": 546
+                },
+                {
+                    "datum": "20250801",
+                    "kmStand": 666,
+                    "grund": "1",
+                    "KmStand": 666
+                }
+            ],
+            "allgAblaufdatum": "20260101",
+            "deAllgInfos": {
+                "email": "",
+                "bgvgVnr": "9/001/0002",
+                "nameVn": "Rokosch Steffen (männlich)",
+                "geburtsdatum": "* 01.01.1970",
+                "strasseVn": "Gothaer Platz 3",
+                "telGesch": "",
+                "telPrivat": "",
+                "verantwortlich": "",
+                "telMobil": "",
+                "internet": "",
+                "vertragsinfo": "Antrag, Aktiv; in Arbeit",
+                "vertrName": "Allianz Beratungs-und Vertriebs AG VT-Allgemein",
+                "vertrAnschrift": "Theodor-Stern-Kai 1",
+                "vertrPlzOrt": "60596 Frankfurt am Main",
+                "vertrTelFax": "Fax\\: +49 (069) 712684455",
+                "vertrEMail": "",
+                "pollfnrMitDatum": "AS-8114830384; gültig ab: 01.08.2025",
+                "boMeineAllianzLabel": "MAZ:",
+                "boMeineAllianzText": "Nicht vorh.",
+                "dienstleistungsgebiet": "SW",
+                "ortVn": "DE-81677 München"
+            },
+            "AllgBeginn": "20250801",
+            "vertrkey": "testContract_AS_8114830384",
+            "anmeldedatum": "20200101",
+            "vertragZahlweise": "J",
+            "de1KraftVertragZusVorfahrl(": 12000,
+            "hsnanum": "0005",
+            "tsnanum": "504"
+        }
+    }
+}

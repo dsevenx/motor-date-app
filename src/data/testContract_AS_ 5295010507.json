@@ -1,0 +1,1015 @@
+{
+    "kraftversion": "29.0.39.34.003",
+    "messages": [
+        {
+            "msgCode": "200",
+            "msgType": "HINWEIS",
+            "text": "Die Anfrage wurde erfolgreich bearbeitet."
+        }
+    ],
+    "contract": {
+        "classId": "com.allianz.cisl.core.contract.Contract",
+        "extEntity": {
+            "classId": "com.allianz.cisl.ext.extcontract.ExtContract",
+            "questions": [
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "20250801"
+                        }
+                    ],
+                    "text": "bo_tagesdatum_zeitreise"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": ""
+                        }
+                    ],
+                    "text": "Existing Contracts"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": ""
+                        }
+                    ],
+                    "text": "arbeitgeber"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "0"
+                        }
+                    ],
+                    "text": "bo_dauer_vor_vers"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "0"
+                        }
+                    ],
+                    "text": "bo_anzahl_kf_schaeden"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "0"
+                        }
+                    ],
+                    "text": "bo_anzahl_kh_schaeden"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "N"
+                        }
+                    ],
+                    "text": "dm_vertrag_kz_abbu_taggenau"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": ""
+                        }
+                    ],
+                    "text": "adacMitglied"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "N"
+                        }
+                    ],
+                    "text": "bo_gruppe_betriebsausgabe_anerkannt"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "N"
+                        }
+                    ],
+                    "text": "bo_vorsteuerabzugsberechtigt"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": " "
+                        }
+                    ],
+                    "text": "fahrerAltergrenze"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "J"
+                        }
+                    ],
+                    "text": "einzugsermaechtigungErteilt"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "allianz_09_2023_pkwov"
+                        }
+                    ],
+                    "text": "radarkeyname_krs"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "29.0.39.34.003"
+                        }
+                    ],
+                    "text": "bo_kraft_abs"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answer": {
+                        "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                        "answer": "München (Stadt)"
+                    },
+                    "text": "Zulassungsbezirk"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answer": {
+                        "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                        "answer": "5230"
+                    },
+                    "text": "Zulassungsbezirknummer"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "20260805"
+                        }
+                    ],
+                    "text": "preisgarantie_bis_datum"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "20250101"
+                        }
+                    ],
+                    "text": "preisgarantie_anp_datum"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "3"
+                        }
+                    ],
+                    "text": "preisgarantie_art"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": ""
+                        }
+                    ],
+                    "text": "festpreiskennung"
+                },
+                {
+                    "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                    "answers": [
+                        {
+                            "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                            "answer": "E"
+                        }
+                    ],
+                    "text": "contract_group_category"
+                }
+            ],
+            "pricingCriteria": [
+                {
+                    "classId": "com.allianz.cisl.core.contract.PricingCriterion",
+                    "criterionValue": "81677",
+                    "criterion": "Risikozone_PLZ_VN"
+                }
+            ],
+            "contractGroupCategory": "E",
+            "tariffSpecificationType": "102092325"
+        },
+        "contactChannels": [
+            {
+                "classId": "com.allianz.cisl.core.contact.ContactChannel",
+                "phoneNumber": "0049/089/1234567",
+                "additionalInformation": "T",
+                "channelUsageType": "P"
+            },
+            {
+                "classId": "com.allianz.cisl.core.contact.ContactChannel",
+                "phoneNumber": "0049/089/7654321",
+                "additionalInformation": "T",
+                "channelUsageType": "G"
+            }
+        ],
+        "salesCampaign": {
+            "classId": "com.allianz.cisl.core.contract.SalesCampaign",
+            "bonusType": "150400"
+        },
+        "contractHolder": {
+            "classId": "com.allianz.cisl.core.person.Person",
+            "extEntity": {
+                "classId": "com.allianz.cisl.ext.extperson.ExtPerson",
+                "payerReliability": "",
+                "personalOfferingReference": ""
+            },
+            "ratings": [
+                {
+                    "classId": "com.allianz.cisl.core.party.PartyRating",
+                    "rating": "0"
+                }
+            ],
+            "addresses": [
+                {
+                    "classId": "com.allianz.cisl.core.contact.Address",
+                    "countryCode": "D",
+                    "postCode": "81677",
+                    "streetNumber": "3",
+                    "street": "Gothaer Platz",
+                    "district": "",
+                    "area": "München"
+                }
+            ],
+            "name": "Rocki",
+            "genderIdentity": "M",
+            "customerNumber": "00000000001030037229",
+            "salutation": "M",
+            "firstName": "Steve",
+            "birthDate": "1970-01-01",
+            "businessType": "R"
+        },
+        "coverages": [
+            {
+                "classId": "com.allianz.cisl.core.contract.Coverage",
+                "classProduct": {
+                    "classId": "com.allianz.cisl.core.productdata.ClassProduct",
+                    "extEntity": {
+                        "classId": "com.allianz.cisl.ext.extproductdata.ExtClassProduct",
+                        "productRange": ""
+                    }
+                },
+                "coverageItems": [
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Eigenschäden 200 TEUR",
+                        "name": "9c5d9691-faef-11ed-9306-02506009abae"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "coverageItemSum": {
+                            "classId": "com.allianz.cisl.core.contract.Sum",
+                            "sumValue": 100000000
+                        },
+                        "description": "Deckungssumme",
+                        "name": "KBH00002"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "AKB 2023 4014Z0/06",
+                        "name": "e0abb3c6-faef-11ed-9306-02506009abae"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Versichertes Objekt",
+                        "name": "9c49995d-faef-11ed-9306-02506009abae"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Premium",
+                        "name": "KBH00123"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "extEntity": {
+                            "classId": "com.allianz.cisl.ext.extcontract.ExtCoverageItem",
+                            "riskRegionProductRange": "",
+                            "riskRegion": "11",
+                            "riskZone": "999"
+                        },
+                        "discountSurcharges": [
+                            {
+                                "classId": "com.allianz.cisl.core.contract.DiscountSurcharge",
+                                "amount": 100.0,
+                                "discountSurchargeType": "KAP",
+                                "additionalIssuingReason": "<zeile><sparte_eigen>KH</sparte_eigen><tarifnr>102092325</tarifnr><anpfaktor>1.0</anpfaktor><bak_art>KAP</bak_art></zeile>"
+                            }
+                        ],
+                        "description": "Beitragsbaustein KH",
+                        "name": "KBH00001",
+                        "technicalPrice": "EUR 334.58"
+                    }
+                ],
+                "bonusMalusInfoLink": {
+                    "classId": "com.allianz.cisl.core.property.BonusMalusInformation",
+                    "extEntity": {
+                        "classId": "com.allianz.cisl.ext.extproperty.ExtBonusMalusInformation",
+                        "hasSufficientInsuranceHistory": true,
+                        "motorInsuranceHistoryStartDate": "2025-08-05",
+                        "bonusMalusApplied": true,
+                        "reason": "09",
+                        "percentage": 26,
+                        "lastLossYear": 1999
+                    },
+                    "bonusMalusLevelInterval": {
+                        "classId": "com.allianz.cisl.base.types.Interval",
+                        "startDateTime": "2025-08-05T00:00:00.000"
+                    },
+                    "insuranceInterval": {
+                        "classId": "com.allianz.cisl.base.types.Interval",
+                        "startDateTime": "2025-08-05T00:00:00.000"
+                    },
+                    "internalBonusMalusLevel": "26",
+                    "reason": "1",
+                    "bonusMalusLevel": "26"
+                },
+                "tariffDate": "2025-08-05",
+                "status": "A",
+                "classProductSign": "KH",
+                "effectiveDate": "2025-08-05",
+                "additionalDescription": "",
+                "classProductType": "15",
+                "coverageInterval": {
+                    "classId": "com.allianz.cisl.base.types.Interval",
+                    "startDateTime": "2025-08-05T00:00:00.000"
+                }
+            },
+            {
+                "classId": "com.allianz.cisl.core.contract.Coverage",
+                "coverageItems": [
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "discountSurcharges": [],
+                        "description": "Beitragsbaustein KK"
+                    }
+                ],
+                "bonusMalusInfoLink": {
+                    "classId": "com.allianz.cisl.core.property.BonusMalusInformation",
+                    "extEntity": {
+                        "classId": "com.allianz.cisl.ext.extproperty.ExtBonusMalusInformation",
+                        "hasSufficientInsuranceHistory": true,
+                        "motorInsuranceHistoryStartDate": "2025-08-05",
+                        "bonusMalusApplied": true,
+                        "reason": "",
+                        "percentage": 0,
+                        "lastLossYear": 0
+                    },
+                    "bonusMalusLevelInterval": {
+                        "classId": "com.allianz.cisl.base.types.Interval",
+                        "startDateTime": "0000-01-01T00:00:00.000"
+                    },
+                    "insuranceInterval": {
+                        "classId": "com.allianz.cisl.base.types.Interval",
+                        "startDateTime": "0001-01-01T00:00:00.000"
+                    },
+                    "internalBonusMalusLevel": "26",
+                    "reason": "",
+                    "bonusMalusLevel": ""
+                },
+                "classProductSign": "KK"
+            },
+            {
+                "classId": "com.allianz.cisl.core.contract.Coverage",
+                "classProduct": {
+                    "classId": "com.allianz.cisl.core.productdata.ClassProduct",
+                    "extEntity": {
+                        "classId": "com.allianz.cisl.ext.extproductdata.ExtClassProduct",
+                        "productRange": ""
+                    }
+                },
+                "coverageItems": [
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "extEntity": {
+                            "classId": "com.allianz.cisl.ext.extcontract.ExtCoverageItem",
+                            "riskRegionProductRange": "",
+                            "riskRegion": "7",
+                            "riskZone": "999"
+                        },
+                        "discountSurcharges": [
+                            {
+                                "classId": "com.allianz.cisl.core.contract.DiscountSurcharge",
+                                "amount": 100.0,
+                                "discountSurchargeType": "KAP",
+                                "additionalIssuingReason": "<zeile><sparte_eigen>EK</sparte_eigen><tarifnr>102092325</tarifnr><anpfaktor>1.0</anpfaktor><bak_art>KAP</bak_art></zeile>"
+                            }
+                        ],
+                        "description": "Beitragsbaustein TK",
+                        "name": "KBT00001",
+                        "technicalPrice": "EUR 164.44"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Glasschaden",
+                        "name": "e4e6d8b9-ffb9-11ed-a247-02506009ae99"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "coverageItemSum": {
+                            "classId": "com.allianz.cisl.core.contract.Sum",
+                            "sumValue": 150
+                        },
+                        "description": "Selbstbeteiligung Teilkasko",
+                        "name": "KBM00002"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Neu- und Kaufpreis 36 Monate",
+                        "name": "e4ed1a4a-ffb9-11ed-a247-02506009ae99"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "AKB 2023 4014Z0/06",
+                        "name": "4e6bded2-ffbc-11ed-a247-02506009ae99"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Versichertes Objekt",
+                        "name": "e4d377b3-ffb9-11ed-a247-02506009ae99"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Differenzkasko GAP",
+                        "name": "e4f3f81b-ffb9-11ed-a247-02506009ae99"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Carsharing / Mietwagen SB-Schutz",
+                        "name": "46d0960b-03ab-11ee-bb90-02506009ae99"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Premium",
+                        "name": "KBM00094"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Wertminderung",
+                        "name": "e500060d-ffb9-11ed-a247-02506009ae99"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "description": "Elektro-/Hybrid-Pkw Erweiterung",
+                        "name": "f84cf23a-03aa-11ee-bb90-02506009ae99"
+                    }
+                ],
+                "bonusMalusInfoLink": {
+                    "classId": "com.allianz.cisl.core.property.BonusMalusInformation",
+                    "extEntity": {
+                        "classId": "com.allianz.cisl.ext.extproperty.ExtBonusMalusInformation",
+                        "motorInsuranceHistoryStartDate": "2025-08-05",
+                        "bonusMalusApplied": true,
+                        "reason": "",
+                        "percentage": 0,
+                        "lastLossYear": 0
+                    },
+                    "bonusMalusLevelInterval": {
+                        "classId": "com.allianz.cisl.base.types.Interval",
+                        "startDateTime": "0000-01-01T00:00:00.000"
+                    },
+                    "insuranceInterval": {
+                        "classId": "com.allianz.cisl.base.types.Interval",
+                        "startDateTime": "0001-01-01T00:00:00.000"
+                    },
+                    "internalBonusMalusLevel": "26",
+                    "reason": "",
+                    "bonusMalusLevel": ""
+                },
+                "tariffDate": "2025-08-05",
+                "status": "A",
+                "classProductSign": "EK",
+                "effectiveDate": "2025-08-05",
+                "additionalDescription": "",
+                "classProductType": "14",
+                "coverageInterval": {
+                    "classId": "com.allianz.cisl.base.types.Interval",
+                    "startDateTime": "2025-08-05T00:00:00.000"
+                }
+            },
+            {
+                "classId": "com.allianz.cisl.core.contract.Coverage",
+                "coverageItems": [
+                    {
+                        "classId": "com.allianz.cisl.core.contract.CoverageItem",
+                        "discountSurcharges": [],
+                        "description": "Beitragsbaustein IU"
+                    }
+                ],
+                "bonusMalusInfoLink": {
+                    "classId": "com.allianz.cisl.core.property.BonusMalusInformation",
+                    "extEntity": {
+                        "classId": "com.allianz.cisl.ext.extproperty.ExtBonusMalusInformation",
+                        "motorInsuranceHistoryStartDate": "2025-08-05",
+                        "bonusMalusApplied": true,
+                        "reason": "",
+                        "percentage": 0,
+                        "lastLossYear": 0
+                    },
+                    "bonusMalusLevelInterval": {
+                        "classId": "com.allianz.cisl.base.types.Interval",
+                        "startDateTime": "0000-01-01T00:00:00.000"
+                    },
+                    "insuranceInterval": {
+                        "classId": "com.allianz.cisl.base.types.Interval",
+                        "startDateTime": "0001-01-01T00:00:00.000"
+                    },
+                    "internalBonusMalusLevel": "26",
+                    "reason": "",
+                    "bonusMalusLevel": ""
+                },
+                "classProductSign": "IU"
+            }
+        ],
+        "premiums": [
+            {
+                "classId": "com.allianz.cisl.core.premium.CoveragePremium",
+                "coverageLink": "CovItemJahresBeitragBruttoTK",
+                "technicalPrice": "EUR 195.68"
+            },
+            {
+                "classId": "com.allianz.cisl.core.premium.CoveragePremium",
+                "coverageLink": "CovItemZahlweisenBeitragBruttoTK",
+                "technicalPrice": "EUR 195.68"
+            },
+            {
+                "classId": "com.allianz.cisl.core.premium.CoveragePremium",
+                "coverageLink": "CovItemJahresBeitragBruttoKH",
+                "technicalPrice": "EUR 398.15"
+            },
+            {
+                "classId": "com.allianz.cisl.core.premium.CoveragePremium",
+                "coverageLink": "CovItemZahlweisenBeitragBruttoKH",
+                "technicalPrice": "EUR 398.15"
+            },
+            {
+                "classId": "com.allianz.cisl.core.premium.CoveragePremium",
+                "coverageLink": "CovItemJahresBeitragNettoGesamt",
+                "technicalPrice": "EUR 499.02"
+            },
+            {
+                "classId": "com.allianz.cisl.core.premium.CoveragePremium",
+                "coverageLink": "CovItemJahresBeitragBruttoGesamt",
+                "technicalPrice": "EUR 593.83"
+            },
+            {
+                "classId": "com.allianz.cisl.core.premium.CoveragePremium",
+                "coverageLink": "CovItemZahlweisenBeitragNettoGesamt",
+                "technicalPrice": "EUR 499.02"
+            },
+            {
+                "classId": "com.allianz.cisl.core.premium.CoveragePremium",
+                "coverageLink": "CovItemZahlweisenBeitragBruttoGesamt",
+                "technicalPrice": "EUR 593.83"
+            }
+        ],
+        "channelsale": {
+            "classId": "com.allianz.cisl.core.contact.ContactChannel",
+            "source": "",
+            "contactChannelType": ""
+        },
+        "agent": {
+            "classId": "com.allianz.cisl.core.accountmanager.AccountManager",
+            "agentNumber": "0000763",
+            "accountManagerCategory": "59",
+            "registrationNumber": "01"
+        },
+        "payer": {
+            "classId": "com.allianz.cisl.core.person.Person",
+            "paymentMethods": [
+                {
+                    "classId": "com.allianz.cisl.core.payment.BankAccount",
+                    "bank": {
+                        "classId": "com.allianz.cisl.core.payment.Bank",
+                        "code": ""
+                    },
+                    "IBAN": "DE07850503001227550886",
+                    "paymentDataType": "A",
+                    "accountNumber": ""
+                }
+            ],
+            "addresses": [
+                {
+                    "classId": "com.allianz.cisl.core.contact.Address",
+                    "countryCode": "D",
+                    "postCode": "81677",
+                    "streetNumber": "3",
+                    "street": "Gothaer Platz",
+                    "district": "",
+                    "area": "München"
+                }
+            ],
+            "name": "Rocki",
+            "genderIdentity": "M",
+            "customerNumber": "00000000001030037229",
+            "salutation": "M",
+            "firstName": "Steve",
+            "birthDate": "1970-01-01"
+        },
+        "parties": [
+            {
+                "classId": "com.allianz.cisl.core.company.Company",
+                "industries": [
+                    {
+                        "classId": "com.allianz.cisl.core.company.IndustryInformation",
+                        "businessTypeCode": ""
+                    }
+                ]
+            }
+        ],
+        "insuredProperties": [
+            {
+                "owners": [
+                    {
+                        "classId": "com.allianz.cisl.core.person.Person",
+                        "extEntity": {
+                            "classId": "com.allianz.cisl.ext.extperson.ExtPerson",
+                            "payerReliability": "",
+                            "personalOfferingReference": ""
+                        },
+                        "ratings": [
+                            {
+                                "classId": "com.allianz.cisl.core.party.PartyRating",
+                                "rating": ""
+                            }
+                        ],
+                        "addresses": [
+                            {
+                                "classId": "com.allianz.cisl.core.contact.Address",
+                                "countryCode": "D",
+                                "postCode": "81677",
+                                "streetNumber": "3",
+                                "street": "Gothaer Platz",
+                                "district": "",
+                                "area": "München"
+                            }
+                        ],
+                        "name": "Rocki",
+                        "genderIdentity": "M",
+                        "customerNumber": "00000000001030037229",
+                        "salutation": "M",
+                        "firstName": "Steve",
+                        "groupRole": "",
+                        "birthDate": "1970-01-01"
+                    }
+                ],
+                "classId": "com.allianz.cisl.core.property.Vehicle",
+                "extEntity": {
+                    "classId": "com.allianz.cisl.ext.extproperty.ExtVehicle",
+                    "usualParkingPlace": "",
+                    "licensePlateSeasontInterval": {
+                        "classId": "com.allianz.cisl.base.types.Interval"
+                    }
+                },
+                "characteristics": {
+                    "classId": "com.allianz.cisl.core.vehicle.VehicleCharacteristics",
+                    "extEntity": {
+                        "classId": "com.allianz.cisl.ext.extvehicle.ExtVehicleCharacteristics",
+                        "hasOilProductsTransportationApproval": false,
+                        "currentValue": "EUR 0.00"
+                    },
+                    "engines": [
+                        {
+                            "classId": "com.allianz.cisl.core.vehicle.Engine",
+                            "extEntity": {
+                                "classId": "com.allianz.cisl.ext.extvehicle.ExtEngine",
+                                "hasEngineOptimization": false
+                            },
+                            "fuelTypes": [
+                                "B"
+                            ]
+                        }
+                    ],
+                    "modelDetailCode": "903",
+                    "mileage": 12000,
+                    "propertyType": "",
+                    "tare": 0,
+                    "power": "120",
+                    "maximumDesignSpeed": 999,
+                    "vehicleBrandCode": "1023",
+                    "maximumPermissibleWeight": 9999,
+                    "vehicleModel": "CHRYSLER JEEP CHEROKEE",
+                    "cubicCapacity": "3910",
+                    "vehicleType": "KFZ0001",
+                    "vehicleBrand": "American Motors",
+                    "numberOfSeats": 0,
+                    "originalPrice": "EUR 0.00",
+                    "typeOfDrive": "G"
+                },
+                "drivers": [
+                    {
+                        "classId": "com.allianz.cisl.core.property.Driver",
+                        "party": {
+                            "classId": "com.allianz.cisl.core.person.Person",
+                            "partyType": "1",
+                            "birthDate": "1970-01-01"
+                        },
+                        "driverType": "K",
+                        "startDate": "1999-01-01"
+                    }
+                ],
+                "hazardScores": [
+                    {
+                        "classId": "com.allianz.cisl.core.location.HazardRiskScore",
+                        "objectVersion": ""
+                    }
+                ],
+                "questions": [
+                    {
+                        "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                        "answers": [
+                            {
+                                "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                                "answer": "999"
+                            }
+                        ],
+                        "text": "fzggruppekh"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                        "answers": [
+                            {
+                                "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                                "answer": "999"
+                            }
+                        ],
+                        "text": "fzggruppevk"
+                    },
+                    {
+                        "classId": "com.allianz.cisl.core.questions.DecisionQuestion",
+                        "answers": [
+                            {
+                                "classId": "com.allianz.cisl.core.questions.TextAnswer",
+                                "answer": "999"
+                            }
+                        ],
+                        "text": "fzggruppetk"
+                    }
+                ],
+                "mileageRecords": [
+                    {
+                        "classId": "com.allianz.cisl.core.vehicle.MileageRecord",
+                        "recordDate": "2025-08-05",
+                        "mileageInfo": {
+                            "classId": "com.allianz.cisl.base.types.UnitOfMeasurement",
+                            "unitValue": 500
+                        },
+                        "recordingReason": "6",
+                        "KmStand": 500
+                    }
+                ],
+                "registrationInfo": {
+                    "classId": "com.allianz.cisl.core.vehicle.VehicleRegistrationInfo",
+                    "extEntity": {
+                        "classId": "com.allianz.cisl.ext.extvehicle.ExtVehicleRegistrationInfo",
+                        "registeredDistrict": "091620"
+                    },
+                    "initialRegistrationDate": "2025-08-01",
+                    "firstRegistrationDate": "2025-08-01"
+                },
+                "ownerType": "",
+                "usage": "KFZ001",
+                "vehicleIdentificationNumber": "3456365378",
+                "propertyType": "",
+                "currentValue": "EUR 0.00",
+                "licensePlateType": "01",
+                "additionalPropertyType": "",
+                "licensePlateNumber": "M-CC 666",
+                "extraValue": "EUR 0.00"
+            }
+        ],
+        "contractInterval": {
+            "classId": "com.allianz.cisl.base.types.Interval",
+            "startDateTime": "2025-08-05T00:00:00.000",
+            "endDateTime": "2026-08-05T00:00:00.000"
+        },
+        "agentNumber": "10105020",
+        "contractType": "",
+        "contractNumber": "AS5295010507",
+        "inceptionDate": "2025-08-05",
+        "kContract": {
+            "vertragsstandHinweis": {
+                "hinweisGUI": "",
+                "hinweisKomplett": ""
+            },
+            "vertragsstandVertrag": {
+                "inkassoart": "Lastschrift",
+                "zahlweise": "jährlich",
+                "mahnstatus": "keine Mahnung",
+                "einzug": "taggenau am 1'ten",
+                "stand": "05.08.2025",
+                "storno": "",
+                "ablauf": "05.08.2026",
+                "produkt": "Premium 2023",
+                "beginn": "05.08.2025",
+                "angebotsname": "",
+                "inkassodaten": "IBAN: DE07850503001227550886",
+                "kontostand": "593.83"
+            },
+            "vertragsstandFahrzeug": {
+                "folgevertragText": "",
+                "tarifgrWirschaftszw": "Rest",
+                "hsnTsn": "1023 American  / 903 CHRYSLER JE",
+                "fin": "3456365378",
+                "vorvertragText": "",
+                "nachlassKf": "",
+                "nachlassKu": "",
+                "sonderfahrzeug": "",
+                "folgevertrag": {
+                    "vertrKey": "",
+                    "begDat": "",
+                    "ablDat": "",
+                    "sichtbar": false,
+                    "storniert": false,
+                    "gefunden": false,
+                    "pollfnrVorhanden": false,
+                    "vollkaskoLebt": false
+                },
+                "beruflUmfeld": "",
+                "fahrerkreis": "VN/Hauptfahrer",
+                "fzgArtEinsatz": "1 PKW / 1 Ohne Vermietung",
+                "nachlassKh": "",
+                "nachlass": "",
+                "kfzKennzeichen": "M-CC 666",
+                "vorvertrag": {
+                    "vertrKey": "",
+                    "begDat": "",
+                    "ablDat": "",
+                    "sichtbar": false,
+                    "storniert": false,
+                    "gefunden": false,
+                    "pollfnrVorhanden": false,
+                    "vollkaskoLebt": false
+                },
+                "fahrleistung": "12000"
+            },
+            "vertragsstandSparten": [
+                {
+                    "zustand": "aktiv",
+                    "bs": "",
+                    "sfr": "1999(SF 26)/26",
+                    "jzb": "398.15",
+                    "rst": "",
+                    "bgz": "398.15",
+                    "tatSfr": "1999",
+                    "sparte": "KH 100 Mio.",
+                    "stornogrund": "",
+                    "spartenart": "KH",
+                    "rST": "",
+                    "bGZ": "398.15",
+                    "jZB": "398.15"
+                },
+                {
+                    "zustand": "aktiv",
+                    "bs": "",
+                    "sfr": "",
+                    "jzb": "195.68",
+                    "rst": "",
+                    "bgz": "195.68",
+                    "tatSfr": "",
+                    "sparte": "TK 150",
+                    "stornogrund": "",
+                    "spartenart": "EK",
+                    "rST": "",
+                    "bGZ": "195.68",
+                    "jZB": "195.68"
+                },
+                {
+                    "zustand": "",
+                    "bs": "",
+                    "sfr": "",
+                    "jzb": "",
+                    "rst": "",
+                    "bgz": "",
+                    "tatSfr": "",
+                    "sparte": "",
+                    "stornogrund": "",
+                    "spartenart": "",
+                    "rST": "",
+                    "bGZ": "",
+                    "jZB": ""
+                },
+                {
+                    "zustand": "",
+                    "bs": "",
+                    "sfr": "",
+                    "jzb": "",
+                    "rst": "",
+                    "bgz": "",
+                    "tatSfr": "",
+                    "sparte": "",
+                    "stornogrund": "",
+                    "spartenart": "",
+                    "rST": "",
+                    "bGZ": "",
+                    "jZB": ""
+                }
+            ],
+            "KVUEVertragsHierarchie": {
+                "description": "",
+                "name": "AS5295010507",
+                "id": "1",
+                "type": "EV",
+                "level": 0,
+                "children": [],
+                "expanded": true,
+                "aktivesObjekt": true
+            },
+            "vertragsstandSummen": {
+                "summeBgz": "593.83",
+                "summeJzb": "593.83"
+            },
+            "vertragZahlweise": "J",
+            "gruppeZubehoerteile": [],
+            "hsnanum": "1023",
+            "tsnanum": "903",
+            "gruppeKmstand": [
+                {
+                    "datum": "20250805",
+                    "kmStand": 500,
+                    "grund": "6",
+                    "KmStand": 500
+                }
+            ],
+            "de1KraftVertragZusVorfahrl(": 12000,
+            "erstzuldatum": "20250801",
+            "gruppeDe1KraftschichtTypklasseMan": {
+                "grund": "",
+                "typklasseVK": 0,
+                "typklasseTK": 0,
+                "typklasseKH": 0
+            },
+            "allgAblaufdatum": "20260805",
+            "deAllgInfos": {
+                "ortVn": "DE-81677 München",
+                "dienstleistungsgebiet": "NO",
+                "boMeineAllianzText": "Nicht vorh.",
+                "boMeineAllianzLabel": "MAZ:",
+                "nameVn": "am Rocki Steve, Dipl.-Chem., Baron (männlich)",
+                "bgvgVnr": "1/010/5020",
+                "pollfnrMitDatum": "AS-5295010507; gültig ab: 05.08.2025",
+                "vertrTelFax": "Tel./Fax\\: <a href=\"tel:+4922130831734\">(0221) 3083-1734</a>//3089531734",
+                "vertrAnschrift": "Arnoldipl. 1",
+                "verantwortlich": "",
+                "vertragsinfo": "Vertrag Aktiv",
+                "vertrPlzOrt": "50969 Köln",
+                "telGesch": "<a href=\"tel:+49897654321\">+49 (089) 7654321</a>",
+                "vertrName": "Gothaer Vers.Bank VvaG Abteilung VR 11 Hr.Köhler",
+                "vertrEMail": "",
+                "telMobil": "<a href=\"tel:+49171987654321\">+49 (0171) 987654321</a>",
+                "telPrivat": "<a href=\"tel:+49891234567\">+49 (089) 1234567</a>",
+                "email": "<a href=\"mailto:rocki@iklaut.de\">rocki@iklaut.de</a> SBS",
+                "geburtsdatum": "* 01.01.1970",
+                "strasseVn": "Gothaer Platz 3",
+                "internet": "http://www.rocki-klaut.de"
+            },
+            "anmeldedatum": "20250801",
+            "vertrkey": "testContract_AS_ 5295010507",
+            "AllgBeginn": "20250805"
+        },
+        "status": "A",
+        "phase": "3",
+        "mainClassProductSign": "Allianz Premium 2023",
+        "externalProductCode": "30082",
+        "paymentFrequency": "J"
+    }
+}

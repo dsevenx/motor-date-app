@@ -5,6 +5,8 @@ import { Contract } from '@/types/contractTypes';
 import { fetchContractDataBL } from '@/app/api/FetchContractBL';
 import { useEditMode } from '@/contexts/EditModeContext';
 import { NavigationMenu } from './NavigationMenu';
+import { ParsedLink } from './ParsedLink';
+import { cleanServiceText } from '@/utils/htmlLinkParser';
 
 interface MotorHeaderProps {
   contract?: Contract;
@@ -67,14 +69,14 @@ export const MotorHeader: React.FC<MotorHeaderProps> = ({ contract: propContract
           
           {/* Linke Spalte - Firmeninfos */}
           <div className="space-y-1">
-            <div className="font-semibold text-gray-900">{contract.header.companyName}</div>
-            <div className="text-sm text-gray-700">{contract.header.address.street}</div>
-            <div className="text-sm text-gray-700">{contract.header.address.zipCode} {contract.header.address.city}</div>
+            <div className="font-semibold text-gray-900">{contract.contract.kContract.deAllgInfos.nameVn}</div>
+            <div className="text-sm text-gray-700">{contract.contract.kContract.deAllgInfos.strasseVn}</div>
+            <div className="text-sm text-gray-700">{contract.contract.kContract.deAllgInfos.ortVn}</div>
             <div className="text-sm text-gray-700 mt-2">
-              {contract.header.contractNumber}, gültig ab: {contract.header.validFrom}
+              {contract.contract.kContract.deAllgInfos.pollfnrMitDatum}
             </div>
             <div className="text-sm font-medium text-gray-900">
-              {contract.header.status}
+              {contract.contract.kContract.deAllgInfos.vertragsinfo}
             </div>
           </div>
 
@@ -82,36 +84,42 @@ export const MotorHeader: React.FC<MotorHeaderProps> = ({ contract: propContract
           <div className="space-y-1">
             <div className="grid grid-cols-2 gap-x-4 text-sm">
               <div className="text-gray-600">MAZ:</div>
-              <div className="text-gray-900">{contract.header.maz}</div>
-              
+              <div className="text-gray-900">{contract.contract.kContract.deAllgInfos.boMeineAllianzText}</div>
+
               <div className="text-gray-600">Internet:</div>
-              <div className="text-gray-900">{contract.header.internet}</div>
-              
+              <div className="text-gray-900">{contract.contract.kContract.deAllgInfos.internet}</div>
+
               <div className="text-gray-600">Tel. gesch.:</div>
-              <div className="text-gray-900">{contract.header.telBusiness}</div>
-              
+              <div><ParsedLink htmlString={contract.contract.kContract.deAllgInfos.telGesch} fallbackClassName="text-gray-900" /></div>
+
               <div className="text-gray-600">Tel. mobil:</div>
-              <div className="text-blue-600 underline">{contract.header.telMobile}</div>
+              <div><ParsedLink htmlString={contract.contract.kContract.deAllgInfos.telMobil} /></div>
               
               <div className="text-gray-600">E-Mail:</div>
-              <div className="text-blue-600 underline">{contract.header.email}</div>
-              
+              <div><ParsedLink htmlString={contract.contract.kContract.deAllgInfos.email} /></div>
+
               <div className="text-gray-600">Verantw.:</div>
-              <div className="text-gray-900">{contract.header.responsible}</div>
+              <div className="text-gray-900">{contract.contract.kContract.deAllgInfos.verantwortlich}</div>
             </div>
           </div>
 
           {/* Rechte Spalte - Weitere Infos */}
           <div className="space-y-1">
             <div className="text-right">
-              <div className="text-sm text-gray-900">{contract.header.referenceNumber}</div>
-              <div className="text-sm font-medium text-gray-900">{contract.header.type}</div>
+              <div className="text-sm text-gray-900">{contract.contract.kContract.deAllgInfos.bgvgVnr}</div>
+              <div className="text-sm font-medium text-gray-900">{contract.contract.kContract.deAllgInfos.dienstleistungsgebiet}</div>
             </div>
             <div className="text-sm text-gray-700 text-right mt-4">
-              60596 Frankfurt am Main
+              {contract.contract.kContract.deAllgInfos.vertrName}
+            </div>
+            <div className="text-sm text-gray-700 text-right mt-4">
+              {contract.contract.kContract.deAllgInfos.vertrAnschrift}
+            </div>
+            <div className="text-sm text-gray-700 text-right mt-4">
+              {contract.contract.kContract.deAllgInfos.vertrPlzOrt}
             </div>
             <div className="text-sm text-gray-700 text-right">
-              Fax: {contract.header.fax}
+             {cleanServiceText(contract.contract.kContract.deAllgInfos.vertrTelFax)}
             </div>
           </div>
         </div>

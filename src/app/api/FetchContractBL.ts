@@ -1,7 +1,7 @@
 // Business Logic Layer für Contract-Daten
 // Entscheidet basierend auf EditMode zwischen DB-Aufruf und Tardis-Flow
 
-import { Contract, ContractTree, Ordnervereinbarung } from '@/types/contractTypes';
+import { Contract, ContractTree, Ordnervereinbarung, TreeNode, KVUEVertragsHierarchie } from '@/types/contractTypes';
 import { fetchContractDataDB } from './FetchContractDB';
 import { FIELD_DEFINITIONS } from '@/constants/fieldConfig';
 
@@ -29,19 +29,28 @@ export const TardisCallVorbereiten = async (
   }
   
   // Simuliere Modifikation: Füge "vorbereitet" an Straße in der Header-Adresse an
-  const preparedContract: Contract = {
-    ...contractFromDB,
-    header: {
-      ...contractFromDB.header,
-      address: {
-        ...contractFromDB.header.address,
-        street: contractFromDB.header.address.street ? 
-          `${contractFromDB.header.address.street} vorbereitet` : 
-          contractFromDB.header.address.street
-      }
-    }
-  };
-  
+
+    const preparedContract = { ...contractFromDB };
+
+  if (
+    preparedContract.contract &&
+    preparedContract.contract.kContract &&
+    preparedContract.contract.kContract.deAllgInfos
+  ) {
+    preparedContract.contract = {
+      ...preparedContract.contract,
+      kContract: {
+        ...preparedContract.contract.kContract,
+        deAllgInfos: {
+          ...preparedContract.contract.kContract.deAllgInfos,
+          nameVn: preparedContract.contract.kContract.deAllgInfos.nameVn
+            ? `${preparedContract.contract.kContract.deAllgInfos.nameVn} vorbereitet`
+            : preparedContract.contract.kContract.deAllgInfos.nameVn,
+        },
+      },
+    };
+  }
+
   console.log('✅ TardisCallVorbereiten: Contract vorbereitet');
   return preparedContract;
 };
@@ -53,22 +62,46 @@ export const fetchContractTardis = async (preparedContract: Contract): Promise<C
   // Simuliere WebService-Aufruf (normalerweise HTTP-Request)
   await new Promise(resolve => setTimeout(resolve, 500)); // Simuliere Latenz
   
-  // Simuliere Tardis-Antwort: Füge "für Tardis" an Straße an
-  const tardisContract: Contract = {
-    ...preparedContract,
-    header: {
-      ...preparedContract.header,
-      address: {
-        ...preparedContract.header.address,
-        street: preparedContract.header.address.street ? 
-          `${preparedContract.header.address.street} für Tardis` : 
-          preparedContract.header.address.street
-      }
-    }
-  };
-  
+  // Simuliere Tardis-Antwort: Füge "für Tardis" an nameVn in deAllgInfos an
+  // Nur nameVn in preparedContract.contract.kContract.deAllgInfos updaten, falls vorhanden
+  const tardisContract = { ...preparedContract };
+
+  if (
+    tardisContract.contract &&
+    tardisContract.contract.kContract &&
+    tardisContract.contract.kContract.deAllgInfos
+  ) {
+    tardisContract.contract = {
+      ...tardisContract.contract,
+      kContract: {
+        ...tardisContract.contract.kContract,
+        deAllgInfos: {
+          ...tardisContract.contract.kContract.deAllgInfos,
+          nameVn: tardisContract.contract.kContract.deAllgInfos.nameVn
+            ? `${tardisContract.contract.kContract.deAllgInfos.nameVn} für Tardis`
+            : tardisContract.contract.kContract.deAllgInfos.nameVn,
+        },
+      },
+    };
+  }
+
   console.log('✅ fetchContractTardis: Tardis WebService Antwort erhalten');
   return tardisContract;
+};
+
+// Konvertiert KVUEVertragsHierarchie zu TreeNode
+const convertKVUEToTreeNode = (kvue: KVUEVertragsHierarchie, parentId?: string): TreeNode => {
+  return {
+    id: kvue.id,
+    name: kvue.name,
+    description: kvue.description,
+    type: kvue.type as TreeNode['type'],
+    aktivesObjekt: kvue.aktivesObjekt,
+    expanded: kvue.expanded,
+    level: kvue.level,
+    parentId: parentId,
+    children: kvue.children?.map(child => convertKVUEToTreeNode(child, kvue.id))
+  };
 };
 
 // Optimierte Funktion: Nur ContractTree laden (ändert sich nicht bei EditMode-Switch)
@@ -77,8 +110,30 @@ export const fetchContractTreeBL = async (): Promise<ContractTree> => {
   
   // ContractTree ist immer gleich - direkt aus DB laden
   const contract = await fetchContractDataDB();
-  console.log('✅ fetchContractTreeBL: ContractTree geladen');
-  return contract.tree;
+  const kvueHierarchy = contract.contract.kContract.KVUEVertragsHierarchie;
+  
+  // Konvertiere KVUEVertragsHierarchie zu ContractTree
+  const contractTree: ContractTree = {
+    rootNodes: [convertKVUEToTreeNode(kvueHierarchy)],
+    activeNodeId: findActiveNodeId(kvueHierarchy)
+  };
+  
+  console.log('✅ fetchContractTreeBL: ContractTree geladen und konvertiert');
+  return contractTree;
+};
+
+// Hilfsfunktion: Findet die ID des aktiven Knotens
+const findActiveNodeId = (kvue: KVUEVertragsHierarchie): string | undefined => {
+  if (kvue.aktivesObjekt) {
+    return kvue.id;
+  }
+  
+  for (const child of kvue.children || []) {
+    const activeId = findActiveNodeId(child);
+    if (activeId) return activeId;
+  }
+  
+  return undefined;
 };
 
 // Optimierte Funktion: Nur Ordnervereinbarungen laden (abhängig von EditMode)
@@ -90,7 +145,21 @@ export const fetchOrdnervereinbarungenBL = async (isEditMode: boolean): Promise<
     console.log('👁️ Anzeige-Modus: Lade Ordnervereinbarungen direkt aus DB');
     const contract = await fetchContractDataDB();
     console.log('✅ fetchOrdnervereinbarungenBL: DB-Ordnervereinbarungen geladen');
-    return contract.ordnervereinbarungen;
+    //return contract.ordnervereinbarungen;
+
+    return [
+    {
+      id: "1",
+      text: "Anzeige Erste Vereinbarung",
+      category: "Allgemein",
+    },
+    {
+      id: "2",
+      text: "Anzeige Zweite Vereinbarung",
+      category: "Spezial",
+    },
+  ];
+
   } else {
     // Edit-Modus: Tardis-Flow für Ordnervereinbarungen
     console.log('✏️ Edit-Modus: Starte Tardis-Flow für Ordnervereinbarungen');
@@ -106,7 +175,20 @@ export const fetchOrdnervereinbarungenBL = async (isEditMode: boolean): Promise<
     const finalContract = await fetchContractTardis(preparedContract);
     
     console.log('✅ fetchOrdnervereinbarungenBL: Tardis-Flow für Ordnervereinbarungen abgeschlossen');
-    return finalContract.ordnervereinbarungen;
+
+    return [
+    {
+      id: "1",
+      text: "Erste Vereinbarung",
+      category: "Allgemein",
+    },
+    {
+      id: "2",
+      text: "Zweite Vereinbarung",
+      category: "Spezial",
+    },
+  ];
+    //return finalContract.ordnervereinbarungen;
   }
 };
 
@@ -121,7 +203,7 @@ export const fetchContractDataBL = async (isEditMode: boolean): Promise<Contract
     // Anzeige-Modus: Direkt aus DB laden
     console.log(`👁️ [${callId}] Anzeige-Modus: Lade direkt aus DB`);
     const contract = await fetchContractDataDB();
-    console.log(`👁️ [${callId}] DB-Contract Fahrleistung:`, contract.header.address.street); // Proxy für Daten-Check
+    console.log(`👁️ [${callId}] DB-Contract Fahrleistung:`, contract.contract.kContract.deAllgInfos.nameVn); // Proxy für Daten-Check
     console.log(`✅ [${callId}] fetchContractDataBL: DB-Daten geladen`);
     return contract;
   } else {
@@ -138,7 +220,7 @@ export const fetchContractDataBL = async (isEditMode: boolean): Promise<Contract
     
     // 3. Tardis WebService aufrufen
     const finalContract = await fetchContractTardis(preparedContract);
-    console.log(`🚀 [${callId}] Tardis-Contract Fahrleistung:`, finalContract.header.address.street); // Proxy für Daten-Check
+    console.log(`🚀 [${callId}] Tardis-Contract Fahrleistung:`, finalContract.contract.kContract.deAllgInfos.nameVn); // Proxy für Daten-Check
     
     console.log(`✅ [${callId}] fetchContractDataBL: Tardis-Flow abgeschlossen`);
     return finalContract;
