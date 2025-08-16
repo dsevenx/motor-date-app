@@ -58,8 +58,6 @@ ${kraftblContent}
       
       if (field.type === 'table' || field.type === 'single-line-table') {
         // Für Tabellen: Prüfe ob mindestens eine Zeile echteEingabe hat
-        console.log(`🔍 DEBUG Tabelle ${field.key}:`, { fieldValue, type: typeof fieldValue, isArray: Array.isArray(fieldValue) });
-        
         let actualTableData: any[] = [];
         
         // Extrahiere das echte Array aus verschiedenen möglichen Strukturen
@@ -71,8 +69,6 @@ ${kraftblContent}
           actualTableData = fieldValue.data;
         }
         
-        console.log(`🔍 DEBUG actualTableData für ${field.key}:`, actualTableData);
-        
         if (actualTableData.length > 0) {
           // Prüfe Row-Level echteEingabe
           const hasExplicitEchteEingabe = actualTableData.some((row: any) => row.echteEingabe === true);
@@ -80,7 +76,6 @@ ${kraftblContent}
           // Für Produkttabellen: NUR explizite echteEingabe zählt (keine Fallback-Logik)
           if (field.key === 'produktSparten' || field.key.startsWith('produktBausteine_')) {
             istEingegeben = hasExplicitEchteEingabe;
-            console.log(`🔍 Produkttabelle ${field.key}: istEingegeben = ${istEingegeben} (NUR explicitEchteEingabe, kein Fallback)`);
           } else {
             // Für normale Tabellen: Fallback-Logik für Non-Default-Daten
             const hasNonDefaultData = actualTableData.some((row: any) => {
@@ -93,16 +88,13 @@ ${kraftblContent}
             });
             
             istEingegeben = hasExplicitEchteEingabe || hasNonDefaultData;
-            console.log(`🔍 Normale Tabelle ${field.key}: istEingegeben = ${istEingegeben} (explicitEchteEingabe: ${hasExplicitEchteEingabe}, nonDefaultData: ${hasNonDefaultData})`);
           }
         } else {
           istEingegeben = false;
-          console.log(`🔍 Tabelle ${field.key}: istEingegeben = false (keine Daten)`);
         }
       } else {
         // Für normale Felder: Prüfe Field-Level echteEingabe
         istEingegeben = echteEingabeValue !== undefined && echteEingabeValue !== field.defaultValue;
-        console.log(`🔍 DEBUG Normal Field ${field.key}: echteEingabeValue=${echteEingabeValue}, defaultValue=${field.defaultValue}, istEingegeben=${istEingegeben}`);
       }
       
       if (istEingegeben) {
@@ -118,18 +110,13 @@ ${kraftblContent}
             actualTableData = fieldValue.data;
           }
           
-          console.log(`🔍 Übergebe an erzeugeTabellXML für ${field.key}:`, actualTableData);
-          
           const tableXml = this.erzeugeTabellXML(field, actualTableData);
-          console.log(`🔍 erzeugtes XML für ${field.key}:`, tableXml);
           if (tableXml) {
             xmlParts.push(tableXml);
           }
         } else {
           // Direkte Felder (Zahl, Datum, Text, DropDown, CheckBox)
-          console.log(`🔍 Generiere Feld-XML für ${field.key}: echteEingabeValue=${echteEingabeValue}`);
           const fieldXml = this.erzeugeFeldXML(field, echteEingabeValue);
-          console.log(`🔍 Feld-XML für ${field.key}:`, fieldXml);
           if (fieldXml) {
             xmlParts.push(fieldXml);
           }

@@ -40,8 +40,6 @@ function convertValueToFieldType(value: any, fieldType: string): any {
 
 function mergeTableData(currentTable: any[], aiTable: any[], fieldKey: string): any[] {
   console.log(`🔄 Merge ${fieldKey}:`, { current: currentTable?.length || 0, ai: aiTable?.length || 0 });
-  console.log(`🔍 MERGE INPUT currentTable:`, currentTable);
-  console.log(`🔍 MERGE INPUT aiTable:`, aiTable);
   
   if (!Array.isArray(aiTable) || aiTable.length === 0) {
     return currentTable || [];
@@ -61,8 +59,6 @@ function mergeTableData(currentTable: any[], aiTable: any[], fieldKey: string): 
   const merged = [...currentTable];
   
   aiTable.forEach((aiRow: any) => {
-    console.log(`🔍 MERGE DEBUG: Processing aiRow for ${fieldKey}:`, aiRow);
-    console.log(`🔍 MERGE DEBUG: aiRow.id=${aiRow.id}, !aiRow.id=${!aiRow.id}`);
     if (!aiRow.id) {
       // Neue Zeile ohne ID -> Hinzufügen
       const processedRow = {
@@ -71,12 +67,10 @@ function mergeTableData(currentTable: any[], aiTable: any[], fieldKey: string): 
         echteEingabe: true
       };
       
-      // Spezielle Behandlung für produktSparten: zustand basierend auf check (NACH spread, IMMER setzen)
+      // Spezielle Behandlung für produktSparten: zustand basierend auf check
       if (fieldKey === 'produktSparten') {
         const checkValue = aiRow.check !== undefined ? aiRow.check : processedRow.check;
         processedRow.zustand = checkValue ? 'A' : ' ';
-        console.log(`🔄 ProductSparte NEW ${aiRow.id}: check=${checkValue} → zustand='${processedRow.zustand}' (FORCED)`);
-        console.log(`🔄 ProductSparte NEW COMPLETE ROW:`, processedRow);
       }
       
       // Spezielle Behandlung für produktBausteine: knotenId von id kopieren
@@ -163,17 +157,6 @@ function mergeTableData(currentTable: any[], aiTable: any[], fieldKey: string): 
     }
   });
   
-  // FINAL FINAL FINAL zustand override for all produktSparten (absolute last chance)
-  if (fieldKey === 'produktSparten') {
-    console.log(`🔥 ULTIMATE FINAL ZUSTAND CHECK for produktSparten:`);
-    merged.forEach((row: any, index: number) => {
-      const oldZustand = row.zustand;
-      row.zustand = row.check ? 'A' : ' ';
-      console.log(`🔥 Row ${index}: id=${row.id}, check=${row.check}, zustand: "${oldZustand}" → "${row.zustand}"`);
-    });
-  }
-  
-  console.log(`🔍 MERGE RESULT for ${fieldKey}:`, merged);
   return merged;
 }
 
@@ -181,11 +164,7 @@ export async function POST(request: NextRequest) {
   try {
     const { extractedData, currentFieldDefinitions } = await request.json();
     
-    console.log('🚀 ===== PROCESS-EXTRACTED-DATA START =====');
-    console.log('🚀 Eingangsdaten:', {
-      extractedDataKeys: Object.keys(extractedData || {}),
-      hasCurrentFieldDefinitions: !!currentFieldDefinitions
-    });
+    console.log('🚀 Process extracted data started');
     
     if (!extractedData || typeof extractedData !== 'object') {
       throw new Error('Invalid extractedData provided');
@@ -193,8 +172,6 @@ export async function POST(request: NextRequest) {
     
     // 1. Generiere default values und Setters (wie in ChatComponent)
     const defaultValues = generateDefaultValues();
-    console.log('🔍 Default values keys:', Object.keys(defaultValues));
-    console.log('🔍 Default values beginndatum:', defaultValues.beginndatum);
     
     // Mock setters für API context (nicht verwendet, aber für generateFieldConfigs benötigt)
     const mockSetters: Record<string, (value: any) => void> = {};
@@ -206,7 +183,6 @@ export async function POST(request: NextRequest) {
     try {
       // Generiere FieldConfigs mit aktuellen Werten
       fieldConfigs = generateFieldConfigs(defaultValues, mockSetters);
-      console.log('✅ FieldConfigs generiert:', fieldConfigs.length);
     } catch (configError) {
       console.error('❌ Fehler bei generateFieldConfigs:', configError);
       if (configError instanceof Error) {
@@ -221,7 +197,6 @@ export async function POST(request: NextRequest) {
     const processedFields: string[] = [];
     
     Object.entries(extractedData).forEach(([fieldKey, extractedValue]) => {
-      console.log(`🔍 Verarbeite Feld: ${fieldKey}`, extractedValue);
       
       const typedExtractedValue = extractedValue as ExtractedFieldValue;
       
@@ -248,8 +223,6 @@ export async function POST(request: NextRequest) {
           const currentTableValue = fieldConfig.currentValue || [];
           const aiTableValue = Array.isArray(convertedValue) ? convertedValue : [];
           
-          console.log(`🔍 TABLE PROCESSING: fieldKey=${fieldKey}, type=${fieldConfig.type}`);
-          console.log(`🔍 TABLE PROCESSING: currentTableValue.length=${currentTableValue.length}, aiTableValue.length=${aiTableValue.length}`);
           
           if (fieldConfig.type === 'single-line-table' && aiTableValue.length > 0) {
             // Spezielle Behandlung für einzeilige Tabellen
@@ -270,14 +243,11 @@ export async function POST(request: NextRequest) {
                 echteEingabe: true
               }));
             }
-              console.log(`✅ SingleLine Zweig ${fieldKey} :`, newValue);
           } else {
             // Verwende intelligente Merge-Funktion für normale Tabellen
             newValue = mergeTableData(currentTableValue, aiTableValue, fieldKey);
-           console.log(`✅ mergeTableData Zweig ${fieldKey} :`, newValue);
           }
         } else {
-           console.log(`✅ convertedValue Zweig ${fieldKey} :`, newValue);
           newValue = convertedValue;
         }
         
@@ -291,10 +261,6 @@ export async function POST(request: NextRequest) {
           };
           
           processedFields.push(fieldKey);
-          console.log(`✅ -hier war der Merge Bereits-> ${fieldKey} aktualisiert:`, newValue);
-          if (fieldKey === 'produktSparten') {
-            console.log(`🔍 FIELD UPDATE: produktSparten value after merge:`, JSON.stringify(newValue, null, 2));
-          }
         } else {
           console.log(`⚠️ Feld ${fieldKey} nicht in FIELD_DEFINITIONS gefunden - überspringe`);
         }
@@ -333,31 +299,20 @@ export async function POST(request: NextRequest) {
       return acc;
     }, {} as Record<string, any>);
     
-    console.log('🔍 ------->Generierte echteEingabeValues:', {
-      kilometerstaende: echteEingabeValues.kilometerstaende,
-      produktSparten: echteEingabeValues.produktSparten,
-      produktBausteine_KK: echteEingabeValues.produktBausteine_KK,
-      KraftDmKfzVorfahrl: echteEingabeValues.KraftDmKfzVorfahrl
-    });
     
     // 4. Aktualisiere globale FIELD_DEFINITIONS mit echteEingabe-Flags
-    console.log('🔄 Aktualisiere globale FIELD_DEFINITIONS mit echteEingabe-Flags...');
     processedFields.forEach(fieldKey => {
       const fieldIndex = FIELD_DEFINITIONS.findIndex(f => f.key === fieldKey);
       if (fieldIndex >= 0) {
         const updatedField = updatedFieldDefinitions[fieldIndex];
         FIELD_DEFINITIONS[fieldIndex].echteEingabeValue = updatedField.echteEingabeValue;
-        console.log(`✅ Globale FIELD_DEFINITIONS[${fieldKey}].echteEingabe = ${updatedField.echteEingabeValue !== undefined}`);
       }
     });
     
     // 5. Generiere XML mit verarbeiteten Daten (verwendet jetzt globale FIELD_DEFINITIONS)
-    console.log('📄 ------->Generiere XML mit ServiceABSEinarbeiterHelper...');
     const xml = ServiceABSEinarbeiterHelper.erzeugeSendeXML(echteEingabeValues);
     
-    console.log('✅ ===== PROCESS-EXTRACTED-DATA COMPLETE =====');
-    console.log('✅ Verarbeitete Felder:', processedFields);
-    console.log('✅ XML Länge:', xml.length);
+    console.log('✅ Process extracted data completed, verarbeitete Felder:', processedFields.length);
     
     return NextResponse.json({
       success: true,
@@ -368,8 +323,7 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('❌ ===== PROCESS-EXTRACTED-DATA ERROR =====');
-    console.error('❌ Error:', error);
+    console.error('❌ Process extracted data error:', error);
     
     return NextResponse.json({
       success: false,
